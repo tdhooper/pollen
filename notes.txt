@@ -1,0 +1,8 @@
+* camera -> texture
+* texture -> mirrored icosphere
+* mesh deformation
+* mesh deformed normals
+* colour deformation control
+* holes
+* texture/mesh warping control
+* alternative polyhedra
