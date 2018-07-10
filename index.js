@@ -6,17 +6,45 @@ const normals = require('angle-normals');
 const canvas = document.body.appendChild(document.createElement('canvas'));
 const regl = require('regl')(canvas);
 const camera = require('canvas-orbit-camera')(canvas);
+camera.zoom(-30);
 
 window.addEventListener('resize', fit(canvas), false);
 
 const mesh = icosphere(2);
 
+var videoReady = false;
+var video = document.createElement('video');
+video.width = 200;
+document.body.appendChild(video);
+var videoTexture = regl.texture();
+
+var constraints = {
+    video: true
+};
+navigator.mediaDevices.getUserMedia(constraints)
+    .then(function(mediaStream) {
+        video.srcObject = mediaStream;
+        video.onloadedmetadata = function(e) {
+            video.play();
+            videoTexture(video);
+            videoReady = true;
+        };
+    })
+    .catch(function(err) {
+        console.log(err.name + ": " + err.message);
+    });
+
+
 const drawSphere = regl({
   frag: `
     precision mediump float;
     varying vec3 vnormal;
+    varying vec2 vuv;
+    uniform sampler2D video;
     void main () {
-      gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
+        vec3 tex = texture2D(video, vuv * .5 + .5).rgb;
+        gl_FragColor = vec4(tex, 1);
+        // gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
     }`,
   vert: `
     precision mediump float;
@@ -25,14 +53,20 @@ const drawSphere = regl({
     uniform mat4 view;
     attribute vec3 position;
     attribute vec3 normal;
+    attribute vec2 uv;
     varying vec3 vnormal;
+    varying vec2 vuv;
     void main () {
       vnormal = normal;
+      vuv = uv;
       gl_Position = proj * view * model * vec4(position, 1.0);
     }`,
   attributes: {
     position: mesh.positions,
-    normal: normals(mesh.cells, mesh.positions)
+    normal: normals(mesh.cells, mesh.positions),
+    uv: mesh.positions.map(function(p) {
+        return [p[0], p[1]];
+    })
   },
   elements: mesh.cells,
   uniforms: {
@@ -43,7 +77,8 @@ const drawSphere = regl({
         0.01,
         1000),
     model: mat4.identity([]),
-    view: () => camera.view()
+    view: () => camera.view(),
+    video: videoTexture
   }
 })
 
@@ -52,5 +87,8 @@ regl.frame(() => {
     color: [0, 0, 0, 1]
   })
   camera.tick()
+  if (videoReady) {
+    videoTexture.subimage(video);
+  }
   drawSphere()
 })
