@@ -12,7 +12,7 @@ window.addEventListener('resize', fit(canvas), false);
 
 var mesh;
 mesh = geometry.icosahedron(2);
-mesh = geometry.tetrahedron(3);
+// mesh = geometry.tetrahedron(3);
 
 var videoReady = false;
 var video = document.createElement('video');
