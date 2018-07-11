@@ -1,5 +1,5 @@
 const mat4 = require('gl-mat4');
-const icosphere = require('icosphere');
+const icosphere = require('./icosphere');
 const fit = require('canvas-fit');
 const normals = require('angle-normals');
 
