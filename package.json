@@ -2,9 +2,9 @@
   "name": "pollen",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "js/index.js",
   "scripts": {
-    "start": "budo index.js --live --ssl --css main.css"
+    "start": "budo js/index.js --live --ssl --css main.css"
   },
   "author": "",
   "license": "ISC",
