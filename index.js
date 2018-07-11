@@ -12,7 +12,7 @@ window.addEventListener('resize', fit(canvas), false);
 
 var mesh;
 mesh = geometry.icosahedron(2);
-mesh = geometry.tetrahedron(3);
+// mesh = geometry.tetrahedron(3);
 
 var videoReady = false;
 var video = document.createElement('video');
@@ -84,7 +84,7 @@ const drawSphere = regl({
 
 regl.frame(() => {
   regl.clear({
-    color: [0, 0, 0, 1]
+    color: [.8, .82, .85, 1]
   })
   camera.rotate([.003,0.002],[0,0]);
   camera.tick()
