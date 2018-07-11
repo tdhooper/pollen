@@ -1,16 +1,18 @@
 const mat4 = require('gl-mat4');
-const icosphere = require('./icosphere');
 const fit = require('canvas-fit');
 const normals = require('angle-normals');
+const geometry = require('./geometry/polyhedra');
 
 const canvas = document.body.appendChild(document.createElement('canvas'));
 const regl = require('regl')(canvas);
 const camera = require('canvas-orbit-camera')(canvas);
-camera.zoom(-30);
+camera.distance = 10;
 
 window.addEventListener('resize', fit(canvas), false);
 
-const mesh = icosphere(0);
+var mesh;
+mesh = geometry.icosahedron(2);
+mesh = geometry.tetrahedron(3);
 
 var videoReady = false;
 var video = document.createElement('video');
@@ -70,7 +72,7 @@ const drawSphere = regl({
   uniforms: {
     proj: ({viewportWidth, viewportHeight}) =>
       mat4.perspective([],
-        Math.PI / 2,
+        Math.PI / 10,
         viewportWidth / viewportHeight,
         0.01,
         1000),
