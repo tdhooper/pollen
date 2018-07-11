@@ -44,7 +44,7 @@ const drawSphere = regl({
     varying vec2 vuv;
     uniform sampler2D video;
     void main () {
-        vec3 tex = texture2D(video, vuv * .5 + .5).rgb;
+        vec3 tex = texture2D(video, vec2(1) - vuv).rgb;
         gl_FragColor = vec4(tex, 1);
         // gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
     }`,
