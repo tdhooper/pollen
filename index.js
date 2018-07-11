@@ -17,6 +17,9 @@ mesh = geometry.icosahedron(2);
 var videoReady = false;
 var video = document.createElement('video');
 video.width = 200;
+video.autoplay = true;
+video.controls = true;
+video.setAttribute('playsinline', 'playsinline');
 document.body.appendChild(video);
 var videoTexture = regl.texture();
 
