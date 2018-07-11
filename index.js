@@ -24,7 +24,9 @@ document.body.appendChild(video);
 var videoTexture = regl.texture();
 
 var constraints = {
-    video: true
+    video: {
+        facingMode: 'environment'
+    }
 };
 navigator.mediaDevices.getUserMedia(constraints)
     .then(function(mediaStream) {
