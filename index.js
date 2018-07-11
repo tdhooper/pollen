@@ -2,6 +2,7 @@ const mat4 = require('gl-mat4');
 const fit = require('canvas-fit');
 const normals = require('angle-normals');
 const geometry = require('./geometry/polyhedra');
+const WebcamTexture = require('./webcam-texture');
 
 const canvas = document.body.appendChild(document.createElement('canvas'));
 const regl = require('regl')(canvas);
@@ -14,33 +15,7 @@ var mesh;
 mesh = geometry.icosahedron(2);
 // mesh = geometry.tetrahedron(3);
 
-var videoReady = false;
-var video = document.createElement('video');
-video.width = 200;
-video.autoplay = true;
-video.controls = true;
-video.setAttribute('playsinline', 'playsinline');
-document.body.appendChild(video);
-var videoTexture = regl.texture();
-
-var constraints = {
-    video: {
-        facingMode: 'environment'
-    }
-};
-navigator.mediaDevices.getUserMedia(constraints)
-    .then(function(mediaStream) {
-        video.srcObject = mediaStream;
-        video.onloadedmetadata = function(e) {
-            video.play();
-            videoTexture(video);
-            videoReady = true;
-        };
-    })
-    .catch(function(err) {
-        console.log(err.name + ": " + err.message);
-    });
-
+var webcam = new WebcamTexture(regl);
 
 const drawSphere = regl({
   frag: `
@@ -83,7 +58,7 @@ const drawSphere = regl({
         1000),
     model: mat4.identity([]),
     view: () => camera.view(),
-    video: videoTexture
+    video: webcam.texture
   }
 })
 
@@ -93,8 +68,6 @@ regl.frame(() => {
   })
   camera.rotate([.003,0.002],[0,0]);
   camera.tick()
-  if (videoReady) {
-    videoTexture.subimage(video);
-  }
+  webcam.update();
   drawSphere()
 })
