@@ -10,7 +10,7 @@ camera.zoom(-30);
 
 window.addEventListener('resize', fit(canvas), false);
 
-const mesh = icosphere(2);
+const mesh = icosphere(0);
 
 var videoReady = false;
 var video = document.createElement('video');
@@ -64,9 +64,7 @@ const drawSphere = regl({
   attributes: {
     position: mesh.positions,
     normal: normals(mesh.cells, mesh.positions),
-    uv: mesh.positions.map(function(p) {
-        return [p[0], p[1]];
-    })
+    uv: mesh.uvs
   },
   elements: mesh.cells,
   uniforms: {
@@ -86,6 +84,7 @@ regl.frame(() => {
   regl.clear({
     color: [0, 0, 0, 1]
   })
+  camera.rotate([.003,0.002],[0,0]);
   camera.tick()
   if (videoReady) {
     videoTexture.subimage(video);

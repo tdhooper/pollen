@@ -24,6 +24,10 @@ function icosphere(subdivisions) {
   positions.push([-t,  0, -1])
   positions.push([-t,  0, +1])
 
+  var uvs = positions.map(function() {
+    return [0, 0];
+  });
+
   faces.push([0, 11, 5])
   faces.push([0, 5, 1])
   faces.push([0, 1, 7])
@@ -69,6 +73,11 @@ function icosphere(subdivisions) {
     }, [0, 0, 0]);
     normalize(midpoint);
     positions.push(midpoint);
+    if (c !== undefined) {
+      uvs.push([1,1]);
+    } else {
+      uvs.push([1,0]);
+    }
     var newIndex = positions.length - 1;
     positionMap[id] = newIndex;
     return newIndex;
@@ -93,6 +102,7 @@ function icosphere(subdivisions) {
   var complex = {
       cells: schwarzFaces
     , positions: positions
+    , uvs: uvs
   }
 
   while (subdivisions-- > 0) {
