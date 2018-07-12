@@ -177,7 +177,33 @@ const drawSphere = regl({
     video: regl.prop('video'),
     heightMap: regl.prop('heightMap')
   }
-})
+});
+
+const drawVideo = regl({
+  frag: glslify(`
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 resolution;
+    uniform vec4 area;
+
+    #pragma glslify: range = require('glsl-range')
+
+    void main() {
+      vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
+      if (uv.x < area.x || uv.x > area.z || uv.y < area.y || uv.y > area.w) {
+        discard;
+      }
+      vec2 areaUv = range(area.xy, area.zw, uv);
+      gl_FragColor = texture2D(source, areaUv);
+    }`),
+  uniforms: {
+    source: regl.prop('source'),
+    area: regl.prop('area'),
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
+    }
+  }
+});
 
 regl.frame(() => {
   regl.clear({
@@ -210,4 +236,13 @@ regl.frame(() => {
     heightMap: blurBuffers[1],
     video: webcam.texture
   });
+  setupPass(function() {
+    drawVideo({
+      source: webcam.texture,
+      area: [
+        .75, .75,
+        .9, .9
+      ]
+    });
+  })
 })
