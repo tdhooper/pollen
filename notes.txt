@@ -1,8 +1,8 @@
-* camera -> texture
-* texture -> mirrored icosphere
-* mesh deformation
-* mesh deformed normals
 * colour deformation control
+* mesh deformed normals
+* lighting
+* background + environment
 * holes
 * texture/mesh warping control
 * alternative polyhedra
+* can instancing improve performance?
