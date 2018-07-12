@@ -20,8 +20,11 @@ var webcam = new WebcamTexture(regl);
 
 var heightMap = regl.framebuffer({
   depth: false,
-  width: 1024,
-  height: 1024
+  color: regl.texture({
+    width: 4,
+    height: 4,
+    mag: 'linear'
+  })
 });
 
 const drawHeightMap = regl({
@@ -61,11 +64,13 @@ const drawSphere = regl({
     precision mediump float;
     varying vec3 vnormal;
     varying vec2 vuv;
-    varying float height;
+    //varying float height;
     uniform sampler2D video;
+    uniform sampler2D heightMap;
     void main () {
         vec3 tex = texture2D(video, vec2(1) - vuv).rgb;
         gl_FragColor = vec4(tex, 1);
+        // vec3 height = texture2D(heightMap, vec2(1) - vuv).rgb;
         // gl_FragColor = vec4(vec3(height), 1);
         // gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
     }`,
