@@ -13,8 +13,8 @@ camera.distance = 10;
 window.addEventListener('resize', fit(canvas), false);
 
 var mesh;
-mesh = geometry.icosahedron(5);
-// mesh = geometry.tetrahedron(6);
+// mesh = geometry.icosahedron(5);
+mesh = geometry.tetrahedron(6);
 
 var webcam = new WebcamTexture(regl);
 
@@ -30,12 +30,22 @@ var debugTexture = regl.texture({
   mag: 'linear'
 });
 
+var croppedVideo = regl.framebuffer({
+  depth: false,
+  color: regl.texture({
+    width: 1024,
+    height: 1024,
+    mag: 'linear',
+    min: 'linear'
+  })
+});
+
 const blurBuffers = [0,0].map(function() {
   return regl.framebuffer({
     depth: false,
     color: regl.texture({
-      width: 32,
-      height: 32,
+      width: 64,
+      height: 64,
       mag: 'linear'
     })
   });
@@ -59,20 +69,25 @@ const setupPass = regl({
 });
 
 const resamplePass = regl({
-  frag: `
+  frag: glslify(`
     precision mediump float;
     uniform sampler2D source;
     uniform vec2 resolution;
+    uniform vec4 area;
 
     void main() {
       vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
-      gl_FragColor = texture2D(source, uv);
-    }`,
+      vec2 areaUv = mix(area.xy, area.zw, uv);
+      gl_FragColor = texture2D(source, areaUv);
+    }`),
   uniforms: {
     direction: regl.prop('direction'),
     source: regl.prop('source'),
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
+    },
+    area: function(context, props) {
+      return props.hasOwnProperty('area') ? props.area : [0,0,1,1];
     }
   },
   framebuffer: regl.prop('destination')
@@ -215,18 +230,27 @@ regl.frame(() => {
   setupPass(function() {
     resamplePass({
       source: webcam.texture,
+      destination: croppedVideo,
+      area: [.33, .33, .66, .66]
+    });
+    resamplePass({
+      source: croppedVideo,
       destination: blurBuffers[0]
     });
-    blurPass({
-      source: blurBuffers[0],
-      destination: blurBuffers[1],
-      direction: [1,0]
-    });
-    blurPass({
-      source: blurBuffers[1],
-      destination: blurBuffers[0],
-      direction: [0,1]
-    });
+    var i = 0;
+    while (i < 3) {
+      blurPass({
+        source: blurBuffers[0],
+        destination: blurBuffers[1],
+        direction: [1,0]
+      });
+      blurPass({
+        source: blurBuffers[1],
+        destination: blurBuffers[0],
+        direction: [0,1]
+      });
+      i += 1;
+    }
     heightMapPass({
       source: blurBuffers[0],
       destination: blurBuffers[1]
@@ -234,14 +258,14 @@ regl.frame(() => {
   });
   drawSphere({
     heightMap: blurBuffers[1],
-    video: webcam.texture
+    video: croppedVideo
   });
   setupPass(function() {
     drawVideo({
-      source: webcam.texture,
+      source: blurBuffers[0],
       area: [
         .75, .75,
-        .9, .9
+        1., 1.
       ]
     });
   })
