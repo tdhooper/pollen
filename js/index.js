@@ -12,37 +12,39 @@ camera.distance = 10;
 window.addEventListener('resize', fit(canvas), false);
 
 var mesh;
-mesh = geometry.icosahedron(4);
-// mesh = geometry.tetrahedron(5);
+mesh = geometry.icosahedron(5);
+// mesh = geometry.tetrahedron(6);
 
 var webcam = new WebcamTexture(regl);
 
+var o = [0,0,0];
+var i = [255,255,255];
 
-var heightMap = regl.framebuffer({
-  depth: false,
-  color: regl.texture({
-    width: 4,
-    height: 4,
-    mag: 'linear'
-  })
+var debugTexture = regl.texture({
+  data: [
+    [i,i,i],
+    [i,o,i],
+    [i,i,i]
+  ],
+  mag: 'linear'
 });
 
-const drawHeightMap = regl({
-  frag: `
-    precision mediump float;
-    uniform sampler2D video;
-    varying vec2 vuv;
-    void main () {
-      vec3 tex = texture2D(video, vuv).rgb;
-      float height = length(tex);
-      gl_FragColor = vec4(vec3(height), 1);
-    }`,
+const blurBuffers = [0,0].map(function() {
+  return regl.framebuffer({
+    depth: false,
+    color: regl.texture({
+      width: 32,
+      height: 32,
+      mag: 'linear'
+    })
+  });
+});
+
+const setupPass = regl({
   vert: `
     precision mediump float;
     attribute vec2 position;
-    varying vec2 vuv;
     void main () {
-      vuv = position;
       gl_Position = vec4(2. * position - 1., 0, 1);
     }`,
   attributes: {
@@ -53,10 +55,85 @@ const drawHeightMap = regl({
     ],
   },
   count: 3,
+});
+
+const resamplePass = regl({
+  frag: `
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 resolution;
+
+    void main() {
+      vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
+      gl_FragColor = texture2D(source, uv);
+    }`,
   uniforms: {
-    video: webcam.texture
+    direction: regl.prop('direction'),
+    source: regl.prop('source'),
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
+    }
   },
-  framebuffer: heightMap
+  framebuffer: regl.prop('destination')
+});
+
+const blurPass = regl({
+  frag: `
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 direction;
+    uniform vec2 resolution;
+
+    vec4 blur13(sampler2D image, vec2 uv, vec2 resolution, vec2 direction) {
+      vec4 color = vec4(0.0);
+      vec2 off1 = vec2(1.411764705882353) * direction;
+      vec2 off2 = vec2(3.2941176470588234) * direction;
+      vec2 off3 = vec2(5.176470588235294) * direction;
+      color += texture2D(image, uv) * 0.1964825501511404;
+      color += texture2D(image, uv + (off1 / resolution)) * 0.2969069646728344;
+      color += texture2D(image, uv - (off1 / resolution)) * 0.2969069646728344;
+      color += texture2D(image, uv + (off2 / resolution)) * 0.09447039785044732;
+      color += texture2D(image, uv - (off2 / resolution)) * 0.09447039785044732;
+      color += texture2D(image, uv + (off3 / resolution)) * 0.010381362401148057;
+      color += texture2D(image, uv - (off3 / resolution)) * 0.010381362401148057;
+      return color;
+    }
+
+    void main() {
+      vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
+      gl_FragColor = blur13(source, uv, resolution.xy, direction);
+    }`,
+  uniforms: {
+    direction: regl.prop('direction'),
+    source: regl.prop('source'),
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
+    }
+  },
+  framebuffer: regl.prop('destination')
+});
+
+const heightMapPass = regl({
+  frag: `
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 resolution;
+
+    void main () {
+      vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
+      vec3 tex = texture2D(source, uv).rgb;
+      float height = length(tex);
+      height = pow(height, 2.);
+      gl_FragColor = vec4(vec3(height), 1);
+      // gl_FragColor = vec4(tex, 1);
+    }`,
+  uniforms: {
+    source: regl.prop('source'),
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
+    }
+  },
+  framebuffer: regl.prop('destination')
 });
 
 const drawSphere = regl({
@@ -109,8 +186,8 @@ const drawSphere = regl({
         1000),
     model: mat4.identity([]),
     view: () => camera.view(),
-    video: webcam.texture,
-    heightMap: heightMap
+    video: regl.prop('video'),
+    heightMap: regl.prop('heightMap')
   }
 })
 
@@ -121,6 +198,28 @@ regl.frame(() => {
   camera.rotate([.003,0.002],[0,0]);
   camera.tick()
   webcam.update();
-  drawHeightMap();
-  drawSphere()
+  setupPass(function() {
+    resamplePass({
+      source: webcam.texture,
+      destination: blurBuffers[0]
+    });
+    blurPass({
+      source: blurBuffers[0],
+      destination: blurBuffers[1],
+      direction: [1,0]
+    });
+    blurPass({
+      source: blurBuffers[1],
+      destination: blurBuffers[0],
+      direction: [0,1]
+    });
+    heightMapPass({
+      source: blurBuffers[0],
+      destination: blurBuffers[1]
+    });
+  });
+  drawSphere({
+    heightMap: blurBuffers[1],
+    video: webcam.texture
+  });
 })
