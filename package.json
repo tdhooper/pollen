@@ -15,7 +15,14 @@
     "canvas-orbit-camera": "^1.0.2",
     "gl-mat4": "^1.2.0",
     "glsl-fast-gaussian-blur": "^1.0.2",
+    "glslify": "^6.2.1",
     "polyhedra": "^1.0.0",
-    "regl": "^1.3.7"
+    "regl": "^1.3.7",
+    "vectors": "^0.1.0"
+  },
+  "browserify": {
+    "transform": [
+      "glslify"
+    ]
   }
 }
