@@ -8,7 +8,7 @@ var WebcamTexture = function(regl) {
     this.video.controls = true;
     this.video.setAttribute('playsinline', 'playsinline');
 
-    document.body.appendChild(this.video);
+    // document.body.appendChild(this.video);
 
     this.texture = regl.texture();
 

@@ -4,6 +4,7 @@ const normals = require('angle-normals');
 const glslify = require('glslify');
 const geometry = require('./geometry/polyhedra');
 const WebcamTexture = require('./webcam-texture');
+const glm = require('gl-matrix');
 
 const canvas = document.body.appendChild(document.createElement('canvas'));
 const regl = require('regl')(canvas);
@@ -199,28 +200,36 @@ const drawVideo = regl({
     precision mediump float;
     uniform sampler2D source;
     uniform vec2 resolution;
-    uniform vec4 area;
+    uniform mat3 transform;
 
     #pragma glslify: range = require('glsl-range')
 
     void main() {
       vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
-      if (uv.x < area.x || uv.x > area.z || uv.y < area.y || uv.y > area.w) {
+      uv = (transform * vec3(uv, 1)).xy;
+      if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
         discard;
       }
-      vec2 areaUv = range(area.xy, area.zw, uv);
-      gl_FragColor = texture2D(source, areaUv);
+      //vec2 areaUv = range(area.xy, area.zw, uv);
+      gl_FragColor = texture2D(source, uv);
     }`),
   uniforms: {
     source: regl.prop('source'),
-    area: regl.prop('area'),
+    transform: regl.prop('transform'),
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
     }
   }
 });
 
-regl.frame(() => {
+var previewMat = glm.mat3.create();
+glm.mat3.scale(previewMat, previewMat, [.2, .2]);
+glm.mat3.translate(previewMat, previewMat, [.1, .1]);
+glm.mat3.invert(previewMat, previewMat);
+
+var previewMatViewport = glm.mat3.create();
+
+regl.frame((context) => {
   regl.clear({
     color: [.8, .82, .85, 1]
   })
@@ -260,13 +269,13 @@ regl.frame(() => {
     heightMap: blurBuffers[1],
     video: croppedVideo
   });
+  // console.log(context);
+  var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
+  glm.mat3.scale(previewMatViewport, previewMat, [ratio, 1]);
   setupPass(function() {
     drawVideo({
-      source: blurBuffers[0],
-      area: [
-        .75, .75,
-        1., 1.
-      ]
+      source: croppedVideo,
+      transform: previewMatViewport
     });
   })
 })
