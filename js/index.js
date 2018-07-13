@@ -13,9 +13,15 @@ camera.distance = 10;
 
 window.addEventListener('resize', fit(canvas), false);
 
+var abcUv = [
+  [1, 1],
+  [0, 1],
+  [1, 0]
+];
+
 var mesh;
-// mesh = geometry.icosahedron(5);
-mesh = geometry.tetrahedron(6);
+//mesh = geometry.icosahedron(5, abcUv);
+mesh = geometry.tetrahedron(6, abcUv);
 
 var webcam = new WebcamTexture(regl);
 
@@ -74,12 +80,12 @@ const resamplePass = regl({
     precision mediump float;
     uniform sampler2D source;
     uniform vec2 resolution;
-    uniform vec4 area;
+    uniform mat3 transform;
 
     void main() {
       vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
-      vec2 areaUv = mix(area.xy, area.zw, uv);
-      gl_FragColor = texture2D(source, areaUv);
+      uv = (transform * vec3(uv, 1)).xy;
+      gl_FragColor = texture2D(source, uv);
     }`),
   uniforms: {
     direction: regl.prop('direction'),
@@ -87,8 +93,8 @@ const resamplePass = regl({
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
     },
-    area: function(context, props) {
-      return props.hasOwnProperty('area') ? props.area : [0,0,1,1];
+    transform: function(context, props) {
+      return props.hasOwnProperty('transform') ? props.transform : glm.mat3.create();
     }
   },
   framebuffer: regl.prop('destination')
@@ -201,13 +207,32 @@ const drawVideo = regl({
     uniform sampler2D source;
     uniform vec2 resolution;
     uniform mat3 transform;
+    uniform vec2 aUv;
+    uniform vec2 bUv;
+    uniform vec2 cUv;
 
     #pragma glslify: range = require('glsl-range')
+
+    float side(vec2 p, vec2 a, vec2 b) {
+      vec2 ab = a - b;
+      vec2 pb = p - b;
+      return pb.x * ab.y - pb.y * ab.x;
+    }
+
+    bool inTriangle(vec2 p, vec2 a, vec2 b, vec2 c) {
+      bool b1 = side(p, a, b) < 0.;
+      bool b2 = side(p, b, c) < 0.;
+      bool b3 = side(p, c, a) < 0.;
+      return ! ((b1 == b2) && (b2 == b3));
+    }
 
     void main() {
       vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
       uv = (transform * vec3(uv, 1)).xy;
       if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
+        discard;
+      }
+      if ( ! inTriangle(uv, aUv, bUv, cUv)) {
         discard;
       }
       //vec2 areaUv = range(area.xy, area.zw, uv);
@@ -218,9 +243,19 @@ const drawVideo = regl({
     transform: regl.prop('transform'),
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
-    }
+    },
+    aUv: abcUv[0],
+    bUv: abcUv[1],
+    cUv: abcUv[2]
   }
 });
+
+var videoMat = glm.mat3.create();
+var videoScale = -2;
+var videoTranslate = .5 / videoScale - .5;
+glm.mat3.scale(videoMat, videoMat, [videoScale, videoScale]);
+glm.mat3.translate(videoMat, videoMat, [videoTranslate, videoTranslate]);
+glm.mat3.invert(videoMat, videoMat);
 
 var previewMat = glm.mat3.create();
 glm.mat3.scale(previewMat, previewMat, [.2, .2]);
@@ -240,7 +275,7 @@ regl.frame((context) => {
     resamplePass({
       source: webcam.texture,
       destination: croppedVideo,
-      area: [.33, .33, .66, .66]
+      transform: videoMat
     });
     resamplePass({
       source: croppedVideo,

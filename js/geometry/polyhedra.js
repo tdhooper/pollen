@@ -3,7 +3,7 @@ var polyhedra = require('polyhedra');
 var schwarz = require('./schwarz');
 var subdivide = require('./subdivide');
 
-function create(poly, subdivisions) {
+function create(poly, subdivisions, abcUv) {
     var cells = poly.face.slice();
     var positions = poly.vertex.slice();
     positions.forEach(normalize);
@@ -11,7 +11,7 @@ function create(poly, subdivisions) {
         cells: cells,
         positions: positions
     };
-    complex = schwarz(complex);
+    complex = schwarz(complex, abcUv);
     while (subdivisions-- > 0) {
         complex = subdivide(complex);
     }

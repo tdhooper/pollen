@@ -2,7 +2,7 @@ var normalize = require('vectors/normalize-nd');
 var IndexCache = require('./index-cache');
 
 
-function schwarz(complex) {
+function schwarz(complex, abcUv) {
     var positions = complex.positions.slice();
     var cells = complex.cells;
     var newCells = [];
@@ -10,12 +10,12 @@ function schwarz(complex) {
     var positionsUvs = positions.map(function(position) {
         return {
             position: position,
-            uv: [0, 0]
+            uv: abcUv[0]
         };
     });
 
     var positionsUvsCache = new IndexCache(
-        createMidpoint.bind(this, positionsUvs),
+        createMidpoint.bind(this, positionsUvs, abcUv),
         positionsUvs
     );
 
@@ -42,7 +42,7 @@ function schwarz(complex) {
     };
 }
 
-function createMidpoint(positionsUvs, a, b, c) {
+function createMidpoint(positionsUvs, abcUv, a, b, c) {
     var indicies = [a, b];
     if (c !== undefined) {
         indicies.push(c);
@@ -60,7 +60,7 @@ function createMidpoint(positionsUvs, a, b, c) {
 
     var positionUv = {
         position: midpoint,
-        uv: c !== undefined ? [1, 1] : [1, 0]
+        uv: c == undefined ? abcUv[1] : abcUv[2]
     };
 
     return positionUv;
