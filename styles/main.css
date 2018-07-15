@@ -1,5 +1,9 @@
+html, body {
+    width: 100%;
+    height: 100%;
+}
 
-video {
-    position: absolute;
-    max-width: 25%;
+body {
+    margin: 0;
+    overflow: hidden;
 }

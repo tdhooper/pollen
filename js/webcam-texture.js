@@ -35,7 +35,7 @@ WebcamTexture.prototype.gotStream = function(stream) {
 
 WebcamTexture.prototype.update = function() {
     if (this.ready) {
-        this.texture.subimage(this.video);
+        this.texture(this.video);
     }
 };
 
