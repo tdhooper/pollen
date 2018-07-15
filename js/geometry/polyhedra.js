@@ -1,7 +1,8 @@
-var normalize = require('vectors/normalize-nd');
-var polyhedra = require('polyhedra');
-var schwarz = require('./schwarz');
-var subdivide = require('./subdivide');
+const normals = require('angle-normals');
+const normalize = require('vectors/normalize-nd');
+const polyhedra = require('polyhedra');
+const schwarz = require('./schwarz');
+const subdivide = require('./subdivide');
 
 function create(poly, subdivisions, abcUv) {
     var cells = poly.face.slice();
@@ -15,6 +16,7 @@ function create(poly, subdivisions, abcUv) {
     while (subdivisions-- > 0) {
         complex = subdivide(complex);
     }
+    complex.normals = normals(complex.cells, complex.positions);
     return complex;
 }
 
