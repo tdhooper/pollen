@@ -65,15 +65,15 @@ const blurBuffers = [0,0].map(function() {
   return regl.framebuffer({
     depth: false,
     color: regl.texture({
-      width: 64,
-      height: 64,
+      width: 256,
+      height: 256,
       mag: 'linear'
     })
   });
 });
 
 var videoMat = glm.mat3.create();
-var videoScale = -2;
+var videoScale = -1.5;
 var videoTranslate = .5 / videoScale - .5;
 glm.mat3.scale(videoMat, videoMat, [videoScale, videoScale]);
 glm.mat3.translate(videoMat, videoMat, [videoTranslate, videoTranslate]);
@@ -104,7 +104,7 @@ regl.frame((context) => {
       destination: blurBuffers[0]
     });
     var i = 0;
-    while (i < 3) {
+    while (i < 20) {
       blurPass({
         source: blurBuffers[0],
         destination: blurBuffers[1],
@@ -121,6 +121,10 @@ regl.frame((context) => {
       source: blurBuffers[0],
       destination: blurBuffers[1]
     });
+    // resamplePass({
+    //   source: blurBuffers[1],
+    // });
+
   });
   drawSphere({
     heightMap: blurBuffers[1],
