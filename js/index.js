@@ -72,7 +72,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 6;
+var diffSize = 3;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
@@ -114,6 +114,14 @@ const diffResultBuffer = regl.framebuffer({
   })
 });
 
+const stripBuffer = regl.framebuffer({
+  depth: false,
+  color: regl.texture({
+    width: diffSize * diffSize,
+    height: 1
+  })
+});
+
 
 var videoMat = glm.mat3.create();
 var videoScale = -4;
@@ -129,7 +137,28 @@ glm.mat3.invert(previewMat, previewMat);
 
 var previewMatViewport = glm.mat3.create();
 
+const stripPass = regl({
+  frag: `
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 sourceSize;
 
+    void main() {
+      vec2 ab = floor(gl_FragCoord.xy);
+      vec2 uv = vec2(
+        mod(ab.x, sourceSize.x) - .5,
+        floor(ab.x / sourceSize.x) - .5
+      );
+      gl_FragColor = texture2D(source, uv);
+    }`,
+  uniforms: {
+    source: regl.prop('source'),
+    sourceSize: function(context, props) {
+      return [props.source.width, props.source.height];
+    }
+  },
+  framebuffer: regl.prop('destination')
+});
 
 const differencesPass = regl({
   frag: `
@@ -137,26 +166,37 @@ const differencesPass = regl({
     uniform sampler2D source;
     uniform vec2 sourceSize;
     uniform vec2 direction;
+    uniform vec2 resolution;
 
     void main() {
-      vec2 ab = gl_FragCoord.xy;
+      vec2 ab = floor(gl_FragCoord.xy);
       vec2 uvA = vec2(
-        mod(ab.x, sourceSize.x),
-        floor(ab.x / sourceSize.x)
+        mod(ab.x, sourceSize.x) - .5,
+        floor(ab.x / sourceSize.x) - .5
       );
       vec2 uvB = vec2(
-        mod(ab.y, sourceSize.x),
-        floor(ab.y / sourceSize.x)
+        mod(ab.y, sourceSize.x) - .5,
+        floor(ab.y / sourceSize.x) - .5
       );
-      vec3 a = texture2D(source, uvA / sourceSize).rgb;
-      vec3 b = texture2D(source, uvB / sourceSize).rgb;
+      vec3 a = texture2D(source, uvA).rgb;
+      vec3 b = texture2D(source, uvB).rgb;
       float difference = distance(a, b) / 2.;
       gl_FragColor = vec4(difference, ab / 255., 1);
+      // if (ab.y == 0.) {
+      //   gl_FragColor = vec4(a, 1);
+      // }
+      // if (ab.x == 0.) {
+      //   gl_FragColor = vec4(b, 1);
+      // }
+      
     }`,
   uniforms: {
     source: regl.prop('source'),
     sourceSize: function(context, props) {
       return [props.source.width, props.source.height];
+    },
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
     }
   },
   framebuffer: regl.prop('destination')
@@ -172,7 +212,7 @@ const maxDifferencesPass = regl({
       vec2 uv;
       vec3 maxData = vec3(0);
       for (float i = 0.; i < ${ diffSize * diffSize }.; i++) {
-        uv = vec2(gl_FragCoord.x, i);
+        uv = vec2(i, gl_FragCoord.x);
         vec3 data = texture2D(source, uv / sourceSize).rgb;
         if (data.r > maxData.r) {
           maxData = data;
@@ -202,19 +242,34 @@ const resultPass = regl({
       vec2 uv = gl_FragCoord.xy / resolution;
       vec2 ab = texture2D(result, vec2(0)).gb;
       ab *= 255.;
+      ab = floor(ab);
       vec2 uvA = vec2(
-        mod(ab.x, sourceSize.x),
-        floor(ab.x / sourceSize.x)
+        mod(ab.x, sourceSize.x) - .5,
+        floor(ab.x / sourceSize.x) - .5
       );
       vec2 uvB = vec2(
-        mod(ab.y, sourceSize.x),
-        floor(ab.y / sourceSize.x)
+        mod(ab.y, sourceSize.x) - .5,
+        floor(ab.y / sourceSize.x) - .5
       );
+
+      vec3 a = texture2D(source, uvA).rgb;
+      vec3 b = texture2D(source, uvB).rgb;
+
       if (uv.x > .5) {
-        gl_FragColor = texture2D(source, uvA / sourceSize);
+        if (length(a) > length(b)) {
+          gl_FragColor = vec4(a, 1);
+        } else {
+          gl_FragColor = vec4(b, 1);
+        }
       } else {
-        gl_FragColor = texture2D(source, uvB / sourceSize);
+        if (length(a) < length(b)) {
+          gl_FragColor = vec4(a, 1);
+        } else {
+          gl_FragColor = vec4(b, 1);
+        }
       }
+
+      // gl_FragColor = texture2D(source, uvUse / sourceSize);
     }`,
   uniforms: {
     direction: regl.prop('direction'),
@@ -228,6 +283,76 @@ const resultPass = regl({
     }
   },
   framebuffer: regl.prop('destination')
+});
+
+
+var slots = [
+  [1/3, 1/2, 0, 1/2],
+  [1/3, 1/2, 1/3, 1/2],
+  [1/3, 1/2, 2/3, 1/2],
+  [1/3, 1/2, 0, 0],
+  [1/3, 1/2, 1/3, 0],
+  [1/3, 1/2, 2/3, 0]
+];
+slots = slots.map(function(slot) {
+  var full = glm.mat3.create();
+  glm.mat3.translate(full, full, slot.slice(2));
+  glm.mat3.scale(full, full, slot.slice(0, 2));
+  glm.mat3.invert(full, full);
+
+  var inner = glm.mat3.create();
+  glm.mat3.translate(inner, inner,
+    [
+      slot[2] + (1/3) / (diffSize*diffSize),
+      slot[3] + (1/2) / (diffSize*diffSize)
+    ]
+  );
+  glm.mat3.scale(inner, inner,
+    [
+      slot[0] - (1/3) / (diffSize*diffSize),
+      slot[1] - (1/2) / (diffSize*diffSize)
+    ]
+  );
+  glm.mat3.invert(inner, inner);
+
+
+  var bottom = glm.mat3.create();
+  glm.mat3.translate(bottom, bottom,
+    [
+      slot[2] + (1/3) / (diffSize*diffSize),
+      slot[3]
+    ]
+  );
+  glm.mat3.scale(bottom, bottom,
+    [
+      slot[0] - (1/3) / (diffSize*diffSize),
+      slot[1] / (diffSize*diffSize)
+    ]
+  );
+  glm.mat3.invert(bottom, bottom);
+
+  var left = glm.mat3.create();
+  glm.mat3.rotate(left, left, Math.PI / 2);
+  glm.mat3.translate(left, left,
+    [
+      slot[3] + (1/2) / (diffSize*diffSize),
+      -slot[2] - (1/3) / (diffSize*diffSize)
+    ]
+  );
+  glm.mat3.scale(left, left,
+    [
+      slot[1] - (1/2) / (diffSize*diffSize),
+      slot[0] / (diffSize*diffSize)
+    ]
+  );
+  glm.mat3.invert(left, left);
+
+  return {
+    full: full,
+    inner: inner,
+    left: left,
+    bottom: bottom
+  };
 });
 
 
@@ -286,6 +411,10 @@ regl.frame((context) => {
       source: diffSourceBuffer,
       destination: diffResultBuffer
     });
+    stripPass({
+      source: diffSourceBuffer,
+      destination: stripBuffer
+    });
 
 
     heightMapPass({
@@ -293,23 +422,57 @@ regl.frame((context) => {
       source: blurBuffers[0],
       destination: blurBuffers[1]
     });
-    // resamplePass({
-    //   source: blurBuffers[1]
-    // });
-  });
-  drawSphere({
-    heightMap: blurBuffers[1],
-    video: croppedVideo,
-    view: camera.view(),
-    mesh: mesh
-  });
-  var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
-  glm.mat3.scale(previewMatViewport, previewMat, [ratio, 1]);
-  setupPass(function() {
-    drawVideo({
+
+    resamplePass({
       source: croppedVideo,
-      transform: previewMatViewport,
-      abcUv: abcUv
+      transform: slots[0].full
     });
-  })
+    resamplePass({
+      source: diffSourceBuffer,
+      transform: slots[1].full
+    });
+    resamplePass({
+      source: diffBuffer,
+      transform: slots[2].inner
+    });
+    resamplePass({
+      source: stripBuffer,
+      transform: slots[2].left
+    });
+    resamplePass({
+      source: stripBuffer,
+      transform: slots[2].bottom
+    });
+    resamplePass({
+      source: diffReduceABuffer,
+      transform: slots[3].inner
+    });
+    resamplePass({
+      source: stripBuffer,
+      transform: slots[3].bottom
+    });
+    resamplePass({
+      source: diffReduceBBuffer,
+      transform: slots[4].full
+    });
+    resamplePass({
+      source: diffResultBuffer,
+      transform: slots[5].full
+    });
+  });
+  // drawSphere({
+  //   heightMap: blurBuffers[1],
+  //   video: croppedVideo,
+  //   view: camera.view(),
+  //   mesh: mesh
+  // });
+  // var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
+  // glm.mat3.scale(previewMatViewport, previewMat, [ratio, 1]);
+  // setupPass(function() {
+  //   drawVideo({
+  //     source: croppedVideo,
+  //     transform: previewMatViewport,
+  //     abcUv: abcUv
+  //   });
+  // })
 })
