@@ -72,7 +72,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 3;
+var diffSize = 2;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
@@ -109,10 +109,19 @@ const diffReduceBBuffer = regl.framebuffer({
 const diffResultBuffer = regl.framebuffer({
   depth: false,
   color: regl.texture({
-    width: 2,
-    height: 1
+    width: 2 * 128,
+    height: 128
   })
 });
+
+const diffResultStripBuffer = regl.framebuffer({
+  depth: false,
+  color: regl.texture({
+    width: diffSize * diffSize * 128,
+    height: 128
+  })
+});
+
 
 const stripBuffer = regl.framebuffer({
   depth: false,
@@ -142,23 +151,30 @@ const stripPass = regl({
     precision mediump float;
     uniform sampler2D source;
     uniform vec2 sourceSize;
+    uniform vec2 resolution;
 
     void main() {
-      vec2 ab = floor(gl_FragCoord.xy);
+      vec2 ab = gl_FragCoord.xy / resolution;
+      ab *= sourceSize.x * sourceSize.y;
       vec2 uv = vec2(
-        mod(ab.x, sourceSize.x) - .5,
-        floor(ab.x / sourceSize.x) - .5
+        mod(ab.x, sourceSize.x) / sourceSize.x,
+        floor(ab.x / sourceSize.x) / (sourceSize.y - 1.)
       );
       gl_FragColor = texture2D(source, uv);
+      // gl_FragColor = vec4(vec3(floor(ab.x / sourceSize.x) / (sourceSize.y - 1.)), 1);
     }`,
   uniforms: {
     source: regl.prop('source'),
     sourceSize: function(context, props) {
       return [props.source.width, props.source.height];
+    },
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
     }
   },
   framebuffer: regl.prop('destination')
 });
+
 
 const differencesPass = regl({
   frag: `
@@ -169,19 +185,25 @@ const differencesPass = regl({
     uniform vec2 resolution;
 
     void main() {
-      vec2 ab = floor(gl_FragCoord.xy);
+      vec2 ab = gl_FragCoord.xy / resolution;
+      ab *= sourceSize.x * sourceSize.y;
       vec2 uvA = vec2(
-        mod(ab.x, sourceSize.x) - .5,
-        floor(ab.x / sourceSize.x) - .5
+        mod(ab.x, sourceSize.x) / sourceSize.x,
+        floor(ab.x / sourceSize.x) / (sourceSize.y - 1.)
       );
       vec2 uvB = vec2(
-        mod(ab.y, sourceSize.x) - .5,
-        floor(ab.y / sourceSize.x) - .5
+        mod(ab.y, sourceSize.x) / sourceSize.x,
+        floor(ab.y / sourceSize.x) / (sourceSize.y - 1.)
       );
+
       vec3 a = texture2D(source, uvA).rgb;
       vec3 b = texture2D(source, uvB).rgb;
       float difference = distance(a, b) / 2.;
-      gl_FragColor = vec4(difference, ab / 255., 1);
+      gl_FragColor = vec4(
+        difference,
+        gl_FragCoord.xy / resolution,
+        1
+      );
       // if (ab.y == 0.) {
       //   gl_FragColor = vec4(a, 1);
       // }
@@ -207,13 +229,15 @@ const maxDifferencesPass = regl({
     precision mediump float;
     uniform sampler2D source;
     uniform vec2 sourceSize;
+    uniform vec2 resolution;
 
     void main() {
       vec2 uv;
+      uv.y = gl_FragCoord.x / sourceSize.y;
       vec3 maxData = vec3(0);
-      for (float i = 0.; i < ${ diffSize * diffSize }.; i++) {
-        uv = vec2(i, gl_FragCoord.x);
-        vec3 data = texture2D(source, uv / sourceSize).rgb;
+      for (float i = 1.; i <= ${ diffSize * diffSize }.; i++) {
+        uv.x = i / sourceSize.x;
+        vec3 data = texture2D(source, uv).rgb;
         if (data.r > maxData.r) {
           maxData = data;
         }
@@ -225,6 +249,9 @@ const maxDifferencesPass = regl({
     source: regl.prop('source'),
     sourceSize: function(context, props) {
       return [props.source.width, props.source.height];
+    },
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
     }
   },
   framebuffer: regl.prop('destination')
@@ -234,46 +261,47 @@ const resultPass = regl({
   frag: `
     precision mediump float;
     uniform sampler2D result;
+    uniform vec2 resultSize;
     uniform sampler2D source;
     uniform vec2 sourceSize;
     uniform vec2 resolution;
 
     void main() {
       vec2 uv = gl_FragCoord.xy / resolution;
-      vec2 ab = texture2D(result, vec2(0)).gb;
-      ab *= 255.;
-      ab = floor(ab);
+      vec2 ab = texture2D(result, uv).gb;
+      // ab *= 255.;
+      // ab = floor(ab);
+      ab *= sourceSize.x * sourceSize.y;
       vec2 uvA = vec2(
-        mod(ab.x, sourceSize.x) - .5,
-        floor(ab.x / sourceSize.x) - .5
+        mod(ab.x, sourceSize.x) / sourceSize.x,
+        floor(ab.x / sourceSize.x) / (sourceSize.y - 1.)
+        // ab.x,0.
       );
       vec2 uvB = vec2(
-        mod(ab.y, sourceSize.x) - .5,
-        floor(ab.y / sourceSize.x) - .5
+        mod(ab.y, sourceSize.x) / sourceSize.x,
+        floor(ab.y / sourceSize.x) / (sourceSize.y - 1.)
+        // ab.y,0.
       );
 
       vec3 a = texture2D(source, uvA).rgb;
       vec3 b = texture2D(source, uvB).rgb;
 
-      if (uv.x > .5) {
-        if (length(a) > length(b)) {
-          gl_FragColor = vec4(a, 1);
-        } else {
-          gl_FragColor = vec4(b, 1);
-        }
+      // uv.x = fract(uv.x * resultSize.x);
+
+      if (uv.y < .5) {
+        gl_FragColor = vec4(a, 1);
       } else {
-        if (length(a) < length(b)) {
-          gl_FragColor = vec4(a, 1);
-        } else {
-          gl_FragColor = vec4(b, 1);
-        }
+        gl_FragColor = vec4(b, 1);
       }
 
-      // gl_FragColor = texture2D(source, uvUse / sourceSize);
+      // gl_FragColor = texture2D(result, uv);
     }`,
   uniforms: {
     direction: regl.prop('direction'),
     result: regl.prop('result'),
+    resultSize: function(context, props) {
+      return [props.result.width, props.result.height];
+    },
     source: regl.prop('source'),
     sourceSize: function(context, props) {
       return [props.source.width, props.source.height];
@@ -402,6 +430,11 @@ regl.frame((context) => {
       source: diffBuffer,
       destination: diffReduceABuffer
     });
+    resultPass({
+      result: diffReduceABuffer,
+      source: diffSourceBuffer,
+      destination: diffResultStripBuffer
+    });
     maxDifferencesPass({
       source: diffReduceABuffer,
       destination: diffReduceBBuffer
@@ -417,11 +450,11 @@ regl.frame((context) => {
     });
 
 
-    heightMapPass({
-      difference: diffResultBuffer,
-      source: blurBuffers[0],
-      destination: blurBuffers[1]
-    });
+    // heightMapPass({
+    //   difference: diffResultBuffer,
+    //   source: blurBuffers[0],
+    //   destination: blurBuffers[1]
+    // });
 
     resamplePass({
       source: croppedVideo,
@@ -448,7 +481,7 @@ regl.frame((context) => {
       transform: slots[3].inner
     });
     resamplePass({
-      source: stripBuffer,
+      source: diffResultStripBuffer,
       transform: slots[3].bottom
     });
     resamplePass({
