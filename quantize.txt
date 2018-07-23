@@ -1,0 +1,41 @@
+quantize
+
+xy to index
+index to xy
+
+1. find largest dimension
+    * for each dimension
+        * for each pixel
+            * find min and max
+    * rgb = maxr, maxg, maxb
+    * do twice to get max and min, in two different textures
+    * for each dimension, sample the max and min value, and return dim
+      as vec3(dimension_index, min_value, max_value)
+2. sort pixels
+    * repeat fixed times for image size
+    * sample largest dimension texture
+3. split  
+    * find the index of the midpoint
+        * y value find where it crosses on y || height
+        * x value where the y crossing changes || width
+        * coord is xy
+    * add to list
+
+when finding largest dimension, do each bucket in turn :/
+
+
+* create texture [input_width * input_height, buckets]
+* write pixels into first row
+* find largest dimension for each occupied row
+    * write into temp texture as vec3(dimension_index, min_value, max_value)
+* sort pixels in each occupied row
+* find boundry index for each row
+    * write into temp texture, maybe packed
+* split
+    * return parent row's pixels from boundry index
+        * or before if you are parent 
+* repeat sqrt(rows) times
+
+
+
+
