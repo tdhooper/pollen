@@ -72,7 +72,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 2;
+var diffSize = 4;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
@@ -233,9 +233,9 @@ const maxDifferencesPass = regl({
 
     void main() {
       vec2 uv;
-      uv.y = gl_FragCoord.x / sourceSize.y;
+      uv.y = gl_FragCoord.x / resolution.x;
       vec3 maxData = vec3(0);
-      for (float i = 1.; i <= ${ diffSize * diffSize }.; i++) {
+      for (float i = 0.; i < ${ diffSize * diffSize }.; i++) {
         uv.x = i / sourceSize.x;
         vec3 data = texture2D(source, uv).rgb;
         if (data.r > maxData.r) {
@@ -252,6 +252,42 @@ const maxDifferencesPass = regl({
     },
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
+    }
+  },
+  framebuffer: regl.prop('destination')
+});
+
+const differencesDisplayPass = regl({
+  frag: `
+    precision mediump float;
+    uniform sampler2D source;
+    uniform vec2 resolution;
+    uniform mat3 transform;
+
+    vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d ) {
+      return a + b*cos( 6.28318*(c*t+d) );
+    }
+
+    vec3 spectrum(float n) {
+      return pal( n, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.33,0.67) );
+    }
+
+    void main() {
+      vec2 uv = gl_FragCoord.xy / resolution;
+      uv = (transform * vec3(uv, 1)).xy;
+      if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
+        discard;
+      }
+      float difference = texture2D(source, uv).r;
+      gl_FragColor = vec4(spectrum(difference), 1);
+    }`,
+  uniforms: {
+    source: regl.prop('source'),
+    resolution: function(context) {
+      return [context.framebufferWidth, context.framebufferHeight];
+    },
+    transform: function(context, props) {
+      return props.hasOwnProperty('transform') ? props.transform : identity;
     }
   },
   framebuffer: regl.prop('destination')
@@ -464,7 +500,7 @@ regl.frame((context) => {
       source: diffSourceBuffer,
       transform: slots[1].full
     });
-    resamplePass({
+    differencesDisplayPass({
       source: diffBuffer,
       transform: slots[2].inner
     });
@@ -476,7 +512,7 @@ regl.frame((context) => {
       source: stripBuffer,
       transform: slots[2].bottom
     });
-    resamplePass({
+    differencesDisplayPass({
       source: diffReduceABuffer,
       transform: slots[3].inner
     });
@@ -484,7 +520,7 @@ regl.frame((context) => {
       source: diffResultStripBuffer,
       transform: slots[3].bottom
     });
-    resamplePass({
+    differencesDisplayPass({
       source: diffReduceBBuffer,
       transform: slots[4].full
     });
