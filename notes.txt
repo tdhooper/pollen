@@ -6,3 +6,11 @@
 * texture/mesh warping control
 * alternative polyhedra
 * can instancing improve performance?
+
+* pause/save
+* gallery
+    * different app or mode?
+    * can be mode, that live updates
+    * needs a server
+
+
