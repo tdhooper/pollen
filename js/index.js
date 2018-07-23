@@ -72,7 +72,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 4;
+var diffSize = 3;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
@@ -117,8 +117,8 @@ const diffResultBuffer = regl.framebuffer({
 const diffResultStripBuffer = regl.framebuffer({
   depth: false,
   color: regl.texture({
-    width: diffSize * diffSize * 128,
-    height: 128
+    width: diffSize * diffSize,
+    height: 2
   })
 });
 
