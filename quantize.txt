@@ -4,34 +4,128 @@ buckets = Math.pow(n, 2);
 
 * create textures 
     bucketsBuffers = [input_width * input_height, buckets]
-    dimensionBuffer = [3, buckets]
+    dimensionBuffer = [1, buckets]
     boundryBuffer = [1, buckets]
+    averageBuffer = [1, buckets]
 
 * bucketsBuffers <= write pixels into first row
     vec2 uv = indexToUv(gl_FragCoord.x, sourceSize);
     gl_FragColor = texture(source, uv);
 
-* find largest dimension for each occupied row
-    * dimension is gl_FragCoord.x
-    * for each pixel on [gl_FragCoord.y, source.x...]
-        min(), max()
-    gl_FragColor = vec4(minValue, maxValue, 0, 1);
-
-    or 
-
+* dimensionBuffer <= find largest dimension for each occupied row
     * for r, g, b
         * for each pixel on [gl_FragCoord.y, source.x...]
             min(), max()
     dimension, min, max = min/max r, g, b
     gl_FragColor = vec4(dimension, minValue, maxValue, 1);
 
-* sort pixels in each occupied row
-* find boundry index for each row
-    * write into temp texture, maybe packed
-* split
+* bucketsBuffers <= sort pixels in each occupied row
+    * offset is 0 or 1
+
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 dimUv = vec2(0, uv.y);
+    float dim = texture(dimension, dimUv).r;
+
+    uv.x += offset / resolution.x;
+
+    vec2 uvA = uv;
+    vec2 uvB = uv;
+
+    bool isA = mod(gl_FragCoord.x + offset, 2.) == 0.;
+
+    if (isA) {
+        uvB.x += 1. / resolution.x;
+        uvB.x = min(uvB.x, 1.);
+    } else {
+        uvA.x -= 1. / resolution.x;
+        uvA.x = max(uvB.x, 0.);
+    }
+
+    vec4 a = texture(source, uvA);
+    vec4 b = texture(source, uvB);
+
+    if (dim == 0.) {
+        a.a = r;
+        b.a = r;
+    } elif (dim == 1.) {
+        a.a = g;
+        b.a = g;
+    } else {
+        a.a = b;
+        b.a = b;
+    }
+
+    if (isA) {
+        gl_FragColor = a.a < b.a ? a : b;
+    } else {
+        gl_FragColor = a.a < b.a ? b : a;
+    }
+
+* boundryBuffer <= find boundry index for each row
+    vec2 uv = gl_FragCoord.xy / resolution;
+    vec2 minmax = texture(dimension, uv).gb;
+
+    float boundry = mix(minmax.x, minmax.y, .5);
+
+    for (float i = 0; i < sourceSize.x; i++) {
+        uv.x = i / sourceSize.x;
+        if (texture(source, uv).a > boundry) {
+            gl_FragColor = vec4(vec3(i / sourceSize.x), 1);
+            return;
+        }
+    }
+
+    gl_FragColor = vec4(vec3(1.), 1);
+
+* bucketsBuffers <= split
     * return parent row's pixels from boundry index
         * or before if you are parent 
+
+    vec2 uv = gl_FragCoord.xy / resolution;
+
+    vec2 sourceUv = uv;
+    sourceUv.y = mod(gl_FragCoord.y, pow(2., step)) / resolution.y;
+    bool isChild = uv != sourceUv;
+
+    vec2 boundryUv = uv;
+    boundryUv.x = 0.;
+    float boundryPosition = texture(boundry, boundryUv).r;
+
+    if (isChild) {
+        sourceUv.x += boundryPosition;
+        if (sourceUv.x > 1.) {
+            gl_FragColor = vec4(0);
+            return;
+        }
+    } elif (sourceUv.x > boundryPosition) {
+        gl_FragColor = vec4(0);
+        return;
+    }
+
+    gl_FragColor = vec4(texture(source, sourceUv), 1);
+
 * repeat sqrt(rows) times
+
+* averageBuffer <= Average buckets
+
+    vec2 uv = gl_FragCoord.xy / resolution;
+
+    vec4 sample;
+    vec4 samples;
+    float sampleCount = 0;
+
+    for (float i = 0; i < sourceSize.x; i++) {
+        uv.x = i / sourceSize.x;
+        sample = texture(source, uv);
+        if (sample.a != 0.) {
+            samples += sample;
+            sampleCount += 1.;
+        }
+    }
+
+    samples /= sampleCount;
+
+    gl_FragColor = samples;
 
 
 
