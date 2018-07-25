@@ -10,12 +10,13 @@ var Quantize = function(sourceBuffer, buckets) {
 
     var width = sourceBuffer.width;
     var height = sourceBuffer.height;
+    var pixels = width * height;
 
     this.bucketsBuffers = [0,0].map(function() {
         return regl.framebuffer({
             depth: false,
             color: regl.texture({
-                width: width * height,
+                width: pixels,
                 height: buckets,
             })
         });
@@ -73,6 +74,53 @@ var Quantize = function(sourceBuffer, buckets) {
         },
         framebuffer: regl.prop('destination')
     });
+
+    this.findLargestDimension = regl({
+        frag: `
+            precision mediump float;
+            uniform sampler2D buckets;
+            uniform vec2 bucketsSize;
+            uniform vec2 resolution;
+
+            void main() {
+                vec2 xy = gl_FragCoord.xy;
+                vec3 minValues, maxValues;
+                vec4 sample;
+                vec2 uv;
+
+                for (float i = 0.; i < ${ pixels }.; i++) {
+                    uv = vec2(i, xy.y) / bucketsSize;
+                    sample = texture2D(buckets, uv);
+                    if (sample.a != 0.) {
+                        minValues = min(minValues, sample.rgb);
+                        maxValues = max(maxValues, sample.rgb);
+                    }
+                }
+
+                vec3 range = vec3(
+                    distance(minValues.r, maxValues.r),
+                    distance(minValues.g, maxValues.g),
+                    distance(minValues.b, maxValues.b)
+                );
+
+                if (range.r < range.g && range.r < range.b) {
+                    gl_FragColor = vec4(0./2., minValues.r, maxValues.r, 1);
+                } else if (range.g < range.r && range.g < range.b) {
+                    gl_FragColor = vec4(1./2., minValues.g, maxValues.g, 1);
+                } else {
+                    gl_FragColor = vec4(2./2., minValues.b, maxValues.b, 1);
+                }
+            }
+        `,
+        uniforms: {
+            buckets: regl.prop('buckets'),
+            bucketsSize: [pixels, buckets],
+            resolution: function(context) {
+                return [context.framebufferWidth, context.framebufferHeight];
+            }
+        },
+        framebuffer: regl.prop('destination')
+    });
 };
 
 Quantize.prototype.process = function() {
@@ -81,9 +129,13 @@ Quantize.prototype.process = function() {
         this.writeSourceIntoBucket({
             destination: this.bucketsBuffers[0]
         });
+        this.findLargestDimension({
+            buckets: this.bucketsBuffers[0],
+            destination: this.dimensionBuffer
+        });
     }.bind(this));
 
-    return this.bucketsBuffers[0];
+    return this.dimensionBuffer;
 };
 
 module.exports = Quantize;
