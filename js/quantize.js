@@ -31,7 +31,7 @@ var Quantize = function(sourceBuffer, buckets) {
         })
     });
 
-    this.boundryBuffer = regl.framebuffer({
+    this.boundriesBuffer = regl.framebuffer({
         depth: false,
         color: regl.texture({
             width: 1,
@@ -206,6 +206,94 @@ var Quantize = function(sourceBuffer, buckets) {
         framebuffer: regl.prop('destination')
     });
 
+    this.findBoundries = regl({
+        frag: `
+            precision mediump float;
+            uniform sampler2D buckets;
+            uniform vec2 bucketsSize;
+            uniform sampler2D dimensions;
+            uniform vec2 resolution;
+            uniform float offset;
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / resolution;
+                vec2 minmax = texture2D(dimensions, uv).gb;
+                float boundry = mix(minmax.x, minmax.y, .5);
+
+                for (float i = 0.; i < ${ pixels }.; i++) {
+                    uv.x = i / bucketsSize.x;
+                    if (texture2D(buckets, uv).a > boundry) {
+                        gl_FragColor = vec4(vec3(uv.x), 1);
+                        return;
+                    }
+                }
+
+                gl_FragColor = vec4(0,0,0,1);
+            }
+        `,
+        uniforms: {
+            buckets: regl.prop('buckets'),
+            bucketsSize: [pixels, buckets],
+            dimensions: regl.prop('dimensions'),
+            resolution: function(context) {
+                return [context.framebufferWidth, context.framebufferHeight];
+            }
+        },
+        framebuffer: regl.prop('destination')
+    });
+
+    this.splitBuckets = regl({
+        frag: `
+            precision mediump float;
+            uniform sampler2D buckets;
+            uniform sampler2D boundries;
+            uniform vec2 resolution;
+            uniform float step;
+
+            void main() {
+
+                if (gl_FragCoord.y > pow(2., step + 1.)) {
+                    discard;
+                }
+
+                vec2 uv = gl_FragCoord.xy / resolution;
+
+                vec2 bucketUv = vec2(
+                    gl_FragCoord.x,
+                    mod(gl_FragCoord.y, pow(2., step))
+                ) / resolution;
+
+                bool isChild = uv != bucketUv;
+
+                vec2 boundryUv = vec2(uv.x, 0);
+                float boundry = texture2D(boundries, boundryUv).r;
+
+                if (isChild) {
+                    bucketUv.x += boundry;
+                    if (bucketUv.x > 1.) {
+                        gl_FragColor = vec4(0);
+                        return;
+                    }
+                } else if (bucketUv.x > boundry) {
+                    gl_FragColor = vec4(0);
+                    return;
+                }
+
+                vec4 sample = texture2D(buckets, bucketUv);
+                gl_FragColor = vec4(sample.rgb, 1);
+            }
+        `,
+        uniforms: {
+            buckets: regl.prop('buckets'),
+            boundries: regl.prop('boundries'),
+            resolution: function(context) {
+                return [context.framebufferWidth, context.framebufferHeight];
+            },
+            step: regl.prop('step')
+        },
+        framebuffer: regl.prop('destination')
+    });
+
     this.debugPass = regl({
         frag: `
             precision mediump float;
@@ -258,13 +346,27 @@ Quantize.prototype.process = function() {
             });
             i += 1;
         }
+
+        this.findBoundries({
+            buckets: this.bucketsBuffers[1],
+            dimensions: this.dimensionsBuffer,
+            destination: this.boundriesBuffer
+        });
+
+        this.splitBuckets({
+            buckets: this.bucketsBuffers[1],
+            boundries: this.boundriesBuffer,
+            step: 0,
+            destination: this.bucketsBuffers[0]
+        });
+
     }.bind(this));
 
-    this.debugPass({
-        source: this.bucketsBuffers[1],
-        destination: this.bucketsBuffers[0]
-    });
-
+    // this.debugPass({
+    //     source: this.bucketsBuffers[1],
+    //     destination: this.bucketsBuffers[0]
+    // });
+    // return this.boundriesBuffer;
     return this.bucketsBuffers[0];
 };
 
