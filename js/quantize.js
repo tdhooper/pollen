@@ -57,13 +57,15 @@ var Quantize = function(sourceBuffer, buckets) {
             void main() {
                 vec2 xy = gl_FragCoord.xy;
                 if (xy.y > 1.) {
-                    discard;
+                    gl_FragColor = vec4(0);
+                    return;
                 }
                 vec2 sourceUv = vec2(
                     mod(xy.x, sourceSize.x) / sourceSize.x,
                     floor(xy.x / sourceSize.x) / (sourceSize.y - 1.)
                 );
-                gl_FragColor = texture2D(source, sourceUv);
+                vec4 sample = texture2D(source, sourceUv);
+                gl_FragColor = sample;
             }
         `,
         uniforms: {
@@ -85,11 +87,12 @@ var Quantize = function(sourceBuffer, buckets) {
 
             void main() {
                 vec2 xy = gl_FragCoord.xy;
-                vec3 minValues, maxValues;
-                vec4 sample;
-                vec2 uv;
+                vec2 uv = vec2(0, xy.y) / bucketsSize;
+                vec4 sample = texture2D(buckets, uv);
+                vec3 minValues = sample.rgb;
+                vec3 maxValues = sample.rgb;
 
-                for (float i = 0.; i < ${ pixels }.; i++) {
+                for (float i = 1.; i < ${ pixels }.; i++) {
                     uv = vec2(i, xy.y) / bucketsSize;
                     sample = texture2D(buckets, uv);
                     if (sample.a != 0.) {

@@ -73,7 +73,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 4;
+var diffSize = 10;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
