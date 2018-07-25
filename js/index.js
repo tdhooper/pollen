@@ -14,6 +14,7 @@ const heightMapPass = require('./draw/height-map-pass');
 const drawSphere = require('./draw/sphere');
 const drawVideo = require('./draw/video');
 const WebcamTexture = require('./webcam-texture');
+const Quantize = require('./quantize');
 const glm = require('gl-matrix');
 
 
@@ -419,6 +420,7 @@ slots = slots.map(function(slot) {
   };
 });
 
+var quantize = new Quantize(diffSourceBuffer, 4);
 
 regl.frame((context) => {
   regl.clear({
@@ -458,32 +460,6 @@ regl.frame((context) => {
       source: blurBuffers[0],
       destination: diffSourceBuffer
     });
-    differencesPass({
-      source: diffSourceBuffer,
-      destination: diffBuffer
-    });
-    maxDifferencesPass({
-      source: diffBuffer,
-      destination: diffReduceABuffer
-    });
-    resultPass({
-      result: diffReduceABuffer,
-      source: diffSourceBuffer,
-      destination: diffResultStripBuffer
-    });
-    maxDifferencesPass({
-      source: diffReduceABuffer,
-      destination: diffReduceBBuffer
-    });
-    resultPass({
-      result: diffReduceBBuffer,
-      source: diffSourceBuffer,
-      destination: diffResultBuffer
-    });
-    stripPass({
-      source: diffSourceBuffer,
-      destination: stripBuffer
-    });
 
 
     // heightMapPass({
@@ -491,6 +467,8 @@ regl.frame((context) => {
     //   source: blurBuffers[0],
     //   destination: blurBuffers[1]
     // });
+
+    var result = quantize.process();
 
     resamplePass({
       source: croppedVideo,
@@ -500,32 +478,8 @@ regl.frame((context) => {
       source: diffSourceBuffer,
       transform: slots[1].full
     });
-    differencesDisplayPass({
-      source: diffBuffer,
-      transform: slots[2].inner
-    });
     resamplePass({
-      source: stripBuffer,
-      transform: slots[2].left
-    });
-    resamplePass({
-      source: stripBuffer,
-      transform: slots[2].bottom
-    });
-    differencesDisplayPass({
-      source: diffReduceABuffer,
-      transform: slots[3].inner
-    });
-    resamplePass({
-      source: diffResultStripBuffer,
-      transform: slots[3].bottom
-    });
-    differencesDisplayPass({
-      source: diffReduceBBuffer,
-      transform: slots[4].full
-    });
-    resamplePass({
-      source: diffResultBuffer,
+      source: result,
       transform: slots[5].full
     });
   });
