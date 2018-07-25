@@ -118,8 +118,8 @@ const diffResultBuffer = regl.framebuffer({
 const diffResultStripBuffer = regl.framebuffer({
   depth: false,
   color: regl.texture({
-    width: diffSize * diffSize * 128,
-    height: 128
+    width: diffSize * diffSize,
+    height: 2
   })
 });
 
