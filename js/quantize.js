@@ -12,6 +12,7 @@ var Quantize = function(sourceBuffer, buckets) {
     var height = sourceBuffer.height;
     var pixels = width * height;
     this.pixels = pixels;
+    this.buckets = buckets;
 
     this.bucketsBuffers = [0,0].map(function() {
         return regl.framebuffer({
@@ -167,11 +168,13 @@ var Quantize = function(sourceBuffer, buckets) {
         frag: `
             precision mediump float;
             uniform sampler2D buckets;
+            uniform sampler2D limits;
             uniform vec2 resolution;
             uniform float offset;
 
             void main() {
                 vec2 uv = gl_FragCoord.xy / resolution;
+                float limit = texture2D(limits, vec2(0, uv.y)).r;
 
                 vec2 uvA = uv;
                 vec2 uvB = uv;
@@ -180,10 +183,13 @@ var Quantize = function(sourceBuffer, buckets) {
 
                 if (isA) {
                     uvB.x += 1. / resolution.x;
-                    //uvB.x = min(uvB.x, 1.);
                 } else {
                     uvA.x -= 1. / resolution.x;
-                    //uvA.x = max(uvA.x, 0.);
+                }
+
+                if (uvB.x > limit) {
+                    gl_FragColor = texture2D(buckets, uv);
+                    return;
                 }
 
                 vec4 a = texture2D(buckets, uvA);
@@ -198,6 +204,7 @@ var Quantize = function(sourceBuffer, buckets) {
         `,
         uniforms: {
             buckets: regl.prop('buckets'),
+            limits: regl.prop('limits'),
             resolution: function(context) {
                 return [context.framebufferWidth, context.framebufferHeight];
             },
@@ -265,7 +272,7 @@ var Quantize = function(sourceBuffer, buckets) {
 
                 bool isChild = uv != bucketUv;
 
-                vec2 boundryUv = vec2(uv.x, 0);
+                vec2 boundryUv = vec2(0, bucketUv.y);
                 float boundry = texture2D(boundries, boundryUv).r;
 
                 if (isChild) {
@@ -294,6 +301,41 @@ var Quantize = function(sourceBuffer, buckets) {
         framebuffer: regl.prop('destination')
     });
 
+
+    this.findBucketLimits = regl({
+        frag: `
+            precision mediump float;
+            uniform sampler2D buckets;
+            uniform vec2 bucketsSize;
+            uniform vec2 resolution;
+
+            void main() {
+                vec2 uv = gl_FragCoord.xy / resolution;
+
+                for (float i = 0.; i < ${ pixels }.; i++) {
+                    uv.x = i / bucketsSize.x;
+                    if (texture2D(buckets, uv).a == 0.) {
+                        gl_FragColor = vec4(vec3(
+                            (i - 1.) / bucketsSize.x
+                        ), 1);
+                        return;
+                    }
+                }
+
+                gl_FragColor = vec4(1);
+            }
+        `,
+        uniforms: {
+            buckets: regl.prop('buckets'),
+            bucketsSize: [pixels, buckets],
+            resolution: function(context) {
+                return [context.framebufferWidth, context.framebufferHeight];
+            }
+        },
+        framebuffer: regl.prop('destination')
+    });
+
+
     this.debugPass = regl({
         frag: `
             precision mediump float;
@@ -302,8 +344,8 @@ var Quantize = function(sourceBuffer, buckets) {
 
             void main() {
                 vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
-                //gl_FragColor = vec4(vec3(texture2D(source, uv).a), 1.);
-                gl_FragColor = texture2D(source, uv);
+                gl_FragColor = vec4(texture2D(source, uv).rgb, 1.);
+                //gl_FragColor = texture2D(source, uv);
             }
         `,
         uniforms: {
@@ -322,52 +364,64 @@ Quantize.prototype.process = function() {
         this.writeSourceIntoBucket({
             destination: this.bucketsBuffers[0]
         });
-        this.findLargestDimension({
-            buckets: this.bucketsBuffers[0],
-            destination: this.dimensionsBuffer
-        });
-        this.setSortValue({
-            buckets: this.bucketsBuffers[0],
-            dimensions: this.dimensionsBuffer,
-            destination: this.bucketsBuffers[1]
-        });
 
-        var i = 0;
-        while (i < this.pixels) {
-            this.sortBuckets({
-                buckets: this.bucketsBuffers[1],
-                destination: this.bucketsBuffers[0],
-                offset: 0
-            });
-            this.sortBuckets({
+        for (var i = 0; i < Math.log2(this.buckets); i++) {
+
+            this.findBucketLimits({
                 buckets: this.bucketsBuffers[0],
-                destination: this.bucketsBuffers[1],
-                offset: 1
+                destination: this.boundriesBuffer
             });
-            i += 1;
+
+            this.findLargestDimension({
+                buckets: this.bucketsBuffers[0],
+                destination: this.dimensionsBuffer
+            });
+
+            this.setSortValue({
+                buckets: this.bucketsBuffers[0],
+                dimensions: this.dimensionsBuffer,
+                destination: this.bucketsBuffers[1]
+            });
+
+            for (var j = 0; j < this.pixels; j++) {
+                this.sortBuckets({
+                    buckets: this.bucketsBuffers[1],
+                    limits: this.boundriesBuffer,
+                    offset: 0,
+                    destination: this.bucketsBuffers[0]
+                });
+                this.sortBuckets({
+                    buckets: this.bucketsBuffers[0],
+                    limits: this.boundriesBuffer,
+                    offset: 1,
+                    destination: this.bucketsBuffers[1]
+                });
+            }
+
+            this.findBoundries({
+                buckets: this.bucketsBuffers[1],
+                dimensions: this.dimensionsBuffer,
+                destination: this.boundriesBuffer
+            });
+
+            
+            this.splitBuckets({
+                buckets: this.bucketsBuffers[1],
+                boundries: this.boundriesBuffer,
+                step: i,
+                destination: this.bucketsBuffers[0]
+            });
+
         }
-
-        this.findBoundries({
-            buckets: this.bucketsBuffers[1],
-            dimensions: this.dimensionsBuffer,
-            destination: this.boundriesBuffer
-        });
-
-        this.splitBuckets({
-            buckets: this.bucketsBuffers[1],
-            boundries: this.boundriesBuffer,
-            step: 0,
-            destination: this.bucketsBuffers[0]
-        });
 
     }.bind(this));
 
-    // this.debugPass({
-    //     source: this.bucketsBuffers[1],
-    //     destination: this.bucketsBuffers[0]
-    // });
+    this.debugPass({
+        source: this.bucketsBuffers[0],
+        destination: this.bucketsBuffers[1]
+    });
     // return this.boundriesBuffer;
-    return this.bucketsBuffers[0];
+    return this.bucketsBuffers[1];
 };
 
 module.exports = Quantize;
