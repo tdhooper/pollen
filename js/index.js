@@ -73,7 +73,7 @@ const blurBuffers = [0,0].map(function() {
   });
 });
 
-var diffSize = 10;
+var diffSize = 40;
 
 const diffSourceBuffer = regl.framebuffer({
   depth: false,
@@ -420,7 +420,7 @@ slots = slots.map(function(slot) {
   };
 });
 
-var quantize = new Quantize(diffSourceBuffer, 4);
+var quantize = new Quantize(diffSourceBuffer, 6);
 
 regl.frame((context) => {
   regl.clear({
@@ -442,7 +442,7 @@ regl.frame((context) => {
       destination: blurBuffers[0]
     });
     var i = 0;
-    while (i < 3) {
+    while (i < 0) {
       blurPass({
         source: blurBuffers[0],
         destination: blurBuffers[1],
