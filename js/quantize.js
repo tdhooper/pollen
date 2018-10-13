@@ -1,5 +1,7 @@
+var glslify = require('glslify');
 var isPowerOfTwo = require('is-power-of-two');
 var setupPass = require('./draw/setup-pass');
+var Sort = require('./sort');
 
 
 var SwapBuffer = function(buffers) {
@@ -46,6 +48,39 @@ var Quantize = function(sourceBuffer, buckets) {
             height: 1,
         })
     });
+
+    // this.sortBuffer = regl.framebuffer({
+    //     depth: false,
+    //     color: regl.texture({
+    //         width: buckets,
+    //         height: buckets,
+    //     })
+    // });
+
+    this.sortHue = new Sort(this.meansBuffer, glslify(`
+        #pragma glslify: rgb2hsv = require('./shaders/rgb2hsv.glsl')
+
+        float getValue(vec4 sample) {
+            return rgb2hsv(sample.rgb).x;
+        }
+    `));
+
+    this.sortSaturation = new Sort(this.meansBuffer, glslify(`
+        #pragma glslify: rgb2hsv = require('./shaders/rgb2hsv.glsl')
+
+        float getValue(vec4 sample) {
+            return rgb2hsv(sample.rgb).y;
+        }
+    `));
+
+    this.sortLuminosity = new Sort(this.meansBuffer, glslify(`
+        #pragma glslify: rgb2hsv = require('./shaders/rgb2hsv.glsl')
+
+        float getValue(vec4 sample) {
+            return rgb2hsv(sample.rgb).z;
+        }
+    `));
+
 
     this.writeSourceIntoPixels = regl({
         frag: `
@@ -148,7 +183,7 @@ var Quantize = function(sourceBuffer, buckets) {
             uniform vec2 resolution;
 
             float round(float a) {
-                return floor(a + 0.5);
+                return floor(a + .5);
             }
 
             void main() {
@@ -181,6 +216,36 @@ var Quantize = function(sourceBuffer, buckets) {
         framebuffer: regl.prop('destination')
     });
 
+    this.toSquare = regl({
+        frag: `
+            precision mediump float;
+            uniform sampler2D means;
+            uniform float meanCount;
+            uniform vec2 resolution;
+
+            int coordToIndex(vec2 coord, vec2 size) {
+                return int(
+                    floor(coord.x) + (floor(coord.y) * size.x)
+                );
+            }
+
+            void main() {
+                float index = float(coordToIndex(gl_FragCoord.xy, resolution.xy));
+                vec2 uv = vec2(index / (meanCount - 1.), 0.);
+                vec4 mean = texture2D(means, uv);
+                //mean.rgb = vec3(index / (meanCount - 1.));
+                gl_FragColor = mean;
+            }
+        `,
+        uniforms: {
+            means: regl.prop('means'),
+            meanCount: meanCount,
+            resolution: function(context) {
+                return [context.framebufferWidth, context.framebufferHeight];
+            },
+        },
+        framebuffer: regl.prop('destination')
+    });
 
     this.debugPass = regl({
         frag: `
@@ -239,7 +304,16 @@ Quantize.prototype.process = function() {
                 destination: this.meansBuffer
             });
         }
+
+        // this.toSquare({
+        //     means: this.meansBuffer,
+        //     destination: this.sortBuffer
+        // });
     }.bind(this));
+
+    // this.sortHue.process();
+    this.sortSaturation.process();
+    // this.sortLuminosity.process();
 
     return this.meansBuffer;
 };
