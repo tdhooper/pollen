@@ -4,12 +4,13 @@
   "description": "",
   "main": "js/index.js",
   "scripts": {
-    "start": "budo js/index.js --live --ssl --css main.css"
+    "start": "node main.js"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "angle-normals": "^1.0.0",
+    "body-parser": "^1.18.3",
     "budo": "^11.3.2",
     "canvas-orbit-camera": "^1.0.2",
     "gl-mat4": "^1.2.0",
@@ -17,6 +18,7 @@
     "glsl-fast-gaussian-blur": "^1.0.2",
     "glsl-range": "^1.0.0",
     "glslify": "^6.2.1",
+    "is-empty": "^1.2.0",
     "polyhedra": "^1.0.0",
     "regl": "^1.3.7",
     "vectors": "^0.1.0"
