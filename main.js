@@ -20,27 +20,33 @@ budo('./js/index.js', {
     bodyParser.json(),
     function(req, res, next) {
       if (url.parse(req.url).pathname === '/save') {
-        if (empty(req.body)) {
-          res.statusCode = 500;
-          res.end('Missing content');
-        }
-        var content = JSON.stringify(req.body, null, 4);
-        content += '\n';
-        var filename = crypto.createHash('md5').update(content).digest("hex");
-        filename += '.json';
-        var file = path.join(saveLocation, filename);
-        fs.writeFile(file, content, function(err) {
-          if (err) {
-            throw err;
-          }
-          res.statusCode = 200;
-          res.end('Saved');
-        });
+        save(req, res);
       } else {
         next();
       }
     }
   ]
-}).on('connect', function(ev) {
-  //...
 });
+
+var save = function(req, res) {
+  if (empty(req.body)) {
+    res.statusCode = 500;
+    res.end('Missing content');
+    return;
+  }
+
+  var content = JSON.stringify(req.body, null, 4);
+  content += '\n';
+
+  var filename = crypto.createHash('md5').update(content).digest("hex");
+  filename += '.json';
+  var file = path.join(saveLocation, filename);
+
+  fs.writeFile(file, content, function(err) {
+    if (err) {
+      throw err;
+    }
+    res.statusCode = 200;
+    res.end('Saved');
+  });
+};
