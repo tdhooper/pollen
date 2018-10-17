@@ -6,7 +6,12 @@ const createCamera = require('canvas-orbit-camera');
 module.exports = function() {
 
   const canvas = document.body.appendChild(document.createElement('canvas'));
-  global.regl = createRegl(canvas);
+  global.regl = createRegl({
+    canvas: canvas,
+    attributes: {
+      preserveDrawingBuffer: true
+    }
+  });
 
   const glm = require('gl-matrix');
   const Pollenet = require('./pollenet');
@@ -68,8 +73,17 @@ module.exports = function() {
     xhr.addEventListener('load', function() {
       channel.postMessage(xhr.response);
     });
-    var data = {'hello': 'world'};
-    xhr.send(JSON.stringify(data));
+
+    regl({framebuffer: videoSource.spec.heightMap})(() => {
+      regl.clear({color: [0, 0, 0, 1]});
+      var pixels = regl.read();
+      console.log(pixels);
+      var data = {
+        height: Array.from(pixels)
+      };
+      var dataStr = JSON.stringify(data);
+      xhr.send(dataStr);
+    });
   }
 
   const setupView = regl({
@@ -82,7 +96,9 @@ module.exports = function() {
 
   regl.frame((context) => {
     regl.clear({
-      color: [0,0,0,1]
+      color: [0, 0, 0, 1],
+      depth: 1,
+      stencil: 0
     });
     camera.rotate([.003,0.002],[0,0]);
     camera.tick();

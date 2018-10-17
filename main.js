@@ -35,7 +35,7 @@ var save = function(req, res) {
     return;
   }
 
-  var content = JSON.stringify(req.body, null, 4);
+  var content = JSON.stringify(req.body, null);
   content += '\n';
 
   var filename = crypto.createHash('md5').update(content).digest("hex");
