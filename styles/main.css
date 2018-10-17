@@ -7,3 +7,9 @@ body {
     margin: 0;
     overflow: hidden;
 }
+
+.save-button {
+    position: fixed;
+    top: 15px;
+    left: 15px;
+}

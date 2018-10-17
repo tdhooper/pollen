@@ -47,6 +47,6 @@ var save = function(req, res) {
       throw err;
     }
     res.statusCode = 200;
-    res.end('Saved');
+    res.end(filename);
   });
 };

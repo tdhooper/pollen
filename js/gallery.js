@@ -1,4 +1,7 @@
 
 module.exports = function() {
-    console.log('gallery2');
+    var channel = new BroadcastChannel('pollen');
+    channel.onmessage = function (ev) {
+        console.log(ev);
+    };
 };

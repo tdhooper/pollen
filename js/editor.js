@@ -19,6 +19,13 @@ module.exports = function() {
   camera.distance = 10;
 
 
+  var btn = document.createElement('button');
+  btn.textContent = 'Save';
+  btn.classList.add('save-button');
+  document.body.appendChild(btn);
+  btn.addEventListener('click', save);
+  var channel = new BroadcastChannel('pollen');
+
   var resize = function() {
     var width = document.body.clientWidth;
     var height = document.body.clientHeight;
@@ -53,6 +60,17 @@ module.exports = function() {
   glm.mat3.invert(previewMat, previewMat);
 
   var previewMatViewport = glm.mat3.create();
+
+  function save() {
+    var xhr = new XMLHttpRequest();
+    xhr.open('post', '/save', true);
+    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+    xhr.addEventListener('load', function() {
+      channel.postMessage(xhr.response);
+    });
+    var data = {'hello': 'world'};
+    xhr.send(JSON.stringify(data));
+  }
 
   const setupView = regl({
     uniforms: {
