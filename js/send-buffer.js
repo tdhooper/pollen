@@ -1,19 +1,40 @@
 
-function bufferToArray(buffer) {
-  return new Promise(function(resolve, reject) {
+function bufferToObj(buffer) {
+  return new Promise((resolve, reject) => {
     regl({framebuffer: buffer})(() => {
-      regl.clear({color: [0, 0, 0, 1]});
       var pixels = regl.read();
-      resolve(pixels);
+      resolve({
+        width: buffer.width,
+        height: buffer.height,
+        pixels: pixels
+      });
     });
   });
 }
 
-function arrayToBuffer(pixels, buffer) {
-  buffer.data(pixels);
+var canvas = document.createElement('canvas');
+
+function objToBlob(obj) {
+  return new Promise((resolve, reject) => {
+    var data = new ImageData(
+      new Uint8ClampedArray(obj.pixels),
+      obj.width,
+      obj.height
+    );
+    canvas.width = obj.width;
+    canvas.height = obj.height;
+    var ctx = canvas.getContext('2d');
+    ctx.putImageData(data, 0, 0);
+    canvas.toBlob(resolve);
+  });
+}
+
+function bufferToBlob(buffer) {
+  return bufferToObj(buffer).then(objToBlob);
 }
 
 module.exports = {
-    bufferToObj: bufferToArray,
-    arrayToBuffer: arrayToBuffer
+  bufferToObj: bufferToObj,
+  objToBlob: objToBlob,
+  bufferToBlob: bufferToBlob
 };

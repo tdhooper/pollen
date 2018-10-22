@@ -67,14 +67,9 @@ module.exports = function() {
   var previewMatViewport = glm.mat3.create();
 
   function send() {
-    canvas.toBlob(blob => {
-      // console.log(blob)
-      channel.postMessage(blob);
+    videoSource.toObj().then(source => {
+      channel.postMessage(source);
     });
-
-    // videoSource.asMessage().then(message => {
-    //   channel.postMessage(message);
-    // });
   }
 
   const setupView = regl({
@@ -96,14 +91,14 @@ module.exports = function() {
 
     videoSource.update();
     setupView(function() {
-      pollenet.draw(videoSource.spec);
+      pollenet.draw(videoSource);
     });
 
     var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
     glm.mat3.scale(previewMatViewport, previewMat, [ratio, 1]);
     setupPass(function() {
       drawVideo({
-        source: videoSource.croppedVideo,
+        source: videoSource.imageBuffer,
         transform: previewMatViewport,
         abcUv: abcUv
       });

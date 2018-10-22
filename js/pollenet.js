@@ -63,12 +63,12 @@ var Pollenet = function(abcUv) {
   });
 };
 
-Pollenet.prototype.draw = function(spec) {
-  this.drawSphere(
-    Object.assign({
-      mesh: this.mesh
-    }, spec)
-  );
+Pollenet.prototype.draw = function(source) {
+  this.drawSphere({
+    mesh: this.mesh,
+    heightMap: source.heightBuffer,
+    video: source.imageBuffer
+  });
 };
 
 module.exports = Pollenet;

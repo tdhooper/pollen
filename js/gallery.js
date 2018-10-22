@@ -3,28 +3,43 @@ module.exports = function() {
 
   var channel = new BroadcastChannel('pollen');
 
-  // var xhr = new XMLHttpRequest();
-  // xhr.open('post', '/save', true);
-  // xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-  // xhr.addEventListener('load', function() {
-  //   console.log(xhr.response);
-  // });
-
   channel.onmessage = function(evt) {
-    var blob = evt.data;
-
-    var form = new FormData();
-    form.append('image', blob, "image.png");
-
-    fetch('/upload', {method: 'POST', body: form});
-
-    // var dataStr = JSON.stringify({'hiii': 432});
-    // xhr.send(blob);
+    var source = evt.data;
+    Promise.all([
+      upload(source.height),
+      upload(source.image)
+    ]).then(filenames => {
+      var data = {
+        height: filenames[0],
+        image: filenames[1],
+      };
+      submit(data).then(console.log);
+    });
   };
 
-  // create canvas the same size as framebuffer
-  // write framebuffer pixels to canvas (could be slow!)
-  // canvas.toBlob()
-  // upload, returns image id on success
-  // submit json with image ids
+  function upload(blob) {
+    var form = new FormData();
+    form.append('image', blob, "image.png");
+    var f = fetch('/upload', {
+      method: 'POST',
+      body: form
+    });
+    return f.then(response => {
+      return response.text();
+    });
+  }
+
+  function submit(data) {
+    var form = new FormData();
+    var f = fetch('/save', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(data)
+    });
+    return f.then(response => {
+      return response.text();
+    });
+  }
 };

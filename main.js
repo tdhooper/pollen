@@ -36,13 +36,14 @@ budo('./js/index.js', {
 });
 
 var save = function(req, res) {
+
   if (empty(req.body)) {
     res.statusCode = 500;
     res.end('Missing content');
     return;
   }
 
-  var content = JSON.stringify(req.body, null);
+  var content = JSON.stringify(req.body, null, 2);
   content += '\n';
 
   var filename = crypto.createHash('md5').update(content).digest("hex");
