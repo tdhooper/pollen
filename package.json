@@ -19,6 +19,7 @@
     "glsl-range": "^1.0.0",
     "glslify": "^6.2.1",
     "is-empty": "^1.2.0",
+    "multiparty": "^4.2.1",
     "polyhedra": "^1.0.0",
     "regl": "^1.3.7",
     "vectors": "^0.1.0"

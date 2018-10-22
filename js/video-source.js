@@ -5,9 +5,9 @@ const setupPass = require('./draw/setup-pass');
 const resamplePass = require('./draw/resample-pass');
 const blurPass = require('./draw/blur-pass');
 const heightMapPass = require('./draw/height-map-pass');
+const bufferToObj = require('./send-buffer').bufferToObj;
 
-
-var videoSource = function() {
+var VideoSource = function() {
   this.webcam = new WebcamTexture(regl);
 
   this.croppedVideo = regl.framebuffer({
@@ -46,7 +46,19 @@ var videoSource = function() {
   };
 };
 
-videoSource.prototype.update = function() {
+VideoSource.prototype.asMessage = function() {
+  return Promise.all([
+    bufferToObj(this.spec.heightMap),
+    bufferToObj(this.spec.video)
+  ]).then(result => {
+    return {
+      heightMap: result[0],
+      video: result[1]
+    };
+  });
+};
+
+VideoSource.prototype.update = function() {
 
   this.webcam.update();
 
@@ -87,4 +99,4 @@ videoSource.prototype.update = function() {
   });
 };
 
-module.exports = videoSource;
+module.exports = VideoSource;

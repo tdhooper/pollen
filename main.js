@@ -5,6 +5,8 @@ var bodyParser = require('body-parser');
 var empty = require('is-empty');
 var crypto = require('crypto');
 var path = require('path');
+var multiparty = require('multiparty');
+var util = require('util');
 
 var saveLocation = path.join(__dirname, 'saved');
 
@@ -19,10 +21,15 @@ budo('./js/index.js', {
   middleware: [
     bodyParser.json(),
     function(req, res, next) {
-      if (url.parse(req.url).pathname === '/save') {
-        save(req, res);
-      } else {
-        next();
+      switch(url.parse(req.url).pathname) {
+        case '/save':
+          save(req, res);
+          break;
+        case '/upload':
+          upload(req, res);
+          break;
+        default:
+          next();
       }
     }
   ]
@@ -49,4 +56,18 @@ var save = function(req, res) {
     res.statusCode = 200;
     res.end(filename);
   });
+};
+
+var upload = function(req, res) {
+  var form = new multiparty.Form({
+    autoFiles: true,
+    uploadDir: saveLocation
+  });
+
+  form.on('file', function(name, file) {
+    var filename = path.basename(file.path);
+    res.end(filename);
+  });
+
+  form.parse(req);
 };

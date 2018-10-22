@@ -28,7 +28,7 @@ module.exports = function() {
   btn.textContent = 'Save';
   btn.classList.add('save-button');
   document.body.appendChild(btn);
-  btn.addEventListener('click', save);
+  btn.addEventListener('click', send);
   var channel = new BroadcastChannel('pollen');
 
   var resize = function() {
@@ -66,24 +66,15 @@ module.exports = function() {
 
   var previewMatViewport = glm.mat3.create();
 
-  function save() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('post', '/save', true);
-    xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
-    xhr.addEventListener('load', function() {
-      channel.postMessage(xhr.response);
+  function send() {
+    canvas.toBlob(blob => {
+      // console.log(blob)
+      channel.postMessage(blob);
     });
 
-    regl({framebuffer: videoSource.spec.heightMap})(() => {
-      regl.clear({color: [0, 0, 0, 1]});
-      var pixels = regl.read();
-      console.log(pixels);
-      var data = {
-        height: Array.from(pixels)
-      };
-      var dataStr = JSON.stringify(data);
-      xhr.send(dataStr);
-    });
+    // videoSource.asMessage().then(message => {
+    //   channel.postMessage(message);
+    // });
   }
 
   const setupView = regl({
