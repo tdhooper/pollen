@@ -1,39 +1,38 @@
-const bufferToBlob = require('./send-buffer').bufferToBlob;
+const bufferToObj = require('./send-buffer').bufferToObj;
 
 
 class Source {
 
   constructor(heightBuffer, imageBuffer) {
 
+    this.heightTexture = regl.texture({
+      width: 256,
+      height: 256,
+      mag: 'linear'
+    });
+
     this.heightBuffer = regl.framebuffer({
       depth: false,
-      color: regl.texture({
-        width: 256,
-        height: 256,
-        mag: 'linear'
-      })
+      color: this.heightTexture
+    });
+
+    this.imageTexture = regl.texture({
+      width: 1024,
+      height: 1024,
+      mag: 'linear',
+      min: 'linear'
     });
 
     this.imageBuffer = regl.framebuffer({
       depth: false,
-      color: regl.texture({
-        width: 1024,
-        height: 1024,
-        mag: 'linear',
-        min: 'linear'
-      })
+      color: this.imageTexture
     });
-
-    this.spec = {
-      height: heightBuffer,
-      image: imageBuffer
-    };
   }
 
   toObj() {
     return Promise.all([
-      bufferToBlob(this.heightBuffer),
-      bufferToBlob(this.imageBuffer)
+      bufferToObj(this.heightBuffer),
+      bufferToObj(this.imageBuffer)
     ]).then(result => {
       return {
         height: result[0],
@@ -43,8 +42,12 @@ class Source {
   }
 
   fromObj(obj) {
-    this.heightBuffer.data(obj.height.pixels);
-    this.imageBuffer.data(obj.image.pixels);
+    this.heightTexture.subimage({
+      data: obj.height.pixels
+    });
+    this.imageTexture.subimage({
+      data: obj.image.pixels
+    });
   }
 }
 

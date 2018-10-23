@@ -1,7 +1,9 @@
-function save(source) {
-  return Promise.all([
-    upload(source.height),
-    upload(source.image)
+var objToBlob = require('./send-buffer').objToBlob;
+
+function save(sourceObj) {
+  Promise.all([
+    objToBlob(sourceObj.height).then(upload),
+    objToBlob(sourceObj.image).then(upload)
   ]).then(filenames => {
     var data = {
       height: filenames[0],

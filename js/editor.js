@@ -67,8 +67,8 @@ module.exports = function() {
   var previewMatViewport = glm.mat3.create();
 
   function send() {
-    videoSource.toObj().then(source => {
-      channel.postMessage(source);
+    videoSource.toObj().then(sourceObj => {
+      channel.postMessage(sourceObj);
     });
   }
 
