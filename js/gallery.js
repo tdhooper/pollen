@@ -47,7 +47,7 @@ module.exports = function() {
   channel.onmessage = function(evt) {
     var sourceObj = evt.data;
     source.fromObj(sourceObj);
-    // store.save(sourceObj);
+    store.save(sourceObj);
   };
 
   const setupView = regl({

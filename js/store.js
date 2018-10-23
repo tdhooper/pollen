@@ -1,21 +1,27 @@
 var objToBlob = require('./send-buffer').objToBlob;
+var uuidv1 = require('uuid/v1');
 
 function save(sourceObj) {
+  name = uuidv1();
   Promise.all([
-    objToBlob(sourceObj.height).then(upload),
-    objToBlob(sourceObj.image).then(upload)
+    objToBlob(sourceObj.height).then(
+      blob => upload(blob, name + '_height.png')
+    ),
+    objToBlob(sourceObj.image).then(
+      blob => upload(blob, name + '_image.png')
+    )
   ]).then(filenames => {
     var data = {
       height: filenames[0],
       image: filenames[1],
     };
-    return submit(data);
+    return submit(data, name);
   });
 }
 
-function upload(blob) {
+function upload(blob, name) {
   var form = new FormData();
-  form.append('image', blob, "image.png");
+  form.append('image', blob, name);
   var f = fetch('/upload', {
     method: 'POST',
     body: form
@@ -25,9 +31,9 @@ function upload(blob) {
   });
 }
 
-function submit(data) {
+function submit(data, name) {
   var form = new FormData();
-  var f = fetch('/save', {
+  var f = fetch('/save/' + name, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

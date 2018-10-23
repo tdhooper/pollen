@@ -21,21 +21,25 @@ budo('./js/index.js', {
   middleware: [
     bodyParser.json(),
     function(req, res, next) {
-      switch(url.parse(req.url).pathname) {
-        case '/save':
-          save(req, res);
-          break;
-        case '/upload':
-          upload(req, res);
-          break;
-        default:
-          next();
+      pathname = url.parse(req.url).pathname;
+
+      var match = pathname.match(/\/save\/([^\/]*)/);
+      if (match) {
+        save(req, res, match[1]);
+        return;
       }
+
+      if (pathname == '/upload') {
+        upload(req, res);
+        return;
+      }
+
+      next();
     }
   ]
 });
 
-var save = function(req, res) {
+var save = function(req, res, name) {
 
   if (empty(req.body)) {
     res.statusCode = 500;
@@ -46,8 +50,7 @@ var save = function(req, res) {
   var content = JSON.stringify(req.body, null, 2);
   content += '\n';
 
-  var filename = crypto.createHash('md5').update(content).digest("hex");
-  filename += '.json';
+  filename = name + '.json';
   var file = path.join(saveLocation, filename);
 
   fs.writeFile(file, content, function(err) {
@@ -61,13 +64,13 @@ var save = function(req, res) {
 
 var upload = function(req, res) {
   var form = new multiparty.Form({
-    autoFiles: true,
-    uploadDir: saveLocation
+    autoFiles: true
   });
 
   form.on('file', function(name, file) {
-    var filename = path.basename(file.path);
-    res.end(filename);
+    var filename = path.join(saveLocation, file.originalFilename);
+    fs.renameSync(file.path, filename);
+    res.end(file.originalFilename);
   });
 
   form.parse(req);
