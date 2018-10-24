@@ -72,16 +72,55 @@ router.post('/upload', function(req, res) {
 
 
 router.get('/saved', function(req, res) {
-  fs.readdir(saveLocation, (err, files) => {
-    if (err) {
-      throw err;
-    }
-    var names = files.filter(file => {
-      return file.endsWith('.json');
-    }).map(file => {
-      return file.slice(0, -5);
+  dirType(saveLocation, 'json')
+    .then(sortModified)
+    .then(files => {
+      var names = files.map(file => {
+        return path.basename(file).slice(0, -5);
+      });
+      str = JSON.stringify(names);
+      res.end(str);
     });
-    str = JSON.stringify(names);
-    res.end(str);
-  });
 });
+
+
+function dirType(dir, type) {
+  return new Promise((resolve, reject) => {
+    fs.readdir(dir, (err, files) => {
+      if (err) {
+        throw reject(err);
+      }
+      files = files.filter(file => {
+        return file.endsWith(type);
+      }).map(file => {
+        return path.join(dir, file);
+      });
+      resolve(files);
+    });
+  });
+}
+
+
+function sortModified(files) {
+  return Promise.all(files.map(fileModified)).then(times => {
+    return files.map((file, i) => {
+      return [file, times[i]];
+    }).sort((a, b) => {
+      return b[1] - a[1];
+    }).map(fileModified => {
+      return fileModified[0];
+    });
+  });
+}
+
+
+function fileModified(file) {
+  return new Promise((resolve, reject) => {
+    fs.stat(file, (err, data) => {
+      if (err) {
+        reject(err);
+      }
+      resolve(data.mtime.getTime());
+    });
+  });
+}
