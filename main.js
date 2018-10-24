@@ -7,6 +7,8 @@ var crypto = require('crypto');
 var path = require('path');
 var multiparty = require('multiparty');
 var util = require('util');
+var Router = require('router');
+
 
 var saveLocation = path.join(__dirname, 'saved');
 
@@ -14,37 +16,23 @@ if ( ! fs.existsSync(saveLocation)){
   fs.mkdirSync(saveLocation);
 }
 
+
+var router = Router();
+
 budo('./js/index.js', {
   live: true,
   stream: process.stdout,
   ssl: true,
   middleware: [
     bodyParser.json(),
-    function(req, res, next) {
-      pathname = url.parse(req.url).pathname;
-
-      var match = pathname.match(/\/save\/([^\/]*)/);
-      if (match) {
-        save(req, res, match[1]);
-        return;
-      }
-
-      if (pathname == '/upload') {
-        upload(req, res);
-        return;
-      }
-
-      if (pathname == '/saved/') {
-        saved(req, res);
-        return;
-      }
-
-      next();
-    }
+    router
   ]
 });
 
-var save = function(req, res, name) {
+
+router.post('/save/:name', function(req, res) {
+
+  var name = req.params.name;
 
   if (empty(req.body)) {
     res.statusCode = 500;
@@ -65,9 +53,10 @@ var save = function(req, res, name) {
     res.statusCode = 200;
     res.end(filename);
   });
-};
+});
 
-var upload = function(req, res) {
+
+router.post('/upload', function(req, res) {
   var form = new multiparty.Form({
     autoFiles: true
   });
@@ -79,9 +68,10 @@ var upload = function(req, res) {
   });
 
   form.parse(req);
-};
+});
 
-var saved = function(req, res) {
+
+router.get('/saved', function(req, res) {
   fs.readdir(saveLocation, (err, files) => {
     if (err) {
       throw err;
@@ -94,4 +84,4 @@ var saved = function(req, res) {
     str = JSON.stringify(names);
     res.end(str);
   });
-};
+});
