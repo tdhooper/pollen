@@ -34,6 +34,11 @@ budo('./js/index.js', {
         return;
       }
 
+      if (pathname == '/saved/') {
+        saved(req, res);
+        return;
+      }
+
       next();
     }
   ]
@@ -74,4 +79,19 @@ var upload = function(req, res) {
   });
 
   form.parse(req);
+};
+
+var saved = function(req, res) {
+  fs.readdir(saveLocation, (err, files) => {
+    if (err) {
+      throw err;
+    }
+    var names = files.filter(file => {
+      return file.endsWith('.json');
+    }).map(file => {
+      return file.slice(0, -5);
+    });
+    str = JSON.stringify(names);
+    res.end(str);
+  });
 };
