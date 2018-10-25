@@ -80,6 +80,8 @@ module.exports = function() {
     }
   });
 
+  var model = mat4.identity([]);
+
   regl.frame((context) => {
     regl.clear({
       color: [0, 0, 0, 1],
@@ -91,7 +93,7 @@ module.exports = function() {
 
     videoSource.update();
     setupView(function() {
-      pollenet.draw(videoSource);
+      pollenet.draw(videoSource, model);
     });
 
     var ratio = context.drawingBufferWidth / context.drawingBufferHeight;

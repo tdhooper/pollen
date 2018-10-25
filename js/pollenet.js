@@ -5,7 +5,6 @@ const mat4 = require('gl-matrix').mat4;
 var Pollenet = function(abcUv) {
 
   var mesh = geometry.tetrahedron(6, abcUv);
-  var model = mat4.identity([]);
 
   this.drawSphere = regl({
     frag: `
@@ -56,16 +55,17 @@ var Pollenet = function(abcUv) {
           0.01,
           1000
         ),
-      model: model,
+      model: regl.prop('model'),
       video: regl.prop('video'),
       heightMap: regl.prop('heightMap')
     }
   });
 };
 
-Pollenet.prototype.draw = function(source) {
+Pollenet.prototype.draw = function(source, model) {
   this.drawSphere({
     mesh: this.mesh,
+    model: model,
     heightMap: source.height,
     video: source.image
   });
