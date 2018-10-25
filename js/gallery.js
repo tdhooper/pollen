@@ -44,7 +44,7 @@ module.exports = function() {
 
   store.saved().then(saved => {
     store.restore(saved[0]).then(obj => {
-      source.fromImgObj(obj);
+      source.fromObj(obj);
     });
   });
 
