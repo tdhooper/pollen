@@ -6,6 +6,7 @@ const resamplePass = require('./draw/resample-pass');
 const blurPass = require('./draw/blur-pass');
 const heightMapPass = require('./draw/height-map-pass');
 const Source = require('./source');
+const bufferToObj = require('./send-buffer').bufferToObj;
 
 
 class VideoSource extends Source {
@@ -14,6 +15,16 @@ class VideoSource extends Source {
     super();
 
     this.webcam = new WebcamTexture(regl);
+
+    this.heightBuffer = regl.framebuffer({
+      depth: false,
+      color: this.heightTexture
+    });
+
+    this.imageBuffer = regl.framebuffer({
+      depth: false,
+      color: this.imageTexture
+    });
 
     this.blurBuffers = [
 
@@ -37,6 +48,26 @@ class VideoSource extends Source {
     glm.mat3.invert(videoMat, videoMat);
 
     this.videoMat = videoMat;
+  }
+
+  get height() {
+    return this.heightBuffer;
+  }
+
+  get image() {
+    return this.imageBuffer;
+  }
+
+  toObj() {
+    return Promise.all([
+      bufferToObj(this.heightBuffer),
+      bufferToObj(this.imageBuffer)
+    ]).then(result => {
+      return {
+        height: result[0],
+        image: result[1]
+      };
+    });
   }
 
   update() {

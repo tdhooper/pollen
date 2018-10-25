@@ -1,5 +1,3 @@
-const bufferToObj = require('./send-buffer').bufferToObj;
-
 
 class Source {
 
@@ -11,34 +9,20 @@ class Source {
       mag: 'linear'
     });
 
-    this.heightBuffer = regl.framebuffer({
-      depth: false,
-      color: this.heightTexture
-    });
-
     this.imageTexture = regl.texture({
       width: 1024,
       height: 1024,
       mag: 'linear',
       min: 'linear'
     });
-
-    this.imageBuffer = regl.framebuffer({
-      depth: false,
-      color: this.imageTexture
-    });
   }
 
-  toObj() {
-    return Promise.all([
-      bufferToObj(this.heightBuffer),
-      bufferToObj(this.imageBuffer)
-    ]).then(result => {
-      return {
-        height: result[0],
-        image: result[1]
-      };
-    });
+  get height() {
+    return this.heightTexture;
+  }
+
+  get image() {
+    return this.imageTexture;
   }
 
   fromObj(obj) {

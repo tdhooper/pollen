@@ -66,8 +66,8 @@ var Pollenet = function(abcUv) {
 Pollenet.prototype.draw = function(source) {
   this.drawSphere({
     mesh: this.mesh,
-    heightMap: source.heightBuffer,
-    video: source.imageBuffer
+    heightMap: source.height,
+    video: source.image
   });
 };
 
