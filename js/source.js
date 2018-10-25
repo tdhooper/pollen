@@ -49,6 +49,15 @@ class Source {
       data: obj.image.pixels
     });
   }
+
+  fromImgObj(obj) {
+    this.heightTexture.subimage({
+      data: obj.height
+    });
+    this.imageTexture.subimage({
+      data: obj.image
+    });
+  }
 }
 
 module.exports = Source;

@@ -42,6 +42,12 @@ module.exports = function() {
   const pollenet = new Pollenet(abcUv);
   const source = new Source();
 
+  store.saved().then(saved => {
+    store.restore(saved[0]).then(obj => {
+      source.fromImgObj(obj);
+    });
+  });
+
   var channel = new BroadcastChannel('pollen');
 
   channel.onmessage = function(evt) {

@@ -33,8 +33,20 @@ function bufferToBlob(buffer) {
   return bufferToObj(buffer).then(objToBlob);
 }
 
+function urlToImg(url) {
+  return new Promise((resolve, reject) => {
+    var img = new Image();
+    img.onload = evt => {
+      resolve(img);
+    };
+    img.onerror = reject;
+    img.src = url;
+  });
+}
+
 module.exports = {
   bufferToObj: bufferToObj,
   objToBlob: objToBlob,
-  bufferToBlob: bufferToBlob
+  bufferToBlob: bufferToBlob,
+  urlToImg: urlToImg
 };

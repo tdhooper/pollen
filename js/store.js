@@ -1,4 +1,5 @@
 var objToBlob = require('./send-buffer').objToBlob;
+var urlToImg = require('./send-buffer').urlToImg;
 var uuidv1 = require('uuid/v1');
 
 function save(sourceObj) {
@@ -16,6 +17,31 @@ function save(sourceObj) {
       image: filenames[1],
     };
     return submit(data, name);
+  });
+}
+
+function restore(name) {
+  return fetch('/saved/' + name + '.json').then(response => {
+    return response.text();
+  }).then(text => {
+    return JSON.parse(text);
+  }).then(obj => {
+    return Promise.all([
+      urlToImg('/saved/' + obj.height),
+      urlToImg('/saved/' + obj.image),
+    ]).then(images => {
+      obj.height = images[0];
+      obj.image = images[1];
+      return obj;
+    });
+  });
+}
+
+function saved() {
+  return fetch('/saved').then(response => {
+    return response.text();
+  }).then(text => {
+    return JSON.parse(text);
   });
 }
 
@@ -46,5 +72,7 @@ function submit(data, name) {
 }
 
 module.exports = {
-  save: save
+  save: save,
+  saved: saved,
+  restore: restore
 };
