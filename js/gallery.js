@@ -19,6 +19,7 @@ module.exports = function() {
   const Source = require('./source');
   const setupPass = require('./draw/setup-pass');
   const bufferToObj = require('./send-buffer').bufferToObj;
+  const setLength = require('./list').setLength;
 
   const camera = createCamera(canvas);
   camera.distance = 10;
@@ -42,7 +43,7 @@ module.exports = function() {
 
   const pollenet = new Pollenet(abcUv);
   var sources = [];
-  var limit = 10;
+  var limit = 2;
 
   store.saved().then(saved => {
     saved = saved.slice(0, limit);
@@ -52,17 +53,7 @@ module.exports = function() {
         source.fromObj(obj);
         sources.push(source);
       });
-      if ( ! sources.length) {
-        return;
-      }
-      var len = sources.length;
-      var remain = limit - sources.length;
-      if (remain < 1) {
-        return;
-      }
-      for (var i = 0; i < remain; i++) {
-        sources[len + i] = sources[i % len];
-      }
+      sources = setLength(sources, limit);
     });
   });
 
