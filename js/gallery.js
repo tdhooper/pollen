@@ -10,12 +10,15 @@ module.exports = function() {
     canvas: canvas,
     attributes: {
       preserveDrawingBuffer: true
-    }
+    },
+    extensions: [
+      'angle_instanced_arrays'
+    ]
   });
 
   const glm = require('gl-matrix');
-  const Pollenet = require('./pollenet');
-  const Source = require('./source');
+  const MultiPollenet = require('./multi-pollenet');
+  const MultiSource = require('./multi-source');
   const setupPass = require('./draw/setup-pass');
   const bufferToObj = require('./send-buffer').bufferToObj;
   const setLength = require('./list').setLength;
@@ -45,19 +48,17 @@ module.exports = function() {
     [1, 0]
   ];
 
-  const pollenet = new Pollenet(abcUv);
-  var sources = [];
-  var limit = 50;
+  const limit = 50;
+  const multiPollenet = new MultiPollenet(abcUv, limit);
+  const multiSource = new MultiSource(limit, 128);
 
   store.saved().then(saved => {
     saved = saved.slice(0, limit);
     Promise.all(saved.map(store.restore)).then(restored => {
+      restored = setLength(restored, limit);
       restored.forEach(obj => {
-        var source = new Source();
-        source.fromObj(obj);
-        sources.push(source);
+        multiSource.add(obj);
       });
-      sources = setLength(sources, limit);
     });
   });
 
@@ -65,12 +66,8 @@ module.exports = function() {
 
   channel.onmessage = function(evt) {
     var sourceObj = evt.data;
-
     store.save(sourceObj);
-
-    var source = new Source();
-    source.fromObj(sourceObj);
-    sources.push(source);
+    multiSource.add(sourceObj);
   };
 
   const setupView = regl({
@@ -81,7 +78,16 @@ module.exports = function() {
     }
   });
 
-  var model = mat4.identity([]);
+  var models = Array(limit).fill([]).map((model, i) => {
+    var radius = i / limit * 1.5;
+    var angle = i * Math.PI * (3 - Math.sqrt(5));
+    var v = [Math.sin(angle) * radius, Math.cos(angle) * radius, 0];
+    mat4.fromTranslation(model, v);
+    mat4.scale(model, model, [.1,.1,.1]);
+    return model;
+  });
+
+  console.log(mat4.fromScaling([], [2,2,2]));
 
   regl.frame((context) => {
 
@@ -96,15 +102,7 @@ module.exports = function() {
     camera.tick();
 
     setupView(function() {
-      sources.forEach((source, i) => {
-        // i += 10;
-        var radius = i / limit * 1.5;
-        var angle = i * Math.PI * (3 - Math.sqrt(5));
-        var v = [Math.sin(angle) * radius, Math.cos(angle) * radius, 0];
-        mat4.fromTranslation(model, v);
-        mat4.scale(model, model, [.1,.1,.1]);
-        pollenet.draw(source, model);
-      });
+      multiPollenet.draw(multiSource, models);
     });
 
     stats.end();
