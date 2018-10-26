@@ -3,7 +3,6 @@ const createRegl = require('regl');
 const createCamera = require('canvas-orbit-camera');
 const mat4 = require('gl-matrix').mat4;
 
-
 module.exports = function() {
 
   const canvas = document.body.appendChild(document.createElement('canvas'));
@@ -20,6 +19,11 @@ module.exports = function() {
   const setupPass = require('./draw/setup-pass');
   const bufferToObj = require('./send-buffer').bufferToObj;
   const setLength = require('./list').setLength;
+  const Stats = require('stats.js');
+
+  const stats = new Stats();
+  stats.showPanel(0);
+  document.body.appendChild(stats.dom);
 
   const camera = createCamera(canvas);
   camera.distance = 10;
@@ -43,7 +47,7 @@ module.exports = function() {
 
   const pollenet = new Pollenet(abcUv);
   var sources = [];
-  var limit = 2;
+  var limit = 50;
 
   store.saved().then(saved => {
     saved = saved.slice(0, limit);
@@ -80,6 +84,9 @@ module.exports = function() {
   var model = mat4.identity([]);
 
   regl.frame((context) => {
+
+    stats.begin();
+
     regl.clear({
       color: [0, 0, 0, 1],
       depth: 1,
@@ -99,6 +106,9 @@ module.exports = function() {
         pollenet.draw(source, model);
       });
     });
+
+    stats.end();
+
   });
 };
 
