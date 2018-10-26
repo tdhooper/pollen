@@ -33,8 +33,8 @@ class VideoSource extends Source {
       regl.framebuffer({
         depth: false,
         color: regl.texture({
-          width: 256,
-          height: 256,
+          width: this.heightBuffer.width,
+          height: this.heightBuffer.height,
           mag: 'linear'
         })
       })
