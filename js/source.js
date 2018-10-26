@@ -1,7 +1,7 @@
 
 class Source {
 
-  constructor(heightBuffer, imageBuffer) {
+  constructor() {
 
     this.heightTexture = regl.texture({
       width: 256,
