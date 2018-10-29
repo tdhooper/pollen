@@ -111,15 +111,3 @@ module.exports = function() {
 
   });
 };
-
-/*
-
-  create multiple pollenets
-  each has two textures
-  share geometry?
-  .. needs a texture map, as you can't use a texture as an instance attribute
-
-  pollet.draw needs to take a matrix
-
-
-*/

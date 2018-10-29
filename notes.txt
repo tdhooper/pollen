@@ -14,3 +14,12 @@
     * needs a server
 
 
+Gallery design
+
+* Microscope view - circular
+* Really shallow DOF?
+    * Play with focus
+* When adding a pollenet, break focus, then slide it into view while focusing
+* Simple fluid sim
+* Switch between zoom levels
+* Make more unique shapes bigger?
