@@ -2,9 +2,9 @@ const geometry = require('./geometry/polyhedra');
 const mat4 = require('gl-matrix').mat4;
 
 
-var Pollenet = function(abcUv) {
+var Pollenet = function(abcUv, detail) {
 
-  var mesh = geometry.tetrahedron(6, abcUv);
+  var mesh = geometry.tetrahedron(detail, abcUv);
 
   this.drawSphere = regl({
     frag: `

@@ -41,7 +41,7 @@ class VideoSource extends Source {
     ];
 
     var videoMat = glm.mat3.create();
-    var videoScale = -1.5;
+    var videoScale = 1;
     var videoTranslate = .5 / videoScale - .5;
     glm.mat3.scale(videoMat, videoMat, [videoScale, videoScale]);
     glm.mat3.translate(videoMat, videoMat, [videoTranslate, videoTranslate]);

@@ -22,4 +22,12 @@ Gallery design
 * When adding a pollenet, break focus, then slide it into view while focusing
 * Simple fluid sim
 * Switch between zoom levels
+* Several focal planes?
 * Make more unique shapes bigger?
+
+
+
+we have N particles
+just use a voronoi distribution
+constrain within bounding circle
+when adding, choose a random place out of view, and tween the camera to it

@@ -14,7 +14,7 @@ module.exports = function() {
   });
 
   const glm = require('gl-matrix');
-  const Pollenet = require('./pollenet');
+  const DrawPollenet = require('./draw-pollenet');
   const VideoSource = require('./video-source');
   const drawVideo = require('./draw/video');
   const setupPass = require('./draw/setup-pass');
@@ -56,7 +56,7 @@ module.exports = function() {
     [1, 0]
   ];
 
-  const pollenet = new Pollenet(abcUv);
+  const drawPollenet = new DrawPollenet(abcUv, 6);
   const videoSource = new VideoSource();
 
   var previewMat = glm.mat3.create();
@@ -93,7 +93,7 @@ module.exports = function() {
 
     videoSource.update();
     setupView(function() {
-      pollenet.draw(videoSource, model);
+      drawPollenet.draw(videoSource, model);
     });
 
     var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
