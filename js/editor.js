@@ -10,7 +10,8 @@ module.exports = function() {
     canvas: canvas,
     attributes: {
       preserveDrawingBuffer: true
-    }
+    },
+    extensions: ['webgl_depth_texture']
   });
 
   const glm = require('gl-matrix');
@@ -18,6 +19,9 @@ module.exports = function() {
   const VideoSource = require('./video-source');
   const drawVideo = require('./draw/video');
   const setupPass = require('./draw/setup-pass');
+  const resamplePass = require('./draw/resample-pass');
+  const depthPass = require('./draw/depth-pass');
+  const dofPass = require('./draw/dof-pass');
 
 
   const camera = createCamera(canvas);
@@ -81,19 +85,53 @@ module.exports = function() {
   });
 
   var model = mat4.identity([]);
+  // mat4.scale(model, model, [1,1,100]);
+
+  var buffer = regl.framebuffer({
+    color: regl.texture({
+      width: 1024,
+      height: 1024
+    }),
+    depthTexture: true,
+  });
 
   regl.frame((context) => {
     regl.clear({
+      color: [.8, .8, .8, 1],
+      depth: 1,
+      framebuffer: buffer
+    });
+    regl.clear({
       color: [0, 0, 0, 1],
       depth: 1,
-      stencil: 0
     });
     camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
+    context.camera = camera;
+
+    context.proj = mat4.perspective([],
+      Math.PI / 10,
+      context.viewportWidth / context.viewportHeight,
+      0.01,
+      1000
+    );
+
+    var size = [context.drawingBufferWidth, context.drawingBufferHeight];
+    if (buffer.width !== size[0] || buffer.height !== size[1]) {
+      buffer.resize(size[0], size[1]);
+    }
+
     videoSource.update();
     setupView(function() {
-      drawPollenet.draw(videoSource, model);
+      drawPollenet.draw(videoSource, model, buffer);
+    });
+
+    setupPass(function() {
+      dofPass({
+        source: buffer,
+        depth: buffer.depthStencil
+      });
     });
 
     var ratio = context.drawingBufferWidth / context.drawingBufferHeight;

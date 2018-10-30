@@ -31,3 +31,13 @@ we have N particles
 just use a voronoi distribution
 constrain within bounding circle
 when adding, choose a random place out of view, and tween the camera to it
+
+
+steps:
+* randomly place initial particles
+* make them repel (voronoi diagram)
+** gpu or cpu?
+** cpu means new ones are easy to find
+** gpu opens up for particle sim
+** cpu is easier to prototype
+* 

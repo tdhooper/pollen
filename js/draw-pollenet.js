@@ -38,7 +38,7 @@ var Pollenet = function(abcUv, detail) {
         vuv = uv;
         height = texture2D(heightMap, vec2(1) - vuv).r;
         vec3 pos = position;
-        pos *= mix(.5, 1., height);
+        pos *= mix(.2, 1.5, height);
         gl_Position = proj * view * model * vec4(pos, 1.0);
       }`,
     attributes: {
@@ -48,26 +48,22 @@ var Pollenet = function(abcUv, detail) {
     },
     elements: mesh.cells,
     uniforms: {
-      proj: ({viewportWidth, viewportHeight}) =>
-        mat4.perspective([],
-          Math.PI / 10,
-          viewportWidth / viewportHeight,
-          0.01,
-          1000
-        ),
+      proj: regl.context('proj'),
       model: regl.prop('model'),
       video: regl.prop('video'),
       heightMap: regl.prop('heightMap')
-    }
+    },
+    framebuffer: regl.prop('destination')
   });
 };
 
-Pollenet.prototype.draw = function(source, model) {
+Pollenet.prototype.draw = function(source, model, destination) {
   this.drawSphere({
     mesh: this.mesh,
     model: model,
     heightMap: source.height,
-    video: source.image
+    video: source.image,
+    destination: destination,
   });
 };
 
