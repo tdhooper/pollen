@@ -32,7 +32,7 @@ const depthPass = regl({
       float centerDepth = getDepth(texCoord);
       float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
       vec3 color = texture2D(uTexture, texCoord).rgb;
-
+      // return color;
       float tot = 1.;
       float radius;
       float ang = 0.;
@@ -58,7 +58,7 @@ const depthPass = regl({
 
     void main() {
       vec2 uv = gl_FragCoord.xy / resolution;
-      gl_FragColor = vec4(depthOfField(uv, -.5, 1.5), 1);
+      gl_FragColor = vec4(depthOfField(uv, -.9, 3.), 1);
     }`,
   uniforms: {
     uTexture: regl.prop('source'),
