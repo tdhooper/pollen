@@ -1,8 +1,6 @@
-const glslify = require('glslify');
-
 
 const depthPass = regl({
-  frag: glslify(`
+  frag: `
     precision mediump float;
 
     uniform sampler2D uTexture; //Image to be processed 
@@ -12,12 +10,8 @@ const depthPass = regl({
     uniform mat4 proj;
 
     const float GOLDEN_ANGLE = 2.39996323; 
-    const float MAX_BLUR_SIZE = 40.0; 
-    const float RAD_SCALE = 0.75; // Smaller = nicer blur, larger = faster
-
-    //for (float ang = 0.0; radius<MAX_BLUR_SIZE; ang += GOLDEN_ANGLE)
-    //radius += RAD_SCALE/radius;
-    const int ITER = 20;
+    const float MAX_BLUR_SIZE = 6.;
+    const float ITER = 20.;
 
     float getDepth(vec2 texCoord) {
       float depth = texture2D(uDepth, texCoord).r;
@@ -29,9 +23,8 @@ const depthPass = regl({
 
     float getBlurSize(float depth, float focusPoint, float focusScale)
     {
-      // float coc = clamp((1.0 / focusPoint - 1.0 / depth)*focusScale, -1.0, 1.0);
-      float coc = (depth - focusPoint) / focusScale;
-      return abs(coc) * MAX_BLUR_SIZE / cameraDistance * 10.;
+      float coc = clamp((depth - focusPoint) / focusScale, -1., 1.);
+      return abs(coc) * MAX_BLUR_SIZE / cameraDistance * 40.;
     }
 
     vec3 depthOfField(vec2 texCoord, float focusPoint, float focusScale)
@@ -39,12 +32,15 @@ const depthPass = regl({
       float centerDepth = getDepth(texCoord);
       float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
       vec3 color = texture2D(uTexture, texCoord).rgb;
-      float tot = 1.0;
-      float radius = RAD_SCALE;
+
+      float tot = 1.;
+      float radius;
       float ang = 0.;
-      for (int i = 0; i<ITER; i++)
-      {
+      float SQ_ITER = sqrt(ITER);
+
+      for (float i = 0.; i < ITER; i++) {
         ang += GOLDEN_ANGLE;
+        radius = sqrt(i) / SQ_ITER * MAX_BLUR_SIZE;
         vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * uPixelSize * radius;
         vec3 sampleColor = texture2D(uTexture, tc).rgb;
         float sampleDepth = getDepth(tc);
@@ -54,7 +50,6 @@ const depthPass = regl({
         float m = smoothstep(radius-0.5, radius+0.5, sampleSize);
         color += mix(color/tot, sampleColor, m);
         tot += 1.0;
-        radius += RAD_SCALE/radius;
       }
       return color /= tot;
     }
@@ -64,7 +59,7 @@ const depthPass = regl({
     void main() {
       vec2 uv = gl_FragCoord.xy / resolution;
       gl_FragColor = vec4(depthOfField(uv, -.5, 1.5), 1);
-    }`),
+    }`,
   uniforms: {
     uTexture: regl.prop('source'),
     uDepth: regl.prop('depth'),
@@ -72,7 +67,13 @@ const depthPass = regl({
       return [context.framebufferWidth, context.framebufferHeight];
     },
     uPixelSize: function(context) {
-      return [1/context.framebufferWidth, 1/context.framebufferHeight];
+      var width = context.framebufferWidth;
+      var height = context.framebufferHeight;
+      var fit = Math.min(width, height) * .002;
+      return [
+        1 / width * fit,
+        1 / height * fit
+      ];
     },
     cameraDistance: function(context) {
       return context.camera.distance;
