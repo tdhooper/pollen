@@ -11,7 +11,7 @@ const depthPass = regl({
 
     const float GOLDEN_ANGLE = 2.39996323; 
     const float MAX_BLUR_SIZE = 6.;
-    const float ITER = 20.;
+    const float ITER = 50.;
 
     float getDepth(vec2 texCoord) {
       float depth = texture2D(uDepth, texCoord).r;
