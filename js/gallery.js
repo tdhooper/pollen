@@ -11,7 +11,8 @@ module.exports = function() {
     canvas: canvas,
     attributes: {
       preserveDrawingBuffer: true
-    }
+    },
+    extensions: ['webgl_depth_texture']
   });
 
   const glm = require('gl-matrix');
@@ -21,6 +22,7 @@ module.exports = function() {
   const bufferToObj = require('./send-buffer').bufferToObj;
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
+  const dofPass = require('./draw/dof-pass');
 
   const stats = new Stats();
   stats.showPanel(0);
@@ -100,22 +102,55 @@ module.exports = function() {
 
   var model = mat4.identity([]);
 
+  var buffer = regl.framebuffer({
+    color: regl.texture({
+      width: 1024,
+      height: 1024
+    }),
+    depthTexture: true,
+  });
+
   regl.frame((context) => {
 
     stats.begin();
 
     regl.clear({
+      color: [.9, .9, .9, 1],
+      depth: 1,
+      framebuffer: buffer
+    });
+    regl.clear({
       color: [0, 0, 0, 1],
       depth: 1,
-      stencil: 0
     });
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
+    context.camera = camera;
+
+    context.proj = mat4.perspective([],
+      Math.PI / 10,
+      context.viewportWidth / context.viewportHeight,
+      0.01,
+      1000
+    );
+
+    var size = [context.drawingBufferWidth, context.drawingBufferHeight];
+    if (buffer.width !== size[0] || buffer.height !== size[1]) {
+      buffer.resize(size[0], size[1]);
+    }
+
     setupView(function() {
       pollen.forEach((pollenet, i) => {
         mat4.fromTranslation(model, pollenet.particle.position.concat(0));
-        drawPollenet.draw(pollenet.source, model);
+        drawPollenet.draw(pollenet.source, model, buffer);
+      });
+    });
+
+    setupPass(function() {
+      dofPass({
+        source: buffer,
+        depth: buffer.depthStencil
       });
     });
 
