@@ -4,6 +4,8 @@ const createCamera = require('canvas-orbit-camera');
 const mat4 = require('gl-matrix').mat4;
 const vec2 = require('gl-matrix').vec2;
 
+import Collisions from 'collisions';
+
 module.exports = function() {
 
   const canvas = document.body.appendChild(document.createElement('canvas'));
@@ -23,6 +25,8 @@ module.exports = function() {
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
   const dofPass = require('./draw/dof-pass');
+
+  console.log(Collisions);
 
   const stats = new Stats();
   stats.showPanel(0);

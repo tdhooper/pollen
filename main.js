@@ -26,7 +26,12 @@ budo('./js/index.js', {
   middleware: [
     bodyParser.json(),
     router
-  ]
+  ],
+  browserify: {
+    plugin: [
+      require('esmify')
+    ]
+  }
 });
 
 
