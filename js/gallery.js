@@ -12,11 +12,11 @@ module.exports = function() {
   const glm = require('gl-matrix');
   const DrawPollenet = require('./draw-pollenet');
   const Source = require('./source');
-  const setupPass = require('./draw/setup-pass');
   const bufferToObj = require('./send-buffer').bufferToObj;
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
   const dofPass = require('./draw/dof-pass');
+  const Compositor = require('./compositor');
 
   console.log(Collisions);
 
@@ -34,6 +34,9 @@ module.exports = function() {
   ];
 
   const drawPollenet = new DrawPollenet(abcUv, 4);
+  const compositor = new Compositor();
+  compositor.addPost(dofPass);
+
   var pollen = [];
   var limit = 100;
   var radius = 50;
@@ -87,27 +90,10 @@ module.exports = function() {
 
   var model = mat4.identity([]);
 
-  var buffer = regl.framebuffer({
-    color: regl.texture({
-      width: 1024,
-      height: 1024
-    }),
-    depthTexture: true,
-  });
-
   regl.frame((context) => {
-
     stats.begin();
+    compositor.clear();
 
-    regl.clear({
-      color: [.9, .9, .9, 1],
-      depth: 1,
-      framebuffer: buffer
-    });
-    regl.clear({
-      color: [0, 0, 0, 1],
-      depth: 1,
-    });
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
@@ -120,27 +106,15 @@ module.exports = function() {
       1000
     );
 
-    var size = [context.drawingBufferWidth, context.drawingBufferHeight];
-    if (buffer.width !== size[0] || buffer.height !== size[1]) {
-      buffer.resize(size[0], size[1]);
-    }
-
     setupView(function() {
       pollen.forEach((pollenet, i) => {
         mat4.fromTranslation(model, pollenet.particle.position.concat(0));
-        drawPollenet.draw(pollenet.source, model, buffer);
+        drawPollenet.draw(pollenet.source, model, compositor.buffer);
       });
     });
 
-    setupPass(function() {
-      dofPass({
-        source: buffer,
-        depth: buffer.depthStencil
-      });
-    });
-
+    compositor.draw(context);
     stats.end();
-
   });
 };
 

@@ -1,5 +1,6 @@
 
-const depthPass = regl({
+
+const draw = regl({
   frag: `
     precision mediump float;
 
@@ -62,7 +63,9 @@ const depthPass = regl({
     }`,
   uniforms: {
     uTexture: regl.prop('source'),
-    uDepth: regl.prop('depth'),
+    uDepth: function(context, props) {
+      return props.source.depthStencil;
+    },
     resolution: function(context) {
       return [context.framebufferWidth, context.framebufferHeight];
     },
@@ -83,4 +86,7 @@ const depthPass = regl({
   framebuffer: regl.prop('destination')
 });
 
-module.exports = depthPass;
+
+module.exports = {
+  draw: draw
+};

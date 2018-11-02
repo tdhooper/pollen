@@ -12,8 +12,8 @@ module.exports = function() {
   const drawVideo = require('./draw/video');
   const setupPass = require('./draw/setup-pass');
   const resamplePass = require('./draw/resample-pass');
-  const depthPass = require('./draw/depth-pass');
   const dofPass = require('./draw/dof-pass');
+  const Compositor = require('./compositor');
 
 
   const camera = createCamera(regl._gl.canvas);
@@ -36,6 +36,9 @@ module.exports = function() {
 
   const drawPollenet = new DrawPollenet(abcUv, 6);
   const videoSource = new VideoSource();
+  const compositor = new Compositor();
+  compositor.addPost(dofPass);
+
 
   var previewMat = glm.mat3.create();
   glm.mat3.scale(previewMat, previewMat, [.2, .2]);
@@ -61,24 +64,9 @@ module.exports = function() {
   var model = mat4.identity([]);
   // mat4.scale(model, model, [1,1,100]);
 
-  var buffer = regl.framebuffer({
-    color: regl.texture({
-      width: 1024,
-      height: 1024
-    }),
-    depthTexture: true,
-  });
-
   regl.frame((context) => {
-    regl.clear({
-      color: [.8, .8, .8, 1],
-      depth: 1,
-      framebuffer: buffer
-    });
-    regl.clear({
-      color: [0, 0, 0, 1],
-      depth: 1,
-    });
+    compositor.clear();
+
     camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
@@ -91,22 +79,12 @@ module.exports = function() {
       1000
     );
 
-    var size = [context.drawingBufferWidth, context.drawingBufferHeight];
-    if (buffer.width !== size[0] || buffer.height !== size[1]) {
-      buffer.resize(size[0], size[1]);
-    }
-
     videoSource.update();
     setupView(function() {
-      drawPollenet.draw(videoSource, model, buffer);
+      drawPollenet.draw(videoSource, model, compositor.buffer);
     });
 
-    setupPass(function() {
-      dofPass({
-        source: buffer,
-        depth: buffer.depthStencil
-      });
-    });
+    compositor.draw(context);
 
     var ratio = context.drawingBufferWidth / context.drawingBufferHeight;
     glm.mat3.scale(previewMatViewport, previewMat, [ratio, 1]);
