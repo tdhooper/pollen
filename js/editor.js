@@ -9,7 +9,7 @@ module.exports = function() {
   const VideoSource = require('./video-source');
   const VideoPreview = require('./video-preview');
   const Compositor = require('./compositor');
-  const dofPass = require('./draw/dof-pass');
+  const DofPass = require('./draw/dof-pass');
 
 
   const camera = createCamera(regl._gl.canvas);
@@ -32,6 +32,7 @@ module.exports = function() {
   const drawPollenet = new DrawPollenet(abcUv, 6);
   const videoSource = new VideoSource();
   const videoPreview = new VideoPreview(abcUv);
+  const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
@@ -54,7 +55,6 @@ module.exports = function() {
 
     camera.rotate([.003,0.002],[0,0]);
     camera.tick();
-    context.camera = camera; // make this an init parm of dof
 
     videoSource.update();
     drawPollenet.draw({

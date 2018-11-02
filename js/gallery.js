@@ -15,7 +15,7 @@ module.exports = function() {
   const bufferToObj = require('./send-buffer').bufferToObj;
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
-  const dofPass = require('./draw/dof-pass');
+  const DofPass = require('./draw/dof-pass');
   const Compositor = require('./compositor');
 
   console.log(Collisions);
@@ -42,6 +42,7 @@ module.exports = function() {
   ];
 
   const drawPollenet = new DrawPollenet(abcUv, 4);
+  const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
@@ -103,7 +104,6 @@ module.exports = function() {
     compositor.clear();
 
     camera.tick();
-    context.camera = camera; // make this an init parm of dof
 
     setupView(function() {
       pollen.forEach((pollenet, i) => {
