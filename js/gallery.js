@@ -26,6 +26,14 @@ module.exports = function() {
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 200;
+  camera.projection = (width, height) => {
+    return mat4.perspective([],
+      Math.PI / 10,
+      width / height,
+      0.01,
+      1000
+    );
+  };
 
   var abcUv = [
     [1, 1],
@@ -94,22 +102,18 @@ module.exports = function() {
     stats.begin();
     compositor.clear();
 
-    // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
-
-    context.camera = camera;
-
-    context.proj = mat4.perspective([],
-      Math.PI / 10,
-      context.viewportWidth / context.viewportHeight,
-      0.01,
-      1000
-    );
+    context.camera = camera; // make this an init parm of dof
 
     setupView(function() {
       pollen.forEach((pollenet, i) => {
         mat4.fromTranslation(model, pollenet.particle.position.concat(0));
-        drawPollenet.draw(pollenet.source, model, compositor.buffer);
+        drawPollenet.draw({
+          source: pollenet.source,
+          model: model,
+          camera: camera,
+          destination: compositor.buffer
+        });
       });
     });
 

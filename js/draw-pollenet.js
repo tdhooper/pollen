@@ -48,23 +48,29 @@ var Pollenet = function(abcUv, detail) {
     },
     elements: mesh.cells,
     uniforms: {
-      proj: regl.context('proj'),
       model: regl.prop('model'),
-      video: regl.prop('video'),
-      heightMap: regl.prop('heightMap')
+      view: function(context, props) {
+        return props.camera.view();
+      },
+      proj: function(context, props) {
+        return props.camera.projection(
+          context.viewportWidth,
+          context.viewportHeight
+        );
+      },
+      video: function(context, props) {
+        return props.source.image;
+      },
+      heightMap: function(context, props) {
+        return props.source.height;
+      }
     },
     framebuffer: regl.prop('destination')
   });
 };
 
-Pollenet.prototype.draw = function(source, model, destination) {
-  this.drawSphere({
-    mesh: this.mesh,
-    model: model,
-    heightMap: source.height,
-    video: source.image,
-    destination: destination,
-  });
+Pollenet.prototype.draw = function(conf) {
+  this.drawSphere(conf);
 };
 
 module.exports = Pollenet;

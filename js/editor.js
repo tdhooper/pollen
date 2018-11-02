@@ -18,6 +18,14 @@ module.exports = function() {
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 10;
+  camera.projection = (width, height) => {
+    return mat4.perspective([],
+      Math.PI / 10,
+      width / height,
+      0.01,
+      1000
+    );
+  };
 
 
   var btn = document.createElement('button');
@@ -53,14 +61,6 @@ module.exports = function() {
     });
   }
 
-  const setupView = regl({
-    uniforms: {
-      view: () => {
-        return camera.view();
-      }
-    }
-  });
-
   var model = mat4.identity([]);
   // mat4.scale(model, model, [1,1,100]);
 
@@ -69,19 +69,14 @@ module.exports = function() {
 
     camera.rotate([.003,0.002],[0,0]);
     camera.tick();
-
-    context.camera = camera;
-
-    context.proj = mat4.perspective([],
-      Math.PI / 10,
-      context.viewportWidth / context.viewportHeight,
-      0.01,
-      1000
-    );
+    context.camera = camera; // make this an init parm of dof
 
     videoSource.update();
-    setupView(function() {
-      drawPollenet.draw(videoSource, model, compositor.buffer);
+    drawPollenet.draw({
+      source: videoSource,
+      model: model,
+      camera: camera,
+      destination: compositor.buffer
     });
 
     compositor.draw(context);

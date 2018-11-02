@@ -81,7 +81,12 @@ const draw = regl({
     cameraDistance: function(context) {
       return context.camera.distance;
     },
-    proj: regl.context('proj')
+    proj: function(context, props) {
+      return context.camera.projection(
+        context.viewportWidth,
+        context.viewportHeight
+      );
+    }
   },
   framebuffer: regl.prop('destination')
 });
