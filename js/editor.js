@@ -5,6 +5,7 @@ module.exports = function() {
 
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
+  const Pollenet = require('./pollenet');
   const DrawPollenet = require('./draw-pollenet');
   const VideoSource = require('./video-source');
   const VideoPreview = require('./video-preview');
@@ -31,6 +32,7 @@ module.exports = function() {
 
   const drawPollenet = new DrawPollenet(abcUv, 6);
   const videoSource = new VideoSource();
+  const pollenet = new Pollenet(videoSource);
   const videoPreview = new VideoPreview(abcUv);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
@@ -48,8 +50,6 @@ module.exports = function() {
     });
   }
 
-  var model = mat4.identity([]);
-
   regl.frame((context) => {
     compositor.clear();
 
@@ -58,8 +58,7 @@ module.exports = function() {
 
     videoSource.update();
     drawPollenet.draw({
-      source: videoSource,
-      model: model,
+      pollenet: pollenet,
       camera: camera,
       destination: compositor.buffer
     });

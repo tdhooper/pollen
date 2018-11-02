@@ -9,7 +9,7 @@ module.exports = function() {
 
   require('./setup-regl');
 
-  const glm = require('gl-matrix');
+  const SimulatedPollenet = require('./simulated-pollenet');
   const DrawPollenet = require('./draw-pollenet');
   const Source = require('./source');
   const bufferToObj = require('./send-buffer').bufferToObj;
@@ -83,10 +83,7 @@ module.exports = function() {
   function newPollenet(source) {
     var particle = new Particle(randomPoint(radius), randomPoint(.1));
     simulation.add(particle);
-    pollen.push({
-      particle: particle,
-      source: source
-    });
+    pollen.push(new SimulatedPollenet(source, particle));
   }
 
   const setupView = regl({
@@ -97,8 +94,6 @@ module.exports = function() {
     }
   });
 
-  var model = mat4.identity([]);
-
   regl.frame((context) => {
     stats.begin();
     compositor.clear();
@@ -107,10 +102,8 @@ module.exports = function() {
 
     setupView(function() {
       pollen.forEach((pollenet, i) => {
-        mat4.fromTranslation(model, pollenet.particle.position.concat(0));
         drawPollenet.draw({
-          source: pollenet.source,
-          model: model,
+          pollenet: pollenet,
           camera: camera,
           destination: compositor.buffer
         });

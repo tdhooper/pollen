@@ -48,7 +48,9 @@ var Pollenet = function(abcUv, detail) {
     },
     elements: mesh.cells,
     uniforms: {
-      model: regl.prop('model'),
+      model:function(context, props) {
+        return props.pollenet.model;
+      },
       view: function(context, props) {
         return props.camera.view();
       },
@@ -59,10 +61,10 @@ var Pollenet = function(abcUv, detail) {
         );
       },
       video: function(context, props) {
-        return props.source.image;
+        return props.pollenet.image;
       },
       heightMap: function(context, props) {
-        return props.source.height;
+        return props.pollenet.height;
       }
     },
     framebuffer: regl.prop('destination')
