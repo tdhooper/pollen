@@ -1,17 +1,15 @@
-const mat4 = require('gl-mat4');
-const glslify = require('glslify');
-const createCamera = require('canvas-orbit-camera');
 
 module.exports = function() {
 
   require('./setup-regl');
 
+  const createCamera = require('canvas-orbit-camera');
+  const mat4 = require('gl-matrix').mat4;
   const DrawPollenet = require('./draw-pollenet');
   const VideoSource = require('./video-source');
   const VideoPreview = require('./video-preview');
-  const resamplePass = require('./draw/resample-pass');
-  const dofPass = require('./draw/dof-pass');
   const Compositor = require('./compositor');
+  const dofPass = require('./draw/dof-pass');
 
 
   const camera = createCamera(regl._gl.canvas);
