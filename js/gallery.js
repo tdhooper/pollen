@@ -86,27 +86,17 @@ module.exports = function() {
     pollen.push(new SimulatedPollenet(source, particle));
   }
 
-  const setupView = regl({
-    uniforms: {
-      view: () => {
-        return camera.view();
-      }
-    }
-  });
-
   regl.frame((context) => {
     stats.begin();
     compositor.clear();
 
     camera.tick();
 
-    setupView(function() {
-      pollen.forEach((pollenet, i) => {
-        drawPollenet.draw({
-          pollenet: pollenet,
-          camera: camera,
-          destination: compositor.buffer
-        });
+    pollen.forEach((pollenet, i) => {
+      drawPollenet.draw({
+        pollenet: pollenet,
+        camera: camera,
+        destination: compositor.buffer
       });
     });
 
