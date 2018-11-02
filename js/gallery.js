@@ -40,7 +40,6 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
-
   const drawPollenet = new DrawPollenet(abcUv, 4);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
@@ -61,7 +60,7 @@ module.exports = function() {
       });
       sources = setLength(sources, limit);
       sources.forEach(source => {
-        newPollenet(source);
+        addPollenet(source);
       });
     });
   });
@@ -69,18 +68,15 @@ module.exports = function() {
   simulation.start();
 
   var channel = new BroadcastChannel('pollen');
-
   channel.onmessage = function(evt) {
     var sourceObj = evt.data;
-
     store.save(sourceObj);
-
     var source = new Source();
     source.fromObj(sourceObj);
-    newPollenet(source);
+    addPollenet(source);
   };
 
-  function newPollenet(source) {
+  function addPollenet(source) {
     var particle = new Particle(randomPoint(radius), randomPoint(.1));
     simulation.add(particle);
     pollen.push(new SimulatedPollenet(source, particle));
