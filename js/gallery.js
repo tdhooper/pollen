@@ -1,5 +1,4 @@
 var store = require('./store');
-const createRegl = require('regl');
 const createCamera = require('canvas-orbit-camera');
 const mat4 = require('gl-matrix').mat4;
 const vec2 = require('gl-matrix').vec2;
@@ -8,14 +7,7 @@ import Collisions from 'collisions';
 
 module.exports = function() {
 
-  const canvas = document.body.appendChild(document.createElement('canvas'));
-  global.regl = createRegl({
-    canvas: canvas,
-    attributes: {
-      preserveDrawingBuffer: true
-    },
-    extensions: ['webgl_depth_texture']
-  });
+  require('./setup-regl');
 
   const glm = require('gl-matrix');
   const DrawPollenet = require('./draw-pollenet');
@@ -32,19 +24,8 @@ module.exports = function() {
   stats.showPanel(0);
   document.body.appendChild(stats.dom);
 
-  const camera = createCamera(canvas);
+  const camera = createCamera(regl._gl.canvas);
   camera.distance = 200;
-
-  var resize = function() {
-    var width = document.body.clientWidth;
-    var height = document.body.clientHeight;
-    canvas.width = width;
-    canvas.height = height;
-  };
-
-  window.addEventListener('resize', resize, false);
-
-  resize();
 
   var abcUv = [
     [1, 1],

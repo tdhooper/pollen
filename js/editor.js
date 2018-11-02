@@ -1,18 +1,10 @@
 const mat4 = require('gl-mat4');
 const glslify = require('glslify');
-const createRegl = require('regl');
 const createCamera = require('canvas-orbit-camera');
 
 module.exports = function() {
 
-  const canvas = document.body.appendChild(document.createElement('canvas'));
-  global.regl = createRegl({
-    canvas: canvas,
-    attributes: {
-      preserveDrawingBuffer: true
-    },
-    extensions: ['webgl_depth_texture']
-  });
+  require('./setup-regl');
 
   const glm = require('gl-matrix');
   const DrawPollenet = require('./draw-pollenet');
@@ -24,7 +16,7 @@ module.exports = function() {
   const dofPass = require('./draw/dof-pass');
 
 
-  const camera = createCamera(canvas);
+  const camera = createCamera(regl._gl.canvas);
   camera.distance = 10;
 
 
@@ -35,24 +27,6 @@ module.exports = function() {
   btn.addEventListener('click', send);
   var channel = new BroadcastChannel('pollen');
 
-  var resize = function() {
-    var width = document.body.clientWidth;
-    var height = document.body.clientHeight;
-    canvas.width = width;
-    canvas.height = height;
-  };
-
-  window.addEventListener('resize', resize, false);
-
-  resize();
-
-  var noop = function(evt) {
-    evt.preventDefault();
-  };
-
-  canvas.addEventListener('touchstart', noop, false);
-  canvas.addEventListener('touchmove', noop, false);
-  canvas.addEventListener('touchend', noop, false);
 
   var abcUv = [
     [1, 1],
