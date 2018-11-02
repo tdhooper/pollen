@@ -53,6 +53,9 @@ const drawVideo = regl({
     cUv: function(context, props) {
       return props.abcUv[2];
     }
+  },
+  depth: {
+    enable: false
   }
 });
 
