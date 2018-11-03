@@ -9,16 +9,18 @@ class SimulatedPollen {
 
   constructor() {
     this.pollen = [];
-    this.radius = 20;
+    this.radius = 40;
     this.collisions = new Collisions();
     this.result = this.collisions.createResult();
     this.noise = new Noise(Math.random());
+    this.minSize = 0.33;
+    this.maxSize = 1.5;
     this._tick();
   }
 
   add(source) {
     var position = this.randomPoint(this.radius);
-    var size = Math.random() * 2 + 1;
+    var size = this.minSize + Math.pow(Math.random(), 4) * (this.maxSize - this.minSize);
     var particle = this.collisions.createCircle(position[0], position[1], size);
     this.pollen.push(new SimulatedPollenet(source, particle));
   }
@@ -31,12 +33,14 @@ class SimulatedPollen {
     this.pollen.forEach(pollenet => {
 
       var curl = this.curlNoise(
-        pollenet.particle.x * .01,
-        pollenet.particle.y * .01,
-        time * .0005
+        pollenet.particle.x * .05,
+        pollenet.particle.y * .05,
+        time * .0001
       );
-      pollenet.particle.x += curl[0] * .05;
-      pollenet.particle.y += curl[1] * .05;
+      var r = 1 - pollenet.particle.radius / this.maxSize;
+      r = r * .5 + .5;
+      pollenet.particle.x += curl[0] * .05 * r;
+      pollenet.particle.y += curl[1] * .05 * r;
 
       vec2.set(position, pollenet.particle.x, pollenet.particle.y);
       var len = vec2.length(position);
@@ -65,7 +69,7 @@ class SimulatedPollen {
     last = last || performance.now();
     var now = performance.now();
     this.tick(now - last);
-    setTimeout(this._tick.bind(this, now), 5);
+    requestAnimationFrame(this._tick.bind(this, now));
   }
 
   randomPoint(radius) {

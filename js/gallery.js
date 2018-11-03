@@ -20,7 +20,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 200;
+  camera.distance = 100;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -35,12 +35,12 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
-  const drawPollenet = new DrawPollenet(abcUv, 4);
+  const drawPollenet = new DrawPollenet(abcUv, 1);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
-  var limit = 30;
+  var limit = 1200;
   var simulatedPollen = new SimulatedPollen();
 
   store.saved().then(saved => {
@@ -81,11 +81,11 @@ module.exports = function() {
       drawPollenet.draw({
         pollenet: pollenet,
         camera: camera,
-        destination: compositor.buffer
+        // destination: compositor.buffer
       });
     });
 
-    compositor.draw(context);
+    // compositor.draw(context);
     stats.end();
   });
 };

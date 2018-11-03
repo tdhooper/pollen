@@ -25,7 +25,7 @@ class Compositor {
       framebuffer: this.buffer
     });
     regl.clear({
-      color: [0, 0, 0, 1],
+      color: [.9, .9, .9, 1],
       depth: 1,
     });
   }
