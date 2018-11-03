@@ -1,17 +1,15 @@
-var store = require('./store');
-const createCamera = require('canvas-orbit-camera');
-const mat4 = require('gl-matrix').mat4;
-
 import Collisions from 'collisions';
 
 module.exports = function() {
 
   require('./setup-regl');
 
+  const createCamera = require('canvas-orbit-camera');
+  const mat4 = require('gl-matrix').mat4;
   const SimulatedPollen = require('./simulated-pollen');
   const DrawPollenet = require('./draw-pollenet');
   const Source = require('./source');
-  const bufferToObj = require('./send-buffer').bufferToObj;
+  const store = require('./store');
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
   const DofPass = require('./draw/dof-pass');
