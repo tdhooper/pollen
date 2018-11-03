@@ -11,8 +11,18 @@ class SimulatedPollenet extends Pollenet {
   }
 
   get model() {
-    return mat4.fromTranslation(this._model, this.particle.position.concat(0));
+    mat4.fromTranslation(
+      this._model,
+      [this.particle.x, this.particle.y, 0]
+    );
+    mat4.scale(
+      this._model,
+      this._model,
+      [this.particle.radius, this.particle.radius, this.particle.radius]
+    );
+    return this._model;
   }
+
 }
 
 module.exports = SimulatedPollenet;

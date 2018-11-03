@@ -1,3 +1,6 @@
+import Collisions from 'collisions';
+
+const Noise = require('noisejs').Noise;
 const vec2 = require('gl-matrix').vec2;
 const SimulatedPollenet = require('./simulated-pollenet');
 
@@ -6,73 +9,55 @@ class SimulatedPollen {
 
   constructor() {
     this.pollen = [];
-    this.radius = 50;
-    this.simulation = new Simulation(this.radius);
-    this.simulation.start();
+    this.radius = 20;
+    this.collisions = new Collisions();
+    this.result = this.collisions.createResult();
+    this.noise = new Noise(Math.random());
+    this._tick();
   }
 
   add(source) {
     var position = this.randomPoint(this.radius);
-    var vector = this.randomPoint(.1);
-    var particle = new Particle(position, vector);
-    this.simulation.add(particle);
+    var size = Math.random() * 2 + 1;
+    var particle = this.collisions.createCircle(position[0], position[1], size);
     this.pollen.push(new SimulatedPollenet(source, particle));
-  }
-
-  randomPoint(radius) {
-    const r = radius * Math.sqrt(Math.random());
-    const theta = Math.random() * 2 * Math.PI;
-    return [r * Math.cos(theta), r * Math.sin(theta)];
-  }
-}
-
-
-class Particle {
-
-  constructor(position, vector) {
-    this.position = position;
-    this.vector = vector;
-  }
-}
-
-
-class Simulation {
-
-  constructor(radius) {
-    this.radius = radius;
-    this.particles = [];
-  }
-
-  start() {
-    this._tick();
-  }
-
-  add(particle) {
-    this.particles.push(particle);
   }
 
   tick(dt) {
 
-    var maxSpeed = .2;
+    var position = vec2.create();
+    var time = + new Date();
 
-    this.particles.forEach(a => {
-      this.particles.forEach(b => {
-        var direction = vec2.sub([], a.position, b.position);
-        var distance = vec2.length(direction);
-        vec2.normalize(direction, direction);
-        var force = Math.pow(Math.max(0, 10 - distance), 1) * .001;
-        vec2.scaleAndAdd(a.vector, a.vector, direction, force);
-      });
+    this.pollen.forEach(pollenet => {
 
-      vec2.scale(a.vector, a.vector, Math.min(maxSpeed / vec2.length(a.vector), 1));
+      var curl = this.curlNoise(
+        pollenet.particle.x * .01,
+        pollenet.particle.y * .01,
+        time * .0005
+      );
+      pollenet.particle.x += curl[0] * .05;
+      pollenet.particle.y += curl[1] * .05;
 
-      if (vec2.length(a.position) > this.radius) {
-        vec2.normalize(a.vector, a.position);
-        vec2.scale(a.vector, a.vector, 5);
-        vec2.scale(a.position, a.position, -1);
+      vec2.set(position, pollenet.particle.x, pollenet.particle.y);
+      var len = vec2.length(position);
+      if (len > this.radius) {
+        pollenet.particle.x = (pollenet.particle.x / len) * -this.radius;
+        pollenet.particle.y = (pollenet.particle.y / len) * -this.radius;
       }
+    });
 
-      vec2.scaleAndAdd(a.position, a.position, a.vector, dt * .05);
+    this.collisions.update();
+
+    this.pollen.forEach(pollenet => {
+      const particle = pollenet.particle;
+      const potentials = particle.potentials();
+
+      for(const potential of potentials) {
+          if (particle.collides(potential, this.result)) {
+              particle.x -= this.result.overlap * this.result.overlap_x;
+              particle.y -= this.result.overlap * this.result.overlap_y;
+          }
+      }
     });
   }
 
@@ -81,6 +66,27 @@ class Simulation {
     var now = performance.now();
     this.tick(now - last);
     setTimeout(this._tick.bind(this, now), 5);
+  }
+
+  randomPoint(radius) {
+    const r = radius * Math.sqrt(Math.random());
+    const theta = Math.random() * 2 * Math.PI;
+    return [r * Math.cos(theta), r * Math.sin(theta)];
+  }
+
+  curlNoise(x, y, z) {
+    var n1, n2;
+    var eps = 0.001;
+
+    n1 = this.noise.simplex3(x, y + eps, z);
+    n2 = this.noise.simplex3(x, y - eps, z);
+    const a = (n1 - n2) / (2 * eps);
+
+    n1 = this.noise.simplex3(x + eps, y, z);
+    n2 = this.noise.simplex3(x - eps, y, z);
+    const b = (n1 - n2)/(2 * eps);
+
+    return [a, -b];
   }
 }
 

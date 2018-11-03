@@ -1,4 +1,3 @@
-import Collisions from 'collisions';
 
 module.exports = function() {
 
@@ -15,7 +14,6 @@ module.exports = function() {
   const DofPass = require('./draw/dof-pass');
   const Compositor = require('./compositor');
 
-  console.log(Collisions);
 
   const stats = new Stats();
   stats.showPanel(0);
@@ -42,7 +40,7 @@ module.exports = function() {
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
-  var limit = 100;
+  var limit = 30;
   var simulatedPollen = new SimulatedPollen();
 
   store.saved().then(saved => {
