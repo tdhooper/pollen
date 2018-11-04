@@ -1,10 +1,19 @@
 const geometry = require('./geometry/polyhedra');
 const mat4 = require('gl-matrix').mat4;
+const vec4 = require('gl-matrix').vec4;
+const vec3 = require('gl-matrix').vec3;
 
 
 var Pollenet = function(abcUv, detail) {
 
-  var mesh = geometry.tetrahedron(detail, abcUv);
+  var LODs = [
+    geometry.tetrahedron(1, abcUv),
+    geometry.tetrahedron(2, abcUv),
+    geometry.tetrahedron(3, abcUv),
+    geometry.tetrahedron(4, abcUv),
+    geometry.tetrahedron(5, abcUv),
+    geometry.tetrahedron(6, abcUv)
+  ];
 
   this.drawSphere = regl({
     frag: `
@@ -41,13 +50,7 @@ var Pollenet = function(abcUv, detail) {
         pos *= mix(.2, 1.5, height);
         gl_Position = proj * view * model * vec4(pos, 1.0);
       }`,
-    attributes: {
-      position: mesh.positions,
-      normal: mesh.normals,
-      uv: mesh.uvs
-    },
-    elements: mesh.cells,
-    uniforms: {
+    context: {
       model:function(context, props) {
         return props.pollenet.model;
       },
@@ -60,6 +63,36 @@ var Pollenet = function(abcUv, detail) {
           context.viewportHeight
         );
       },
+      mesh: (context, props) => {
+        var model = props.pollenet.model;
+        var view = props.camera.view();
+
+        var camPos = mat4.getTranslation([], mat4.invert([], view));
+        var modelPos = mat4.getTranslation([], model);
+        var dist = vec3.dist(camPos, modelPos);
+
+        var vFOV = Math.PI / 10;
+        var vHeight = 2 * Math.tan( vFOV / 2 ) * dist;
+        var aspect = context.viewportWidth / context.viewportHeight;
+
+        var fraction = 2 / vHeight;
+
+        var lod = Math.round(fraction * (LODs.length - 1));
+        lod = Math.min(lod, LODs.length - 1);
+
+        return LODs[lod];
+      }
+    },
+    attributes: {
+      position: regl.context('mesh.positions'),
+      normal: regl.context('mesh.normals'),
+      uv: regl.context('mesh.uvs')
+    },
+    elements: regl.context('mesh.cells'),
+    uniforms: {
+      model: regl.context('model'),
+      view: regl.context('view'),
+      proj: regl.context('proj'),
       video: function(context, props) {
         return props.pollenet.image;
       },
