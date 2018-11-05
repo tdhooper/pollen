@@ -20,7 +20,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 100;
+  camera.distance = 50;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -40,7 +40,7 @@ module.exports = function() {
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
-  var limit = 1200;
+  var limit = 1800;
   var simulatedPollen = new SimulatedPollen();
 
   store.saved().then(saved => {
@@ -76,8 +76,12 @@ module.exports = function() {
     compositor.clear();
 
     camera.tick();
+    camera.proj = camera.projection(
+      context.viewportWidth,
+      context.viewportHeight
+    );
 
-    simulatedPollen.pollen.forEach((pollenet, i) => {
+    simulatedPollen.visible(camera).forEach((pollenet, i) => {
       drawPollenet.draw({
         pollenet: pollenet,
         camera: camera,

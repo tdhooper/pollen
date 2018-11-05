@@ -1,7 +1,14 @@
 import Collisions from 'collisions';
 
+import { Matrix4 } from 'three/src/math/Matrix4';
+import { Frustum } from 'three/src/math/Frustum';
+import { Vector3 } from 'three/src/math/Vector3';
+import { Sphere } from 'three/src/math/Sphere';
+
 const Noise = require('noisejs').Noise;
 const vec2 = require('gl-matrix').vec2;
+const mat4 = require('gl-matrix').mat4;
+
 const SimulatedPollenet = require('./simulated-pollenet');
 
 
@@ -23,6 +30,28 @@ class SimulatedPollen {
     var size = this.minSize + Math.pow(Math.random(), 4) * (this.maxSize - this.minSize);
     var particle = this.collisions.createCircle(position[0], position[1], size);
     this.pollen.push(new SimulatedPollenet(source, particle));
+  }
+
+  visible(camera) {
+    var tFrustumMat = new Matrix4().fromArray(
+      mat4.multiply([], camera.proj, camera.view())
+    );
+    var frustum = new Frustum();
+    frustum.setFromMatrix(tFrustumMat);
+    var point = new Vector3();
+    var v = this.pollen.filter(pollenet => {
+      var a = 0;
+      frustum.planes.forEach(plane => {
+        point.fromArray([pollenet.particle.x, pollenet.particle.y, 0]);
+        var sphere = new Sphere(point, -pollenet.particle.radius);
+        var dist = plane.distanceToSphere(sphere);
+        if (dist < 0) {
+          a = 1;
+        }
+      });
+      return a == 0;
+    });
+    return v;
   }
 
   tick(dt) {
