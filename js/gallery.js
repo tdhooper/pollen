@@ -5,6 +5,7 @@ module.exports = function() {
 
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
+  const vec3 = require('gl-matrix').vec3;
   const SimulatedPollen = require('./simulated-pollen');
   const DrawPollenet = require('./draw-pollenet');
   const Source = require('./source');
@@ -20,7 +21,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 50;
+  camera.distance = 10;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -68,7 +69,12 @@ module.exports = function() {
   };
 
   function addPollenet(source) {
-    simulatedPollen.add(source);
+    if (simulatedPollen.pollen.length < limit) {
+      simulatedPollen.add(source);
+    } else {
+      var position = simulatedPollen.replaceOldest(source);
+      vec3.copy(camera.center, position);
+    }
   }
 
   regl.frame((context) => {

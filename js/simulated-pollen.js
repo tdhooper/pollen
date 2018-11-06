@@ -32,6 +32,13 @@ class SimulatedPollen {
     this.pollen.push(new SimulatedPollenet(source, particle));
   }
 
+  replaceOldest(source) {
+    var oldest = this.pollen.shift();
+    oldest.source = source;
+    this.pollen.push(oldest);
+    return [oldest.particle.x, oldest.particle.y, 0];
+  }
+
   visible(camera) {
     var tFrustumMat = new Matrix4().fromArray(
       mat4.multiply([], camera.proj, camera.view())
