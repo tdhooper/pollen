@@ -10,10 +10,14 @@ class SimulatedPollenet extends Pollenet {
     this._model = mat4.identity([]);
   }
 
+  get position() {
+    return [this.particle.x, this.particle.y, 0];
+  }
+
   get model() {
     mat4.fromTranslation(
       this._model,
-      [this.particle.x, this.particle.y, 0]
+      this.position
     );
     mat4.scale(
       this._model,

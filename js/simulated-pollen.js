@@ -36,7 +36,7 @@ class SimulatedPollen {
     var oldest = this.pollen.shift();
     oldest.source = source;
     this.pollen.push(oldest);
-    return [oldest.particle.x, oldest.particle.y, 0];
+    return oldest.position;
   }
 
   visible(camera) {
@@ -49,7 +49,7 @@ class SimulatedPollen {
     var v = this.pollen.filter(pollenet => {
       var a = 0;
       frustum.planes.forEach(plane => {
-        point.fromArray([pollenet.particle.x, pollenet.particle.y, 0]);
+        point.fromArray(pollenet.position);
         var sphere = new Sphere(point, -pollenet.particle.radius);
         var dist = plane.distanceToSphere(sphere);
         if (dist < 0) {
