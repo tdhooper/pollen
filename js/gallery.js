@@ -72,8 +72,8 @@ module.exports = function() {
     if (simulatedPollen.pollen.length < limit) {
       simulatedPollen.add(source);
     } else {
-      var position = simulatedPollen.replaceOldest(source);
-      vec3.copy(camera.center, position);
+      var pollenet = simulatedPollen.replaceOldest(source);
+      simulatedPollen.focusOn(pollenet);
     }
   }
 

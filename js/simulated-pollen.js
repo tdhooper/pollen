@@ -22,6 +22,7 @@ class SimulatedPollen {
     this.noise = new Noise(Math.random());
     this.minSize = 0.33;
     this.maxSize = 1.5;
+    this.focus = undefined;
     this._tick();
   }
 
@@ -36,7 +37,11 @@ class SimulatedPollen {
     var oldest = this.pollen.shift();
     oldest.source = source;
     this.pollen.push(oldest);
-    return oldest.position;
+    return oldest;
+  }
+
+  focusOn(pollenet) {
+    this.focus = pollenet;
   }
 
   visible(camera) {
@@ -65,6 +70,11 @@ class SimulatedPollen {
 
     var position = vec2.create();
     var time = + new Date();
+    var focusMove = vec2.create();
+    if (this.focus) {
+      vec2.copy(focusMove, this.focus.position);
+    }
+    vec2.scale(focusMove, focusMove, -0.1);
 
     this.pollen.forEach(pollenet => {
 
@@ -75,8 +85,8 @@ class SimulatedPollen {
       );
       var r = 1 - pollenet.particle.radius / this.maxSize;
       r = r * .5 + .5;
-      pollenet.particle.x += curl[0] * .05 * r;
-      pollenet.particle.y += curl[1] * .05 * r;
+      pollenet.particle.x += curl[0] * .05 * r + focusMove[0];
+      pollenet.particle.y += curl[1] * .05 * r + focusMove[1];
 
       vec2.set(position, pollenet.particle.x, pollenet.particle.y);
       var len = vec2.length(position);
