@@ -16,20 +16,21 @@ class SimulatedPollen {
 
   constructor() {
     this.pollen = [];
-    this.radius = 40;
+    this.radius = 20;
     this.collisions = new Collisions();
     this.result = this.collisions.createResult();
     this.noise = new Noise(Math.random());
-    this.minSize = 0.33;
-    this.maxSize = 1.5;
+    this.minSize = 0.1;
+    this.maxSize = .8;
     this.focus = undefined;
     this._tick();
   }
 
   add(source) {
     var position = this.randomPoint(this.radius);
-    var size = this.minSize + Math.pow(Math.random(), 4) * (this.maxSize - this.minSize);
-    var particle = this.collisions.createCircle(position[0], position[1], size);
+    var size = Math.pow(Math.random(), 5);
+    var radius = this.minSize + size * (this.maxSize - this.minSize);
+    var particle = this.collisions.createCircle(position[0], position[1], radius);
     this.pollen.push(new SimulatedPollenet(source, particle));
   }
 
@@ -79,14 +80,17 @@ class SimulatedPollen {
     this.pollen.forEach(pollenet => {
 
       var curl = this.curlNoise(
-        pollenet.particle.x * .05,
-        pollenet.particle.y * .05,
+        pollenet.particle.x * .2,
+        pollenet.particle.y * .2,
         time * .0001
       );
       var r = 1 - pollenet.particle.radius / this.maxSize;
       r = r * .5 + .5;
-      pollenet.particle.x += curl[0] * .05 * r + focusMove[0];
-      pollenet.particle.y += curl[1] * .05 * r + focusMove[1];
+      pollenet.move([
+        curl[0] * .05 * r + focusMove[0],
+        curl[1] * .05 * r + focusMove[1],
+        0
+      ]);
 
       vec2.set(position, pollenet.particle.x, pollenet.particle.y);
       var len = vec2.length(position);
@@ -102,11 +106,14 @@ class SimulatedPollen {
       const particle = pollenet.particle;
       const potentials = particle.potentials();
 
-      for(const potential of potentials) {
-          if (particle.collides(potential, this.result)) {
-              particle.x -= this.result.overlap * this.result.overlap_x;
-              particle.y -= this.result.overlap * this.result.overlap_y;
-          }
+      for (const potential of potentials) {
+        if (particle.collides(potential, this.result)) {
+          pollenet.move([
+            -this.result.overlap * this.result.overlap_x * .1,
+            -this.result.overlap * this.result.overlap_y * .1,
+            0
+          ]);
+        }
       }
     });
   }
