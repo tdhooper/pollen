@@ -41,3 +41,12 @@ steps:
 ** gpu opens up for particle sim
 ** cpu is easier to prototype
 * 
+
+
+Adding a pollenet
+* remove oldest
+** shrink
+** place in oldest place
+** grow to oldest size
+
+* could always make it big, ans shrink everyone else 

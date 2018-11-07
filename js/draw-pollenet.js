@@ -47,7 +47,8 @@ var Pollenet = function(abcUv, detail) {
         vuv = uv;
         height = texture2D(heightMap, vec2(1) - vuv).r;
         vec3 pos = position;
-        pos *= mix(.2, 1.5, height);
+        // pos *= .8;
+        pos *= mix(.5, 1., height);
         gl_Position = proj * view * model * vec4(pos, 1.0);
       }`,
     context: {

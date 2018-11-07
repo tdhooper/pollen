@@ -21,7 +21,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 10;
+  camera.distance = 15;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -41,7 +41,7 @@ module.exports = function() {
   const compositor = new Compositor();
   compositor.addPost(dofPass);
 
-  var limit = 1800;
+  var limit = 2500;
   var simulatedPollen = new SimulatedPollen();
 
   store.saved().then(saved => {
