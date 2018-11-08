@@ -211,6 +211,32 @@ var Pollenet = function(abcUv, detail) {
   };
 };
 
+Pollenet.prototype.wythoffTriangle = function(va, vb, vc) {
+    var vba = vec3.sub([], vb, va);
+    var vca = vec3.sub([], vc, va);
+
+    var n = vec3.normalize([], vba);
+    var t = vec3.cross([], vba, vca);
+    vec3.normalize(t, t);
+    var b = vec3.cross([], t, n);
+
+    var translation = va;
+    var mT = mat4.fromTranslation([], translation);
+    var mR = [
+      n[0], t[0], b[0], 0,
+      n[1], t[1], b[1], 0,
+      n[2], t[2], b[2], 0,
+      0, 0, 0, 1
+    ];
+    mat4.invert(mR, mR);
+    var model = mat4.multiply([], mT, mR);
+
+    var scale = [vec3.length(vba), 1, vec3.length(vca)];
+    mat4.scale(model, model, scale);
+
+    return model;
+};
+
 Pollenet.prototype.draw = function(conf) {
   // this.drawSphere(conf);
 
@@ -230,54 +256,34 @@ Pollenet.prototype.draw = function(conf) {
   var models = [];
 
   cells.forEach((cell, i) => {
-    // if (i !== 0) {
-    //   return;
-    // }
-    var va = positions[cell[0]];
-    var vb = positions[cell[1]];
-    var vc = positions[cell[2]];
 
-    var vba = vec3.sub([], vb, va);
-    var vca = vec3.sub([], vc, va);
+    var a = positions[cell[0]];
+    var b = positions[cell[1]];
+    var c = positions[cell[2]];
 
-    // this.drawDebug(conf, va);
-    // this.drawDebug(conf, vb);
-    // this.drawDebug(conf, vc);
+    var m = vec3.add([], a, b);
+    vec3.add(m, m, c);
+    vec3.scale(m, m, 1/3);
+    
+    var ab = vec3.lerp([], a, b, .5);
+    var bc = vec3.lerp([], b, c, .5);
+    var ca = vec3.lerp([], c, a, .5);
 
-    // this.drawDebug(conf, vba);
-    // this.drawDebug(conf, vca);
-    // this.drawDebug(conf, [0,0,0]);
+    // models.push(this.wythoffTriangle(a, b, c));
 
-    var translation = va;
+    models.push(this.wythoffTriangle(ab, a, m));
+    models.push(this.wythoffTriangle(ab, m, b));
 
-    var n = vec3.normalize([], vba);
-    var t = vec3.cross([], vba, vca);
-    vec3.normalize(t, t);
-    var b = vec3.cross([], t, n);
+    models.push(this.wythoffTriangle(bc, b, m));
+    models.push(this.wythoffTriangle(bc, m, c));
 
-    // this.drawDebug(conf, va);
-    // this.drawDebug(conf, vec3.add([], n, va));
-    // this.drawDebug(conf, vec3.add([], t, va));
-    // this.drawDebug(conf, vec3.add([], b, va));
+    models.push(this.wythoffTriangle(ca, c, m));
+    models.push(this.wythoffTriangle(ca, m, a));
 
-    var mT = mat4.fromTranslation([], translation);
-    var mR = [
-      n[0], t[0], b[0], 0,
-      n[1], t[1], b[1], 0,
-      n[2], t[2], b[2], 0,
-      0, 0, 0, 1
-    ];
-    mat4.invert(mR, mR);
-    var model = mat4.multiply([], mT, mR);
-
-    var scale = [vec3.length(vba), vec3.length(vca), 1];
-    mat4.scale(model, model, scale);
-
-    models.push(model);
-    instancePositions.push(translation);
-    instanceRotations.push(mat4.getRotation([], model));
-    // instanceRotations.push(rotation);
-    instanceScales.push(scale);
+    // instancePositions.push(translation);
+    // instanceRotations.push(mat4.getRotation([], model));
+    // // instanceRotations.push(rotation);
+    // instanceScales.push(scale);
   });
 
   this.polyGeom = {
@@ -288,7 +294,7 @@ Pollenet.prototype.draw = function(conf) {
 
   this.models = models;
 
-  this.drawGeom(Object.assign({geom: this.polyGeom}, conf, {model: mat4.identity([])}));
+  // this.drawGeom(Object.assign({geom: this.polyGeom}, conf, {model: mat4.identity([])}));
 
   this.models.forEach(model => {
     this.drawGeom(Object.assign({geom: this.geom}, conf, {model: model}));
