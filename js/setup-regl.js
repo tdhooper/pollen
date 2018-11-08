@@ -6,7 +6,10 @@ global.regl = createRegl({
   attributes: {
     preserveDrawingBuffer: true
   },
-  extensions: ['webgl_depth_texture']
+  extensions: [
+    'webgl_depth_texture',
+    'angle_instanced_arrays'
+  ]
 });
 
 var resize = function() {

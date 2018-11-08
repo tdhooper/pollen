@@ -53,7 +53,7 @@ module.exports = function() {
   regl.frame((context) => {
     compositor.clear();
 
-    camera.rotate([.003,0.002],[0,0]);
+    // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
     videoSource.update();
