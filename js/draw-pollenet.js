@@ -18,9 +18,10 @@ var Pollenet = function(abcUv, detail) {
       ],
       uvs: abcUv
   };
-  geom = subdivide(geom);
-  geom = subdivide(geom);
-  geom = subdivide(geom);
+
+  while (detail-- > 0) {
+    geom = subdivide(geom);
+  }
 
   var poly = polyhedra.platonic.Tetrahedron;
   var cells = poly.face.slice();
@@ -122,7 +123,7 @@ var Pollenet = function(abcUv, detail) {
 
         pos = normalize(pos4.xyz);
         // pos *= .8;
-        // pos *= mix(.5, 1., height);
+        pos *= mix(.5, 1., height);
         pos4 = vec4(pos, 1);
 
         gl_Position = proj * view * model * pos4;
