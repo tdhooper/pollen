@@ -1,13 +1,9 @@
 const geometry = require('./geometry/polyhedra');
 const mat4 = require('gl-matrix').mat4;
-const vec4 = require('gl-matrix').vec4;
 const vec3 = require('gl-matrix').vec3;
-const mat3 = require('gl-matrix').mat3;
-const quat = require('gl-matrix').quat;
 const polyhedra = require('polyhedra');
 const normals = require('angle-normals');
 const subdivide = require('./geometry/subdivide');
-// var createCube = require('primitive-cube');
 
 var Pollenet = function(abcUv, detail) {
 
@@ -73,53 +69,6 @@ var Pollenet = function(abcUv, detail) {
   var N = models.length;
   var instances = Array(N).fill().map((_, i) => {
     return i;
-  });
-
-  this.drawGeom = regl({
-    frag: `
-      precision mediump float;
-      varying vec3 vnormal;
-      void main () {
-          gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
-      }`,
-    vert: `
-      precision mediump float;
-      uniform mat4 proj;
-      uniform mat4 model;
-      uniform mat4 view;
-      attribute vec3 position;
-      attribute vec3 normal;
-      varying vec3 vnormal;
-
-      void main () {
-        vnormal = normal;
-        gl_Position = proj * view * model * vec4(position, 1.0);
-      }`,
-    attributes: {
-      position: geom.positions,
-      uv: geom.uvs,
-    },
-    elements: geom.cells,
-    context: {
-      model:function(context, props) {
-        return props.model;
-      },
-      view: function(context, props) {
-        return props.camera.view();
-      },
-      proj: function(context, props) {
-        return props.camera.projection(
-          context.viewportWidth,
-          context.viewportHeight
-        );
-      },
-    },
-    uniforms: {
-      model: regl.context('model'),
-      view: regl.context('view'),
-      proj: regl.context('proj')
-    },
-    framebuffer: regl.prop('destination')
   });
 
   this.drawSphere = regl({
@@ -282,22 +231,6 @@ Pollenet.prototype.wythoffTriangle = function(va, vb, vc) {
 
 Pollenet.prototype.draw = function(conf) {
   this.drawSphere(conf);
-
-
-  // this.polyGeom = {
-  //   cells: poly.face,
-  //   positions: poly.vertex,
-  //   normals: normals(poly.face, poly.vertex)
-  // };
-
-  // this.models = models;
-
-  // // this.drawGeom(Object.assign({geom: this.polyGeom}, conf, {model: mat4.identity([])}));
-
-  // this.models.forEach(model => {
-  //   this.drawGeom(Object.assign({}, conf, {model: model}));
-  // });
-
 };
 
 module.exports = Pollenet;
