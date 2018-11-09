@@ -5,6 +5,7 @@ module.exports = function() {
 
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
+  const quat = require('gl-matrix').quat;
   const Pollenet = require('./pollenet');
   const DrawPollenet = require('./draw-pollenet');
   const VideoSource = require('./video-source');
@@ -15,6 +16,8 @@ module.exports = function() {
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 10;
+  quat.rotateX(camera.rotation, camera.rotation, 1);
+  quat.rotateY(camera.rotation, camera.rotation, .5);
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -55,6 +58,8 @@ module.exports = function() {
 
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
+
+    mat4.rotate(pollenet._model, pollenet._model, .005, [0,0,1]);
 
     videoSource.update();
     drawPollenet.draw({

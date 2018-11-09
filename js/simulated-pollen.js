@@ -87,8 +87,8 @@ class SimulatedPollen {
       var r = 1 - pollenet.particle.radius / this.maxSize;
       r = r * .5 + .5;
       pollenet.move([
-        curl[0] * .05 * r + focusMove[0],
-        curl[1] * .05 * r + focusMove[1],
+        curl[0] * .01 * r + focusMove[0],
+        curl[1] * .01 * r + focusMove[1],
         0
       ]);
 

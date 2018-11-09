@@ -20,12 +20,12 @@ class Compositor {
 
   clear(context) {
     regl.clear({
-      color: [.9, .9, .9, 1],
+      color: [0, 0, 0, 1],
       depth: 1,
       framebuffer: this.buffer
     });
     regl.clear({
-      color: [.9, .9, .9, 1],
+      color: [0, 0, 0, 1],
       depth: 1,
     });
   }

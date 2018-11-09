@@ -21,7 +21,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 15;
+  camera.distance = 35;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -36,7 +36,7 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
-  const drawPollenet = new DrawPollenet(abcUv, 1);
+  const drawPollenet = new DrawPollenet(abcUv, 6);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
