@@ -33,10 +33,6 @@ var Pollenet = function(abcUv, detail) {
 
   var models = [];
 
-  var T = [];
-  var R = [];
-  var S = [];
-
   cells.forEach((cell, i) => {
 
     var a = positions[cell[0]];
@@ -59,16 +55,6 @@ var Pollenet = function(abcUv, detail) {
 
     models.push(this.wythoffTriangle(ca, c, m));
     models.push(this.wythoffTriangle(ca, m, a));
-
-
-    this.wythoffTriangleI(ab, a, m, T, R, S);
-    this.wythoffTriangleI(ab, m, b, T, R, S);
-
-    this.wythoffTriangleI(bc, b, m, T, R, S);
-    this.wythoffTriangleI(bc, m, c, T, R, S);
-
-    this.wythoffTriangleI(ca, c, m, T, R, S);
-    this.wythoffTriangleI(ca, m, a, T, R, S);
   });
 
   this.models = models;
@@ -294,34 +280,6 @@ Pollenet.prototype.wythoffTriangle = function(va, vb, vc) {
 
     return model;
 };
-
-
-Pollenet.prototype.wythoffTriangleI = function(va, vb, vc, T, R, S) {
-    var vba = vec3.sub([], vb, va);
-    var vca = vec3.sub([], vc, va);
-
-    var n = vec3.normalize([], vba);
-    var t = vec3.cross([], vba, vca);
-    vec3.normalize(t, t);
-    var b = vec3.cross([], t, n);
-
-    var translation = va;
-    var rotation = [
-      n[0], t[0], b[0],
-      n[1], t[1], b[1],
-      n[2], t[2], b[2],
-    ];
-    mat3.invert(rotation, rotation);
-
-    rotation = mat3.identity([]);
-
-    var scale = [vec3.length(vba), 1, vec3.length(vca)];
-
-    T.push(translation);
-    R.push(rotation);
-    S.push(scale);
-};
-
 
 Pollenet.prototype.draw = function(conf) {
   this.drawSphere(conf);
