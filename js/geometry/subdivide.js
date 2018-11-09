@@ -1,4 +1,5 @@
-var normalize = require('vectors/normalize-nd');
+var vec3 = require('gl-matrix').vec3;
+var vec2 = require('gl-matrix').vec2;
 var IndexCache = require('./index-cache');
 
 
@@ -47,23 +48,13 @@ function subdivide(complex) {
 function createMidpoint(positions, a, b) {
     var va = positions[a];
     var vb = positions[b];
-    var v = [
-        va[0] + vb[0],
-        va[1] + vb[1],
-        va[2] + vb[2]
-    ];
-    normalize(v);
-    return v;
+    return vec3.lerp([], va, vb, .5);
 }
 
 function createMidpointUv(uvs, a, b) {
     var va = uvs[a];
     var vb = uvs[b];
-    var v = [
-        (va[0] + vb[0]) / 2,
-        (va[1] + vb[1]) / 2
-    ];
-    return v;
+    return vec2.lerp([], va, vb, .5);
 }
 
 module.exports = subdivide;

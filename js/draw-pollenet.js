@@ -6,6 +6,7 @@ const mat3 = require('gl-matrix').mat3;
 const quat = require('gl-matrix').quat;
 const polyhedra = require('polyhedra');
 const normals = require('angle-normals');
+const subdivide = require('./geometry/subdivide');
 // var createCube = require('primitive-cube');
 
 var Pollenet = function(abcUv, detail) {
@@ -19,13 +20,11 @@ var Pollenet = function(abcUv, detail) {
         [0, 0, 1],
         [1, 0, 0]
       ],
-      uvs: abcUv,
-      normals: [
-        [0, 0, 1],
-        [0, 0, 1],
-        [0, 0, 1]
-      ]
+      uvs: abcUv
   };
+  geom = subdivide(geom);
+  geom = subdivide(geom);
+  geom = subdivide(geom);
 
   var poly = polyhedra.platonic.Tetrahedron;
   var cells = poly.face.slice();
@@ -98,7 +97,7 @@ var Pollenet = function(abcUv, detail) {
       }`,
     attributes: {
       position: geom.positions,
-      normal: geom.normals,
+      uv: geom.uvs,
     },
     elements: geom.cells,
     context: {
@@ -126,7 +125,6 @@ var Pollenet = function(abcUv, detail) {
   this.drawSphere = regl({
     frag: `
       precision mediump float;
-      varying vec3 vnormal;
       varying vec2 vuv;
       //varying float height;
       uniform sampler2D video;
@@ -136,7 +134,6 @@ var Pollenet = function(abcUv, detail) {
           gl_FragColor = vec4(tex, 1);
           // vec3 height = texture2D(heightMap, vec2(1) - vuv).rgb;
           // gl_FragColor = vec4(vec3(height), 1);
-          // gl_FragColor = vec4(vnormal * .5 + .5, 1.0);
       }`,
     vert: `
       precision mediump float;
@@ -145,19 +142,16 @@ var Pollenet = function(abcUv, detail) {
       uniform mat4 view;
       uniform sampler2D heightMap;
       attribute vec3 position;
-      attribute vec3 normal;
       attribute vec2 uv;
       attribute float instance;
       attribute vec4 iModelRow0;
       attribute vec4 iModelRow1;
       attribute vec4 iModelRow2;
       attribute vec4 iModelRow3;
-      varying vec3 vnormal;
       varying vec2 vuv;
       varying float height;
 
       void main () {
-        vnormal = normal;
         vuv = uv;
 
         if (mod(instance, 2.) == 0.) {
@@ -177,10 +171,10 @@ var Pollenet = function(abcUv, detail) {
         vec4 pos4 = vec4(pos, 1);
         pos4 = iModel * pos4;
 
-        // pos = normalize(pos4.xyz);
-        // // pos *= .8;
-        // // pos *= mix(.5, 1., height);
-        // pos4 = vec4(pos, 1);
+        pos = normalize(pos4.xyz);
+        // pos *= .8;
+        // pos *= mix(.5, 1., height);
+        pos4 = vec4(pos, 1);
 
         gl_Position = proj * view * model * pos4;
       }`,
@@ -221,7 +215,6 @@ var Pollenet = function(abcUv, detail) {
     },
     attributes: {
       position: regl.context('mesh.positions'),
-      normal: regl.context('mesh.normals'),
       uv: regl.context('mesh.uvs'),
       instance: {
         buffer: instances,
