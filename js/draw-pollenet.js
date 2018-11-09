@@ -147,6 +147,7 @@ var Pollenet = function(abcUv, detail) {
       attribute vec3 position;
       attribute vec3 normal;
       attribute vec2 uv;
+      attribute float instance;
       attribute vec4 iModelRow0;
       attribute vec4 iModelRow1;
       attribute vec4 iModelRow2;
@@ -158,6 +159,11 @@ var Pollenet = function(abcUv, detail) {
       void main () {
         vnormal = normal;
         vuv = uv;
+
+        if (mod(instance, 2.) == 0.) {
+          vuv.xy = vuv.yx;
+        }
+
         height = texture2D(heightMap, vec2(1) - vuv).r;
         vec3 pos = position;
 
