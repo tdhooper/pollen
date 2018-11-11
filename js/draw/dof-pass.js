@@ -14,7 +14,7 @@ class DofPass {
         uniform mat4 proj;
 
         const float GOLDEN_ANGLE = 2.39996323; 
-        const float MAX_BLUR_SIZE = 6.;
+        const float MAX_BLUR_SIZE = 12.;
         const float ITER = 50.;
 
         float getDepth(vec2 texCoord) {
@@ -28,6 +28,7 @@ class DofPass {
         float getBlurSize(float depth, float focusPoint, float focusScale)
         {
           float coc = clamp((depth - focusPoint) / focusScale, -1., 1.);
+          //return abs(coc);
           return abs(coc) * MAX_BLUR_SIZE / cameraDistance * 40.;
         }
 
@@ -35,6 +36,7 @@ class DofPass {
         {
           float centerDepth = getDepth(texCoord);
           float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
+          //return vec3(centerSize);
           vec3 color = texture2D(uTexture, texCoord).rgb;
           // return color;
           float tot = 1.;
@@ -62,7 +64,7 @@ class DofPass {
 
         void main() {
           vec2 uv = gl_FragCoord.xy / resolution;
-          gl_FragColor = vec4(depthOfField(uv, -.9, 3.), 1);
+          gl_FragColor = vec4(depthOfField(uv, -.2, 8.), 1);
         }`,
       uniforms: {
         uTexture: regl.prop('source'),

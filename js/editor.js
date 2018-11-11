@@ -59,16 +59,16 @@ module.exports = function() {
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
-    mat4.rotate(pollenet._model, pollenet._model, .005, [0,0,1]);
+    mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
 
     videoSource.update();
     drawPollenet.draw({
       pollenet: pollenet,
       camera: camera,
-      // destination: compositor.buffer
+      destination: compositor.buffer
     });
 
-    // compositor.draw(context);
+    compositor.draw(context);
     videoPreview.draw({
       source: videoSource
     });
