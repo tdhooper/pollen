@@ -8,6 +8,7 @@ var path = require('path');
 var multiparty = require('multiparty');
 var util = require('util');
 var Router = require('router');
+var stringify = require("json-stringify-pretty-compact");
 
 
 var saveLocation = path.join(__dirname, 'saved');
@@ -45,7 +46,7 @@ router.post('/save/:name', function(req, res) {
     return;
   }
 
-  var content = JSON.stringify(req.body, null, 2);
+  var content = stringify(req.body);
   content += '\n';
 
   filename = name + '.json';

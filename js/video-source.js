@@ -7,12 +7,15 @@ const blurPass = require('./draw/blur-pass');
 const heightMapPass = require('./draw/height-map-pass');
 const Source = require('./source');
 const bufferToObj = require('./send-buffer').bufferToObj;
+const createPatch = require('./geometry/create-patch');
 
 
 class VideoSource extends Source {
 
   constructor() {
     super();
+
+    this.LODs = createPatch(3);
 
     this.webcam = new WebcamTexture(regl);
 
@@ -65,7 +68,8 @@ class VideoSource extends Source {
     ]).then(result => {
       return {
         height: result[0],
-        image: result[1]
+        image: result[1],
+        LODs: this.LODs
       };
     });
   }

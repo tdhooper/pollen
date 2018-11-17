@@ -15,6 +15,7 @@ function save(sourceObj) {
     var data = {
       height: filenames[0],
       image: filenames[1],
+      LODs: sourceObj.LODs
     };
     return submit(data, name);
   });

@@ -26,6 +26,8 @@ class Source {
   }
 
   fromObj(obj) {
+    this.LODs = obj.LODs;
+
     if (obj.height.pixels) {
       this.heightTexture.subimage({
         data: obj.height.pixels

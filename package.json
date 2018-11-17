@@ -21,6 +21,7 @@
     "glsl-range": "^1.0.0",
     "glslify": "^6.2.1",
     "is-empty": "^1.2.0",
+    "json-stringify-pretty-compact": "^1.2.0",
     "multiparty": "^4.2.1",
     "noisejs": "^2.1.0",
     "polyhedra": "^1.0.0",

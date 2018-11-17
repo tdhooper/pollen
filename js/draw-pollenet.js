@@ -1,29 +1,9 @@
-const geometry = require('./geometry/polyhedra');
 const mat4 = require('gl-matrix').mat4;
 const vec3 = require('gl-matrix').vec3;
 const polyhedra = require('polyhedra');
 const normals = require('angle-normals');
-const subdivide = require('./geometry/subdivide');
 
 var Pollenet = function(abcUv, detail) {
-
-  var geom = {
-      cells: [
-        [0, 1, 2]
-      ],
-      positions: [
-        [0, 0, 0],
-        [0, 0, 1],
-        [1, 0, 0]
-      ],
-      uvs: abcUv,
-  };
-
-  var LODs = [geom];
-
-  while (detail-- > 0) {
-    LODs.push(subdivide(LODs[LODs.length - 1]));
-  }
 
   var poly = polyhedra.platonic.Tetrahedron;
   var cells = poly.face.slice();
@@ -235,6 +215,8 @@ var Pollenet = function(abcUv, detail) {
         );
       },
       mesh: (context, props) => {
+        var LODs = props.pollenet.source.LODs;
+
         var model = props.pollenet.model;
         var view = props.camera.view();
 

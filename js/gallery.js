@@ -53,6 +53,9 @@ module.exports = function() {
         return source;
       });
       sources = setLength(sources, limit);
+      if ( ! sources) {
+        return;
+      }
       sources.forEach(source => {
         addPollenet(source);
       });
