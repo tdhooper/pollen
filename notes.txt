@@ -50,3 +50,15 @@ Adding a pollenet
 ** grow to oldest size
 
 * could always make it big, ans shrink everyone else 
+
+
+
+when saving, create a proper mesh
+
+* in js apply the height map to a high def source mesh
+* create vertex normals
+* simplify the mesh with N lod
+* send to gallery
+* save mesh with json
+
+PROTOTYPE WITH NON-DEFORMED MESH FIRST - to check perf of many meshes

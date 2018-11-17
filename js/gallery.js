@@ -21,7 +21,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 35;
+  camera.distance = 20;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -91,11 +91,11 @@ module.exports = function() {
       drawPollenet.draw({
         pollenet: pollenet,
         camera: camera,
-        destination: compositor.buffer
+        // destination: compositor.buffer
       });
     });
 
-    compositor.draw(context);
+    // compositor.draw(context);
     stats.end();
   });
 };
