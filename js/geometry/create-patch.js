@@ -1,12 +1,7 @@
 const subdivide = require('./subdivide');
 
 
-module.exports = function(detail) {
-  var abcUv = [
-    [1, 1],
-    [0, 1],
-    [1, 0]
-  ];
+module.exports = function(detail, abcUv) {
   var geom = {
       cells: [
         [0, 1, 2]
@@ -27,4 +22,3 @@ module.exports = function(detail) {
 
   return LODs;
 };
-

@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "angle-normals": "^1.0.0",
+    "barycentric": "^1.0.1",
     "body-parser": "^1.18.3",
     "budo": "^11.3.2",
     "canvas-orbit-camera": "^1.0.2",
@@ -22,6 +23,7 @@
     "glslify": "^6.2.1",
     "is-empty": "^1.2.0",
     "json-stringify-pretty-compact": "^1.2.0",
+    "mesh-simplify": "^2.0.0",
     "multiparty": "^4.2.1",
     "noisejs": "^2.1.0",
     "polyhedra": "^1.0.0",

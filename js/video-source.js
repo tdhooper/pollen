@@ -8,6 +8,8 @@ const heightMapPass = require('./draw/height-map-pass');
 const Source = require('./source');
 const bufferToObj = require('./send-buffer').bufferToObj;
 const createPatch = require('./geometry/create-patch');
+const applyHeightMap = require('./geometry/apply-height-map');
+const xz = require('./geometry/xz');
 
 
 class VideoSource extends Source {
@@ -15,7 +17,21 @@ class VideoSource extends Source {
   constructor() {
     super();
 
-    this.LODs = createPatch(3);
+    var abcUv = [
+      [1, 1],
+      [0, 1],
+      [1, 0]
+    ];
+
+    var LODs = createPatch(6, abcUv);
+    var abc = LODs[0].positions.map(xz);
+    this.applyHeightMap = applyHeightMap.bind(
+      this,
+      abc,
+      abcUv,
+      LODs[LODs.length - 1]
+    );
+    this.LODs = LODs.slice(1, 6);
 
     this.webcam = new WebcamTexture(regl);
 
@@ -69,7 +85,7 @@ class VideoSource extends Source {
       return {
         height: result[0],
         image: result[1],
-        LODs: this.LODs
+        LODs: this.applyHeightMap(this.heightBuffer)
       };
     });
   }
