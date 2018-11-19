@@ -12,6 +12,7 @@ module.exports = function() {
   const VideoPreview = require('./video-preview');
   const Compositor = require('./compositor');
   const DofPass = require('./draw/dof-pass');
+  const polyhedra = require('polyhedra');
 
 
   const camera = createCamera(regl._gl.canvas);
@@ -32,9 +33,10 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
+  var poly = polyhedra.platonic.Tetrahedron;
 
   const drawPollenet = new DrawPollenet(abcUv, 6);
-  const videoSource = new VideoSource();
+  const videoSource = new VideoSource(abcUv, poly);
   const pollenet = new Pollenet(videoSource);
   const videoPreview = new VideoPreview(abcUv);
   const dofPass = new DofPass(camera);
@@ -49,6 +51,7 @@ module.exports = function() {
   var channel = new BroadcastChannel('pollen');
   function send() {
     videoSource.toObj().then(sourceObj => {
+      console.log(sourceObj);
       channel.postMessage(sourceObj);
     });
   }

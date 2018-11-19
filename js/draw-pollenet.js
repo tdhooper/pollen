@@ -14,7 +14,13 @@ var Pollenet = function(abcUv, detail) {
   var iB = [];
   var iC = [];
 
+  var only = false;
+
   cells.forEach((cell, i) => {
+
+    if (only && i !== 0) {
+      return;
+    }
 
     var a = positions[cell[0]];
     var b = positions[cell[1]];
@@ -156,7 +162,8 @@ var Pollenet = function(abcUv, detail) {
 
         vec4 pos4 = vec4(pos, 1);
         pos4 = iModel * pos4;
-        pos = normalize(pos4.xyz);
+        // pos = normalize(pos4.xyz);
+        pos = pos4.xyz;
 
         vec3 center = normalize(mod(instance, 2.) == 0. ? iC : iB);
         vec3 edge = normalize(mod(instance, 2.) == 0. ? iB : iC);
@@ -196,7 +203,7 @@ var Pollenet = function(abcUv, detail) {
 
         // vnormal = N;
         
-        pos *= height;
+        // pos *= height;
         pos4 = vec4(pos, 1);
 
         gl_Position = proj * view * model * pos4;

@@ -14,19 +14,14 @@ const xz = require('./geometry/xz');
 
 class VideoSource extends Source {
 
-  constructor() {
+  constructor(abcUv, poly) {
     super();
-
-    var abcUv = [
-      [1, 1],
-      [0, 1],
-      [1, 0]
-    ];
 
     var LODs = createPatch(6, abcUv);
     var abc = LODs[0].positions.map(xz);
     this.applyHeightMap = applyHeightMap.bind(
       this,
+      poly,
       abc,
       abcUv,
       LODs[5]
@@ -81,13 +76,16 @@ class VideoSource extends Source {
     return Promise.all([
       bufferToObj(this.heightBuffer),
       bufferToObj(this.imageBuffer),
-      this.applyHeightMap(this.heightBuffer)
     ]).then(result => {
-      return {
-        height: result[0],
-        image: result[1],
-        LODs: result[2]
-      };
+      var height = result[0];
+      var image = result[1];
+      return this.applyHeightMap(height).then(LODs => {
+        return {
+          height: height,
+          image: image,
+          LODs: LODs
+        };
+      });
     });
   }
 

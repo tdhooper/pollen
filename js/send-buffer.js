@@ -44,9 +44,17 @@ function urlToImg(url) {
   });
 }
 
+function objUVLookup(obj, uv) {
+  var x = Math.round((obj.width - 1) * uv[0]);
+  var y = Math.round((obj.height - 1) * uv[1]);
+  var pixel = y * obj.width + x;
+  return obj.pixels.slice(pixel * 4, pixel * 4 + 4);
+}
+
 module.exports = {
   bufferToObj: bufferToObj,
   objToBlob: objToBlob,
   bufferToBlob: bufferToBlob,
-  urlToImg: urlToImg
+  urlToImg: urlToImg,
+  objUVLookup: objUVLookup
 };
