@@ -22,8 +22,7 @@ function applyMatrix(geom, matrix) {
   });
 }
 
-// todo abc is no longer useful to create uvs as geom has been warped
-function apply(wythoff, abc, abcUv, geom, heightMapObj) {
+function combineIntoPoly(geom, wythoff) {
 
   var geoms = wythoff.models.map(matrix => {
     var geom2 = cloneDeep(geom);
@@ -34,8 +33,11 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   var combined = combine(geoms);
   combined = merge(combined.cells, combined.positions);
 
-  var model = wythoff.models[0];
-  var invModel = mat4.invert([], model);
+  return combined;
+}
+
+function getSlicePlanes(wythoff) {
+
   var a = wythoff.iA[0];
   var b = wythoff.iB[0];
   var c = wythoff.iC[0];
@@ -49,23 +51,44 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   var planeB = new Plane().setFromCoplanarPoints(tO, tB, tC);
   var planeC = new Plane().setFromCoplanarPoints(tO, tC, tA);
 
-  // applyMatrix(sliced, invModel);
+  return [planeA, planeB, planeC];
+}
 
-
-  combined.positions.forEach((v, i) => {
-    // var uv = geom.uvs[i];
-    // var pixel = objUVLookup(heightMapObj, uv);
-    // var height = pixel[0] / 255;
-    // height = lerp(.5, 1, height);
-    // vec3.transformMat4(v, v, model);
+function applyHeightMap(geom, heightMapObj, model, invModel) {
+  geom.positions.forEach((v, i) => {
+    var uv = geom.uvs[i];
+    var pixel = objUVLookup(heightMapObj, uv);
+    var height = pixel[0] / 255;
+    height = lerp(.5, 1, height);
+    vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
-    // vec3.scale(v, v, height);
-    // vec3.transformMat4(v, v, invModel);
+    vec3.scale(v, v, height);
+    vec3.transformMat4(v, v, invModel);
   });
+}
 
-  geom = combined;
+function sliceWithPlanes(geom, planes) {
+  var tGeom = convert.geomToThree(geom);
+  tGeom = sliceGeometry(tGeom, planes[0]);
+  tGeom = sliceGeometry(tGeom, planes[1]);
+  tGeom = sliceGeometry(tGeom, planes[2]);
+  return convert.threeToGeom(tGeom);
+}
 
-  var details = [100];
+
+// todo abc is no longer useful to create uvs as geom has been warped
+function apply(wythoff, abc, abcUv, geom, heightMapObj) {
+
+  var model = wythoff.models[0];
+  var invModel = mat4.invert([], model);
+
+  geom = cloneDeep(geom);
+  applyHeightMap(geom, heightMapObj, model, invModel);
+
+  geom = combineIntoPoly(geom, wythoff);
+  var planes = getSlicePlanes(wythoff);
+
+  var details = [500];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
@@ -75,20 +98,16 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
-      var tGeom = convert.geomToThree(geom);
-      tGeom = sliceGeometry(tGeom, planeA);
-      tGeom = sliceGeometry(tGeom, planeB);
-      tGeom = sliceGeometry(tGeom, planeC);
-
-      geom = convert.threeToGeom(tGeom);
+      geom = sliceWithPlanes(geom, planes);
       applyMatrix(geom, invModel);
 
       geom.uvs = geom.positions.map(_ => {
         return [0,0];
       });
-      geom.normals = geom.positions.map(p => {
-        return [Math.random(), Math.random(), Math.random()];
-      });
+      // geom.normals = geom.positions.map(p => {
+      //   return [Math.random(), Math.random(), Math.random()];
+      // });
+      geom.normals = computeNormals(geom.cells, geom.positions);
 
       return geom;
     });
@@ -96,16 +115,6 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   return Promise.all(LODs);
 }
-
-/*
-
-  * create a single waterproof mesh from wythoff
-  * simplify
-  * create slice planes from a single whytoff section
-  * slice
-  * translate back to origin with the same wythoff section model inverse
-
-*/
 
 module.exports = function(poly, abc, abcUv, geom) {
   var wythoff = wythoffModels(poly, abc);
