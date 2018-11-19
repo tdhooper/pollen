@@ -4,6 +4,7 @@ var uuidv1 = require('uuid/v1');
 
 function save(sourceObj) {
   name = uuidv1();
+  console.log(name);
   Promise.all([
     objToBlob(sourceObj.height).then(
       blob => upload(blob, name + '_height.png')
@@ -59,6 +60,7 @@ function upload(blob, name) {
 }
 
 function submit(data, name) {
+  console.log('submit', name);
   var form = new FormData();
   var f = fetch('/save/' + name, {
     method: 'POST',

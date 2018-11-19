@@ -12,6 +12,13 @@ var stringify = require("json-stringify-pretty-compact");
 var browserify = require('browserify');
 
 
+var browserifyOpts = {
+  plugin: [
+    require('esmify')
+  ]
+};
+
+
 var saveLocation = path.join(__dirname, 'saved');
 
 if ( ! fs.existsSync(saveLocation)){
@@ -29,16 +36,12 @@ budo('./js/index.js', {
     bodyParser.json(),
     router
   ],
-  browserify: {
-    plugin: [
-      require('esmify')
-    ]
-  }
+  browserify: browserifyOpts
 });
 
 
 var simplifyWorker = new Promise((resolve, reject) => {
-  browserify('js/workers/simplify-worker.js').bundle((err, buffer) => {
+  browserify('js/workers/simplify-worker.js', browserifyOpts).bundle((err, buffer) => {
     if (err) {
       reject(err);
     } else {

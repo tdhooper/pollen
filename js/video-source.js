@@ -78,7 +78,6 @@ class VideoSource extends Source {
   }
 
   toObj() {
-    console.log('toobj')
     return Promise.all([
       bufferToObj(this.heightBuffer),
       bufferToObj(this.imageBuffer),
