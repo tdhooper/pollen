@@ -29,7 +29,7 @@ class VideoSource extends Source {
       this,
       abc,
       abcUv,
-      LODs[LODs.length - 1]
+      LODs[5]
     );
     this.LODs = LODs.slice(1, 6);
 
@@ -78,14 +78,16 @@ class VideoSource extends Source {
   }
 
   toObj() {
+    console.log('toobj')
     return Promise.all([
       bufferToObj(this.heightBuffer),
-      bufferToObj(this.imageBuffer)
+      bufferToObj(this.imageBuffer),
+      this.applyHeightMap(this.heightBuffer)
     ]).then(result => {
       return {
         height: result[0],
         image: result[1],
-        LODs: this.applyHeightMap(this.heightBuffer)
+        LODs: result[2]
       };
     });
   }

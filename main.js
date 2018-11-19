@@ -9,6 +9,7 @@ var multiparty = require('multiparty');
 var util = require('util');
 var Router = require('router');
 var stringify = require("json-stringify-pretty-compact");
+var browserify = require('browserify');
 
 
 var saveLocation = path.join(__dirname, 'saved');
@@ -33,6 +34,30 @@ budo('./js/index.js', {
       require('esmify')
     ]
   }
+});
+
+
+var simplifyWorker = new Promise((resolve, reject) => {
+  browserify('js/workers/simplify-worker.js').bundle((err, buffer) => {
+    if (err) {
+      reject(err);
+    } else {
+      resolve(buffer);
+    }
+  });
+});
+
+router.get('/js/workers/simplify-worker.js', function(req, res) {
+  simplifyWorker.then(
+    buffer => {
+      res.statusCode = 200;
+      res.end(buffer);
+    },
+    err => {
+      res.statusCode = 500;
+      res.end(err);
+    }
+  );
 });
 
 

@@ -32,7 +32,8 @@
     "stats.js": "^0.17.0",
     "three": "^0.98.0",
     "uuid": "^3.3.2",
-    "vectors": "^0.1.0"
+    "vectors": "^0.1.0",
+    "workerpool": "^2.3.3"
   },
   "browserify": {
     "transform": [
