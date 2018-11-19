@@ -22,7 +22,7 @@ class VideoSource extends Source {
       poly,
       abc,
       abcUv,
-      LODs[LODs.length - 1]
+      LODs[4]
     );
     this.LODs = [LODs[4]];
     console.log(this.LODs);
