@@ -6,13 +6,14 @@ module.exports = function() {
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
   const quat = require('gl-matrix').quat;
+  const polyhedra = require('polyhedra');
   const Pollenet = require('./pollenet');
-  const DrawPollenet = require('./draw-pollenet');
+  const DrawPollenet = require('./pollenet/draw-video');
   const VideoSource = require('./video-source');
   const VideoPreview = require('./video-preview');
   const Compositor = require('./compositor');
   const DofPass = require('./draw/dof-pass');
-  const polyhedra = require('polyhedra');
+  const createPatch = require('./geometry/create-patch');
 
 
   const camera = createCamera(regl._gl.canvas);
@@ -34,8 +35,9 @@ module.exports = function() {
     [1, 0]
   ];
   var poly = polyhedra.platonic.Tetrahedron;
+  var abc = createPatch(0, abcUv).abc;
 
-  const drawPollenet = new DrawPollenet(abcUv, 6);
+  const drawPollenet = new DrawPollenet(poly, abc);
   const videoSource = new VideoSource(abcUv, poly);
   const pollenet = new Pollenet(videoSource);
   const videoPreview = new VideoPreview(abcUv);

@@ -6,14 +6,16 @@ module.exports = function() {
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
   const vec3 = require('gl-matrix').vec3;
+  const polyhedra = require('polyhedra');
   const SimulatedPollen = require('./simulated-pollen');
-  const DrawPollenet = require('./draw-pollenet');
+  const DrawPollenet = require('./pollenet/draw-saved');
   const Source = require('./source');
   const store = require('./store');
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
   const DofPass = require('./draw/dof-pass');
   const Compositor = require('./compositor');
+  const createPatch = require('./geometry/create-patch');
 
 
   const stats = new Stats();
@@ -36,7 +38,11 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
-  const drawPollenet = new DrawPollenet(abcUv, 6);
+
+  var poly = polyhedra.platonic.Tetrahedron;
+  var abc = createPatch(0, abcUv).abc;
+
+  const drawPollenet = new DrawPollenet(poly, abc);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
