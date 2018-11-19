@@ -70,10 +70,10 @@ module.exports = function() {
     drawPollenet.draw({
       pollenet: pollenet,
       camera: camera,
-      destination: compositor.buffer
+      // destination: compositor.buffer
     });
 
-    compositor.draw(context);
+    // compositor.draw(context);
     videoPreview.draw({
       source: videoSource
     });

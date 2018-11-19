@@ -36,6 +36,7 @@ class DrawCore {
         enable: true,
         face: 'back'
       },
+      // primitive: 'line strip',
       frag: `
         precision mediump float;
         varying vec2 vuv;
@@ -46,6 +47,7 @@ class DrawCore {
             vec3 lPos = normalize(vec3(2,1,0));
             float l = dot(lPos, vnormal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
+            gl_FragColor = vec4(vnormal * .5 + .5, 1);
         }`,
       context: {
         model:function(context, props) {

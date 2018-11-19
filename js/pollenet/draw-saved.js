@@ -16,6 +16,7 @@ class DrawSaved extends DrawCore {
         uniform mat4 view;
         attribute vec3 position;
         attribute vec2 uv;
+        attribute vec3 normal;
         attribute float instance;
         attribute vec4 iModelRow0;
         attribute vec4 iModelRow1;
@@ -26,7 +27,7 @@ class DrawSaved extends DrawCore {
 
         void main () {
           vuv = uv;
-          vnormal = vec3(1,0,0);
+          vnormal = normal;
 
           vec3 pos = position;
 
@@ -42,6 +43,9 @@ class DrawSaved extends DrawCore {
 
           gl_Position = proj * view * model * pos4;
         }`,
+      attributes: {
+        normal: regl.context('mesh.normals')
+      }
     });
 
     this.draw = function(props) {

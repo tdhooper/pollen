@@ -17,14 +17,15 @@ class VideoSource extends Source {
   constructor(abcUv, poly) {
     super();
 
-    var {LODs, abc} = createPatch(6, abcUv);
+    var {LODs, abc} = createPatch(7, abcUv);
     this.applyHeightMap = applyHeightMap(
       poly,
       abc,
       abcUv,
-      LODs[4]
+      LODs[LODs.length - 1]
     );
-    this.LODs = LODs.slice(1, 6);
+    this.LODs = [LODs[4]];
+    console.log(this.LODs);
 
     this.webcam = new WebcamTexture(regl);
 

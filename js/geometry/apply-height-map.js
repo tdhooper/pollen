@@ -14,20 +14,21 @@ function apply(model, invModel, abc, abcUv, geom, heightMapObj) {
     var uv = geom.uvs[i];
     var pixel = objUVLookup(heightMapObj, uv);
     var height = pixel[0] / 255;
-    height = lerp(.1, 1, height);
+    height = lerp(.5, 1, height);
     vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
     vec3.scale(v, v, height);
     vec3.transformMat4(v, v, invModel);
   });
 
-  var details = [100];
+  var details = [512];
   var LODs = details.map(detail => {
-    return geom;
-    // return simplify(abc, abcUv, geom, detail).then(geom => {
-    //   geom.normals = computeNormals(geom.cells, geom.positions);
-    //   return geom;
-    // });
+    // geom.normals = computeNormals(geom.cells, geom.positions);
+    // return geom;
+    return simplify(abc, abcUv, geom, detail).then(geom => {
+      geom.normals = computeNormals(geom.cells, geom.positions);
+      return geom;
+    });
   });
 
   return Promise.all(LODs);
