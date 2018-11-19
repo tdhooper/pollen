@@ -84,7 +84,7 @@ function SimplifyModifier() {};
         if ( sideFaces.length < 2 ) {
 
             // we add some arbitrary cost for borders,
-            // borders += 10;
+            borders += 10;
             curvature = 1;
 
         }

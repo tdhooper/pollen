@@ -36,7 +36,7 @@ class DrawCore {
         enable: true,
         face: 'back'
       },
-      primitive: 'line strip',
+      // primitive: 'line strip',
       frag: `
         precision mediump float;
         varying vec2 vuv;
