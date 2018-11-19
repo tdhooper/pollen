@@ -19,7 +19,7 @@ var wythoffModels = function(poly, sourceABC) {
   cells.forEach((cell, i) => {
 
     if (true && i !== 0) {
-      return;
+      // return;
     }
 
     var a = positions[cell[0]];
@@ -37,19 +37,19 @@ var wythoffModels = function(poly, sourceABC) {
     models.push(wythoffTriangle(sourceABC, [m, a, b]));
     // models.push(wythoffTriangle(sourceABC, [ab, b, m], true));
 
-    iA.push(m); iB.push(a); iC.push(b);
+    iA.push(m); iB.push(b); iC.push(a);
     // iA.push(ab); iB.push(m); iC.push(b);
-    return;
+    // return;
     models.push(wythoffTriangle(sourceABC, [m, b, c]));
     // models.push(wythoffTriangle(sourceABC, [bc, c, m], true));
 
-    iA.push(m); iB.push(b); iC.push(c);
+    iA.push(m); iB.push(c); iC.push(b);
     // iA.push(bc); iB.push(m); iC.push(c);
 
     models.push(wythoffTriangle(sourceABC, [m, c, a]));
     // models.push(wythoffTriangle(sourceABC, [ca, a, m], true));
 
-    iA.push(m); iB.push(c); iC.push(a);
+    iA.push(m); iB.push(a); iC.push(c);
     // iA.push(ca); iB.push(m); iC.push(a);
 
   });

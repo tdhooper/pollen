@@ -9,7 +9,9 @@ module.exports = function() {
   const polyhedra = require('polyhedra');
   const Pollenet = require('./pollenet');
   const DrawPollenet = require('./pollenet/draw-video');
+  const DrawPollenetSaved = require('./pollenet/draw-saved');
   const VideoSource = require('./video-source');
+  const Source = require('./source');
   const VideoPreview = require('./video-preview');
   const Compositor = require('./compositor');
   const DofPass = require('./draw/dof-pass');
@@ -38,8 +40,11 @@ module.exports = function() {
   var abc = createPatch(0, abcUv).abc;
 
   const drawPollenet = new DrawPollenet(poly, abc);
+  const drawSaved = new DrawPollenetSaved(poly, abc);
   const videoSource = new VideoSource(abcUv, poly);
-  const pollenet = new Pollenet(videoSource);
+  const source = new Source();
+  const pollenet = new Pollenet(videoSource, 1);
+  const pollenetSaved = new Pollenet(source, -1);
   const videoPreview = new VideoPreview(abcUv);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
@@ -54,6 +59,7 @@ module.exports = function() {
   function send() {
     videoSource.toObj().then(sourceObj => {
       console.log(sourceObj);
+      source.fromObj(sourceObj);
       channel.postMessage(sourceObj);
     });
   }
@@ -64,7 +70,7 @@ module.exports = function() {
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
 
-    mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
+    // mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
 
     videoSource.update();
     drawPollenet.draw({
@@ -72,6 +78,14 @@ module.exports = function() {
       camera: camera,
       // destination: compositor.buffer
     });
+
+    if (source.LODs) {
+      drawSaved.draw({
+        pollenet: pollenetSaved,
+        camera: camera,
+        // destination: compositor.buffer
+      });
+    }
 
     // compositor.draw(context);
     videoPreview.draw({

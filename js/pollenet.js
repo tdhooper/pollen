@@ -4,9 +4,9 @@ const vec3 = require('gl-matrix').vec3;
 
 class Pollenet {
 
-  constructor(source) {
+  constructor(source, offset) {
     this.source = source;
-    this._model = mat4.identity([]);
+    this._model = mat4.fromTranslation([], [offset,0,0]);
     this._position = vec3.create();
   }
 
