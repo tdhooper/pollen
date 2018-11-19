@@ -22,9 +22,9 @@ class VideoSource extends Source {
       poly,
       abc,
       abcUv,
-      LODs[4]
+      LODs[6]
     );
-    this.LODs = [LODs[4]];
+    this.LODs = [LODs[6]];
     console.log(this.LODs);
 
     this.webcam = new WebcamTexture(regl);

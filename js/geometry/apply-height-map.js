@@ -54,6 +54,45 @@ function getSlicePlanes(wythoff) {
   return [planeA, planeB, planeC];
 }
 
+function getBoundingPlanes(wythoff) {
+
+  var a = wythoff.iA[0];
+  var b = wythoff.iB[0];
+  var c = wythoff.iC[0];
+
+  // rotate each pair by axis direction, and angle
+
+  var pairs = [
+    [a, b],
+    [b, c],
+    [c, a]
+  ];
+
+  pairs = pairs.map(pair => {
+    var v1 = pair[0];
+    var v2 = pair[1];
+
+    var axis = vec3.sub([], v1, v2);
+    vec3.normalize(axis, axis);
+    var m = mat4.fromRotation([], .2, axis);
+
+    v1 = vec3.transformMat4([], v1, m);
+    v2 = vec3.transformMat4([], v2, m);
+
+    return [v1, v2];
+  });
+
+  var tO = new Vector3();
+
+  var planes = pairs.map(pair => {
+    var tA = new Vector3().fromArray(pair[0]);
+    var tB = new Vector3().fromArray(pair[1]);
+    return new Plane().setFromCoplanarPoints(tO, tA, tB);
+  });
+
+  return planes;
+}
+
 function getMirrorPlane(wythoff) {
 
   var a = wythoff.iA[0];
@@ -122,14 +161,20 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   var model = wythoff.models[0];
   var invModel = mat4.invert([], model);
 
+  var planes = getSlicePlanes(wythoff);
+  var mirrorPlane = getMirrorPlane(wythoff);
+  var boundingPlanes = getBoundingPlanes(wythoff);
+
   geom = cloneDeep(geom);
   applyHeightMap(geom, heightMapObj, model, invModel);
 
   geom = combineIntoPoly(geom, wythoff);
-  var planes = getSlicePlanes(wythoff);
-  var mirrorPlane = getMirrorPlane(wythoff);
+  geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [100];
+  // geom = sliceWithPlanes(geom, planes);
+  // console.log(2, geom.positions.length);
+
+  var details = [1500];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
@@ -146,10 +191,10 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
       geom.uvs = geom.positions.map(_ => {
         return [0,0];
       });
-      geom.normals = geom.positions.map(p => {
-        return [Math.random(), Math.random(), Math.random()];
-      });
-      // geom.normals = computeNormals(geom.cells, geom.positions);
+      // geom.normals = geom.positions.map(p => {
+      //   return [Math.random(), Math.random(), Math.random()];
+      // });
+      geom.normals = computeNormals(geom.cells, geom.positions);
 
       return geom;
     });
