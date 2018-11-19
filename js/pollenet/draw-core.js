@@ -42,7 +42,7 @@ class DrawCore {
         varying vec3 vnormal;
         uniform sampler2D image;
         void main () {
-            vec3 tex = texture2D(image, vec2(1) - vuv).rgb;
+            vec3 tex = texture2D(image, vuv).rgb;
             vec3 lPos = normalize(vec3(2,1,0));
             float l = dot(lPos, vnormal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);

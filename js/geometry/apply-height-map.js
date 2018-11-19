@@ -12,7 +12,6 @@ function apply(model, invModel, abc, abcUv, geom, heightMapObj) {
   geom = cloneDeep(geom);
   geom.positions.forEach((v, i) => {
     var uv = geom.uvs[i];
-    uv = [1 - uv[0], 1 - uv[1]];
     var pixel = objUVLookup(heightMapObj, uv);
     var height = pixel[0] / 255;
     height = lerp(.1, 1, height);

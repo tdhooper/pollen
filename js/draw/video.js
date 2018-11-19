@@ -36,7 +36,7 @@ const drawVideo = regl({
         discard;
       }
       //vec2 areaUv = range(area.xy, area.zw, uv);
-      gl_FragColor = texture2D(source, uv);
+      gl_FragColor = texture2D(source, vec2(1) - uv);
     }`),
   uniforms: {
     source: regl.prop('source'),
