@@ -18,9 +18,8 @@ class VideoSource extends Source {
     super();
 
     var LODs = createPatch(6, abcUv);
-    var abc = LODs[0].positions.map(xz);
-    this.applyHeightMap = applyHeightMap.bind(
-      this,
+    var abc = LODs[0].positions;
+    this.applyHeightMap = applyHeightMap(
       poly,
       abc,
       abcUv,

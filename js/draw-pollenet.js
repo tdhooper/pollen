@@ -2,11 +2,15 @@ const mat4 = require('gl-matrix').mat4;
 const vec3 = require('gl-matrix').vec3;
 const polyhedra = require('polyhedra');
 const wythoffModels = require('./geometry/wythoff-models');
+const createPatch = require('./geometry/create-patch');
+
 
 var Pollenet = function(abcUv, detail) {
 
   var poly = polyhedra.platonic.Tetrahedron;
-  var {models, iA, iB, iC} = wythoffModels(poly);
+  var abc = createPatch(0, abcUv)[0].positions;
+
+  var {models, iA, iB, iC} = wythoffModels(poly, abc);
 
   var scale = [];
 
@@ -97,7 +101,7 @@ var Pollenet = function(abcUv, detail) {
         vuv = uv;
 
         if (mod(instance, 2.) == 0.) {
-          vuv.xy = vuv.yx;
+          // vuv.xy = vuv.yx;
         }
 
         height = getHeight(vuv);
