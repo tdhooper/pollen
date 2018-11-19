@@ -14,10 +14,10 @@ function apply(model, invModel, abc, abcUv, geom, heightMapObj) {
     var uv = geom.uvs[i];
     var pixel = objUVLookup(heightMapObj, uv);
     var height = pixel[0] / 255;
-    height = lerp(.1, 1, height);
+    height = lerp(.5, 1, height);
     vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
-    // // vec3.scale(v, v, height);
+    vec3.scale(v, v, height);
     vec3.transformMat4(v, v, invModel);
   });
 

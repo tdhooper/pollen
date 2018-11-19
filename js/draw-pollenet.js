@@ -8,7 +8,7 @@ const createPatch = require('./geometry/create-patch');
 var Pollenet = function(abcUv, detail) {
 
   var poly = polyhedra.platonic.Tetrahedron;
-  var abc = createPatch(0, abcUv)[0].positions;
+  var abc = createPatch(0, abcUv).abc;
 
   var {models, iA, iB, iC} = wythoffModels(poly, abc);
 

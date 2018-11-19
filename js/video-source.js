@@ -17,13 +17,12 @@ class VideoSource extends Source {
   constructor(abcUv, poly) {
     super();
 
-    var LODs = createPatch(6, abcUv);
-    var abc = LODs[0].positions;
+    var {LODs, abc} = createPatch(6, abcUv);
     this.applyHeightMap = applyHeightMap(
       poly,
       abc,
       abcUv,
-      LODs[5]
+      LODs[4]
     );
     this.LODs = LODs.slice(1, 6);
 

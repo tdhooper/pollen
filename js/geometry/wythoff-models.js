@@ -34,23 +34,23 @@ var wythoffModels = function(poly, sourceABC) {
     var bc = vec3.lerp([], b, c, .5);
     var ca = vec3.lerp([], c, a, .5);
 
-    models.push(wythoffTriangle(sourceABC, [ab, m, a]));
-    models.push(wythoffTriangle(sourceABC, [ab, b, m], true));
+    models.push(wythoffTriangle(sourceABC, [m, a, b]));
+    // models.push(wythoffTriangle(sourceABC, [ab, b, m], true));
 
-    iA.push(ab); iB.push(a); iC.push(m);
-    iA.push(ab); iB.push(m); iC.push(b);
+    iA.push(m); iB.push(a); iC.push(b);
+    // iA.push(ab); iB.push(m); iC.push(b);
     // return;
-    models.push(wythoffTriangle(sourceABC, [bc, m, b]));
-    models.push(wythoffTriangle(sourceABC, [bc, c, m], true));
+    models.push(wythoffTriangle(sourceABC, [m, b, c]));
+    // models.push(wythoffTriangle(sourceABC, [bc, c, m], true));
 
-    iA.push(bc); iB.push(b); iC.push(m);
-    iA.push(bc); iB.push(m); iC.push(c);
+    iA.push(m); iB.push(b); iC.push(c);
+    // iA.push(bc); iB.push(m); iC.push(c);
 
-    models.push(wythoffTriangle(sourceABC, [ca, m, c]));
-    models.push(wythoffTriangle(sourceABC, [ca, a, m], true));
+    models.push(wythoffTriangle(sourceABC, [m, c, a]));
+    // models.push(wythoffTriangle(sourceABC, [ca, a, m], true));
 
-    iA.push(ca); iB.push(c); iC.push(m);
-    iA.push(ca); iB.push(m); iC.push(a);
+    iA.push(m); iB.push(c); iC.push(a);
+    // iA.push(ca); iB.push(m); iC.push(a);
 
   });
 
