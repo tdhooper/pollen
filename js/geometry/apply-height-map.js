@@ -54,6 +54,47 @@ function getSlicePlanes(wythoff) {
   return [planeA, planeB, planeC];
 }
 
+function getMirrorPlane(wythoff) {
+
+  var a = wythoff.iA[0];
+  var b = wythoff.iB[0];
+  var c = wythoff.iC[0];
+
+  b = vec3.lerp([], b, c, .5);
+
+  var tA = new Vector3().fromArray(a);
+  var tB = new Vector3().fromArray(b);
+  var tO = new Vector3();
+
+  var plane = new Plane().setFromCoplanarPoints(tO, tA, tB);
+
+  return plane;
+}
+
+function mirror(geom, plane) {
+
+  var tGeom = convert.geomToThree(geom);
+  tGeom = sliceGeometry(tGeom, plane);
+  var geomA = convert.threeToGeom(tGeom);
+  var geomB = cloneDeep(geomA);
+
+  var n = plane.normal.toArray();
+  geomB.positions.forEach(v => {
+    var s = 2 * (vec3.dot(n, v) - plane.constant);
+    var vv = vec3.scale([], n, s);
+    vec3.sub(v, v, vv);
+  });
+
+  geomB.cells = geomB.cells.map(cell => {
+    return [cell[2], cell[1], cell[0]];
+  });
+
+  var combined = combine([geomA, geomB]);
+  combined = merge(combined.cells, combined.positions);
+
+  return combined;
+}
+
 function applyHeightMap(geom, heightMapObj, model, invModel) {
   geom.positions.forEach((v, i) => {
     var uv = geom.uvs[i];
@@ -78,7 +119,6 @@ function sliceWithPlanes(geom, planes) {
 
 // todo abc is no longer useful to create uvs as geom has been warped
 function apply(wythoff, abc, abcUv, geom, heightMapObj) {
-
   var model = wythoff.models[0];
   var invModel = mat4.invert([], model);
 
@@ -87,8 +127,9 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   geom = combineIntoPoly(geom, wythoff);
   var planes = getSlicePlanes(wythoff);
+  var mirrorPlane = getMirrorPlane(wythoff);
 
-  var details = [500];
+  var details = [100];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
@@ -99,15 +140,16 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
       geom = sliceWithPlanes(geom, planes);
+      geom = mirror(geom, mirrorPlane);
       applyMatrix(geom, invModel);
 
       geom.uvs = geom.positions.map(_ => {
         return [0,0];
       });
-      // geom.normals = geom.positions.map(p => {
-      //   return [Math.random(), Math.random(), Math.random()];
-      // });
-      geom.normals = computeNormals(geom.cells, geom.positions);
+      geom.normals = geom.positions.map(p => {
+        return [Math.random(), Math.random(), Math.random()];
+      });
+      // geom.normals = computeNormals(geom.cells, geom.positions);
 
       return geom;
     });
