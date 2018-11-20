@@ -1,12 +1,9 @@
-import { SimplifyModifier } from '../lib/SimplifyModifier';
+import { simplifyMesh } from '../lib/SimplifyModifier2';
 
 const cartToBary = require('barycentric');
 const vec2 = require('gl-matrix').vec2;
 const xz = require('./xz');
 const convert = require('./convert-three');
-
-
-var modifier = new SimplifyModifier();
 
 
 function baryToCart(abc, bc) {
@@ -21,7 +18,7 @@ function baryToCart(abc, bc) {
 function simplifyWithUvs(abc, abcUv, geom, detail) {
   var remove = geom.positions.length - detail;
   var tGeom = convert.geomToThree(geom);
-  var tSimplified = modifier.modify(tGeom, remove);
+  var tSimplified = simplifyMesh(tGeom, remove, true);
   var simplified = convert.threeToGeom(tSimplified);
   return simplified;
 }

@@ -182,12 +182,9 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
-      geom.uvs = geom.positions.map(_ => {
-        return [0,0];
-      });
-
       geom = sliceWithPlanes(geom, planes);
       geom = mirror(geom, mirrorPlane);
+
       applyMatrix(geom, invModel);
 
       // geom.normals = geom.positions.map(p => {
