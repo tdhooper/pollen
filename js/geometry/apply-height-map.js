@@ -10,8 +10,8 @@ const sliceGeometry = require('threejs-slice-geometry')(THREE);
 const simplify = require('../workers/simplify');
 const objUVLookup = require('../send-buffer').objUVLookup;
 const computeNormals = require('angle-normals');
-const combine = require('mesh-combine');
-const merge = require('merge-vertices');
+const combine = require('../lib/mesh-combine');
+const merge = require('../lib/merge-vertices');
 const wythoffModels = require('../geometry/wythoff-models');
 const convert = require('./convert-three');
 
@@ -31,7 +31,7 @@ function combineIntoPoly(geom, wythoff) {
   });
 
   var combined = combine(geoms);
-  combined = merge(combined.cells, combined.positions);
+  combined = merge(combined.cells, combined.positions, combined.uvs);
 
   return combined;
 }
@@ -118,7 +118,7 @@ function mirror(geom, plane) {
   });
 
   var combined = combine([geomA, geomB]);
-  combined = merge(combined.cells, combined.positions);
+  combined = merge(combined.cells, combined.positions, combined.uvs);
 
   return combined;
 }
@@ -172,7 +172,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   geom = combineIntoPoly(geom, wythoff);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [700];
+  var details = [200];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
@@ -182,13 +182,14 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
+      geom.uvs = geom.positions.map(_ => {
+        return [0,0];
+      });
+
       geom = sliceWithPlanes(geom, planes);
       geom = mirror(geom, mirrorPlane);
       applyMatrix(geom, invModel);
 
-      geom.uvs = geom.positions.map(_ => {
-        return [0,0];
-      });
       // geom.normals = geom.positions.map(p => {
       //   return [Math.random(), Math.random(), Math.random()];
       // });
