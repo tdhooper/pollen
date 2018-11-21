@@ -54,6 +54,7 @@ function getSlicePlanes(abc) {
 function getBoundingPlanes(abc) {
 
   var [a, b, c] = abc;
+  var border = .2;
 
   var pairs = [
     [a, b],
@@ -61,26 +62,14 @@ function getBoundingPlanes(abc) {
     [c, a]
   ];
 
-  pairs = pairs.map(pair => {
-    var v1 = pair[0];
-    var v2 = pair[1];
-
-    var axis = vec3.sub([], v1, v2);
-    vec3.normalize(axis, axis);
-    var m = mat4.fromRotation([], .2, axis);
-
-    v1 = vec3.transformMat4([], v1, m);
-    v2 = vec3.transformMat4([], v2, m);
-
-    return [v1, v2];
-  });
-
   var tO = new Vector3();
 
   var planes = pairs.map(pair => {
     var tA = new Vector3().fromArray(pair[0]);
     var tB = new Vector3().fromArray(pair[1]);
-    return new Plane().setFromCoplanarPoints(tO, tB, tA);
+    var plane = new Plane().setFromCoplanarPoints(tO, tB, tA);
+    plane.constant += border;
+    return plane;
   });
 
   return planes;
@@ -172,7 +161,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   geom = combineIntoPoly(geom, wythoff);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [200];
+  var details = [1000];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {

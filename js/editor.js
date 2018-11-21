@@ -58,7 +58,7 @@ module.exports = function() {
   var channel = new BroadcastChannel('pollen');
   function send() {
     videoSource.toObj().then(sourceObj => {
-      console.log(sourceObj);
+      console.log(sourceObj.LODs[0]);
       source.fromObj(sourceObj);
       channel.postMessage(sourceObj);
     });

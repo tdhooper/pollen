@@ -23,7 +23,7 @@ class VideoSource extends Source {
       poly,
       abc,
       abcUv,
-      LODs[4]
+      LODs[5]
     );
     this.LODs = [LODs[6]];
     this.wireframeLODs = this.LODs.map(geom => {
