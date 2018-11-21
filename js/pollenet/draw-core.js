@@ -41,7 +41,7 @@ class DrawCore {
         enable: true,
         face: 'back'
       },
-      // primitive: 'line strip',
+      primitive: 'lines',
       frag: `
         precision mediump float;
         varying vec2 vuv;
@@ -70,7 +70,7 @@ class DrawCore {
           );
         },
         mesh: (context, props) => {
-          var LODs = props.pollenet.source.LODs;
+          var LODs = props.pollenet.source.wireframeLODs;
 
           var model = props.pollenet.model;
           var view = props.camera.view();

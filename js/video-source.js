@@ -1,4 +1,5 @@
 const glm = require('gl-matrix');
+const wire = require('gl-wireframe');
 
 const WebcamTexture = require('./webcam-texture');
 const setupPass = require('./draw/setup-pass');
@@ -25,6 +26,11 @@ class VideoSource extends Source {
       LODs[4]
     );
     this.LODs = [LODs[6]];
+    this.wireframeLODs = this.LODs.map(geom => {
+      geom = Object.assign({}, geom);
+      geom.cells = wire(geom.cells);
+      return geom;
+    });
     console.log(this.LODs);
 
     this.webcam = new WebcamTexture(regl);
