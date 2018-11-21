@@ -161,7 +161,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   geom = combineIntoPoly(geom, wythoff);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [1000];
+  var details = [700];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
