@@ -1,4 +1,4 @@
-const wire = require('gl-wireframe');
+const wire = require('glsl-solid-wireframe');
 
 
 class Source {
@@ -30,9 +30,13 @@ class Source {
   fromObj(obj) {
     this.LODs = obj.LODs;
     this.wireframeLODs = this.LODs.map(geom => {
-      geom = Object.assign({}, geom);
-      geom.cells = wire(geom.cells);
-      return geom;
+      var geom2 = wire(geom, {
+        attributes: {
+          uvs: geom.uvs
+        }
+      });
+      geom2.uvs = geom2.attributes.uvs;
+      return geom2;
     });
 
     if (obj.height.pixels) {

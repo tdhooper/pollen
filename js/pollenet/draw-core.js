@@ -1,5 +1,6 @@
 const mat4 = require('gl-matrix').mat4;
 const vec3 = require('gl-matrix').vec3;
+const glslify = require('glslify');
 const wythoffModels = require('../geometry/wythoff-models');
 
 
@@ -41,9 +42,12 @@ class DrawCore {
         enable: true,
         face: 'back'
       },
-      primitive: 'lines',
-      frag: `
+      // primitive: 'lines',
+      frag: glslify`
+        #extension GL_OES_standard_derivatives : enable
         precision mediump float;
+        #pragma glslify: grid = require(glsl-solid-wireframe/barycentric/scaled)
+        varying vec2 b;
         varying vec2 vuv;
         varying vec3 vnormal;
         uniform sampler2D image;
@@ -55,6 +59,7 @@ class DrawCore {
             gl_FragColor = vec4(tex, 1);
             // gl_FragColor = vec4(vnormal * .5 + .5, 1);
             // gl_FragColor = vec4(0, vuv, 1);
+            gl_FragColor = vec4(vec3(grid(b, .1)), 1);
         }`,
       context: {
         model:function(context, props) {
@@ -94,6 +99,7 @@ class DrawCore {
       attributes: {
         position: regl.context('mesh.positions'),
         uv: regl.context('mesh.uvs'),
+        barycentric: regl.context('mesh.barycentric'),
         instance: {
           buffer: instances,
           divisor: 1

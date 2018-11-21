@@ -8,7 +8,8 @@ global.regl = createRegl({
   },
   extensions: [
     'webgl_depth_texture',
-    'angle_instanced_arrays'
+    'angle_instanced_arrays',
+    'oes_standard_derivatives'
   ]
 });
 

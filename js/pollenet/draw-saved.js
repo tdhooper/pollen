@@ -25,7 +25,11 @@ class DrawSaved extends DrawCore {
         varying vec2 vuv;
         varying vec3 vnormal;
 
+        attribute vec2 barycentric;
+        varying vec2 b;
+
         void main () {
+          b = barycentric;
           vuv = uv;
           vnormal = normal;
 
