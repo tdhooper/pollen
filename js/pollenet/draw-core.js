@@ -59,7 +59,7 @@ class DrawCore {
             gl_FragColor = vec4(tex, 1);
             // gl_FragColor = vec4(vnormal * .5 + .5, 1);
             // gl_FragColor = vec4(0, vuv, 1);
-            gl_FragColor = vec4(vec3(grid(b, .1)), 1);
+            gl_FragColor = vec4(vec3(grid(b, .1)) * (vnormal * .5 + .5), 1);
         }`,
       context: {
         model:function(context, props) {
