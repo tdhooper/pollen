@@ -45,8 +45,8 @@ function getSlicePlanes(abc) {
   var tC = new Vector3().fromArray(c);
   var tO = new Vector3();
 
-  var planeB = new Plane().setFromCoplanarPoints(tO, tB, tC);
-  var planeC = new Plane().setFromCoplanarPoints(tO, tC, tA);
+  var planeB = new Plane().setFromCoplanarPoints(tO, tC, tB);
+  var planeC = new Plane().setFromCoplanarPoints(tO, tA, tC);
 
   return [planeB, planeC];
 }
@@ -80,7 +80,7 @@ function getBoundingPlanes(abc) {
   var planes = pairs.map(pair => {
     var tA = new Vector3().fromArray(pair[0]);
     var tB = new Vector3().fromArray(pair[1]);
-    return new Plane().setFromCoplanarPoints(tO, tA, tB);
+    return new Plane().setFromCoplanarPoints(tO, tB, tA);
   });
 
   return planes;
@@ -94,7 +94,7 @@ function getMirrorPlane(abc) {
   var tB = new Vector3().fromArray(b);
   var tO = new Vector3();
 
-  var plane = new Plane().setFromCoplanarPoints(tO, tA, tB);
+  var plane = new Plane().setFromCoplanarPoints(tO, tB, tA);
 
   return plane;
 }
