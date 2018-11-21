@@ -91,7 +91,11 @@ function getMirrorPlane(abc) {
 function mirror(geom, plane) {
 
   var tGeom = convert.geomToThree(geom);
-  tGeom = sliceGeometry(tGeom, plane);
+
+  var slicePlane = plane.clone();
+  slicePlane.constant += .001;
+  tGeom = sliceGeometry(tGeom, slicePlane);
+
   var geomA = convert.threeToGeom(tGeom);
   var geomB = cloneDeep(geomA);
 
@@ -107,7 +111,7 @@ function mirror(geom, plane) {
   });
 
   var combined = combine([geomA, geomB]);
-  combined = merge(combined.cells, combined.positions, combined.uvs);
+  // combined = merge(combined.cells, combined.positions, combined.uvs);
 
   return combined;
 }
