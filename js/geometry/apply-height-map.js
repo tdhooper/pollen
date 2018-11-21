@@ -54,7 +54,7 @@ function getSlicePlanes(abc) {
 function getBoundingPlanes(abc) {
 
   var [a, b, c] = abc;
-  var border = .2;
+  var border = .1;
 
   var pairs = [
     [a, b],
@@ -165,7 +165,8 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   geom = combineIntoPoly(geom, wythoff);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [700];
+  // , .5, .75
+  var details = [.8, .7, .6, .4];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {

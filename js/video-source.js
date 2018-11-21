@@ -25,7 +25,7 @@ class VideoSource extends Source {
       abcUv,
       LODs[5]
     );
-    this.LODs = [LODs[6]];
+    this.LODs = [LODs[5]];
     this.wireframeLODs = this.LODs.map(geom => {
       var geom2 = wire(geom, {
         attributes: {

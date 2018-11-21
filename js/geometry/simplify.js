@@ -16,8 +16,8 @@ function baryToCart(abc, bc) {
 }
 
 
-function simplifyWithUvs(abc, abcUv, geom, detail) {
-  var remove = geom.positions.length - detail;
+function simplifyWithUvs(abc, abcUv, geom, reduction) {
+  var remove = Math.round(geom.positions.length * reduction);
   var tGeom = convert.geomToThree(geom);
 
   var modifier = new SimplifyModifier();
