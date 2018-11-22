@@ -88,7 +88,10 @@ class DrawCore {
           var vHeight = 2 * Math.tan( vFOV / 2 ) * dist;
           var aspect = context.viewportWidth / context.viewportHeight;
 
-          var fraction = 2 / vHeight;
+          var scale = mat4.getScaling([], model)[0] * 2;
+          var fraction = scale / vHeight;
+
+          fraction = Math.pow(fraction, .5);
 
           var lod = Math.round(fraction * (LODs.length - 1));
           lod = Math.min(lod, LODs.length - 1);
