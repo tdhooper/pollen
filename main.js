@@ -33,7 +33,9 @@ budo('./js/index.js', {
   stream: process.stdout,
   ssl: true,
   middleware: [
-    bodyParser.json(),
+    bodyParser.json({
+      limit: 1024 * 1024
+    }),
     router
   ],
   browserify: browserifyOpts
