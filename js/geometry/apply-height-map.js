@@ -148,19 +148,20 @@ function sliceWithPlanes(geom, planes) {
 
 
 function apply(wythoff, geom, heightMapObj) {
-  var model = wythoff[0].matrix;
+  var w = wythoff.models[0];
+
+  var model = w.matrix;
   var invModel = mat4.invert([], model);
 
-  var wythoffABC = [
-    wythoff[0].a,
-    wythoff[0].b,
-    wythoff[0].c
-  ];
+  var aligned = wythoff.aligned.matrix;
+  var invAligned = mat4.invert([], aligned);
+
+  var wythoffABC = [w.a, w.b, w.c];
 
   var mirroredWythoffABC = [
-    wythoff[0].a,
-    vec3.lerp([], wythoff[0].b, wythoff[0].c, .5),
-    wythoff[0].c
+    w.a,
+    vec3.lerp([], w.b, w.c, .5),
+    w.c
   ];
 
   var planes = getSlicePlanes(wythoffABC);
@@ -170,7 +171,7 @@ function apply(wythoff, geom, heightMapObj) {
   geom = cloneDeep(geom);
   applyHeightMap(geom, heightMapObj, model, invModel);
 
-  geom = combineIntoPoly(geom, wythoff);
+  geom = combineIntoPoly(geom, wythoff.models);
 
   applyMatrix(geom, invModel);
   geom.normals = computeNormals(geom.cells, geom.positions);
@@ -178,9 +179,31 @@ function apply(wythoff, geom, heightMapObj) {
 
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  // var details = [.8, .7, .6, .4];
-  var details = [.6];
+  applyMatrix(geom, invModel);
+  applyMatrix(geom, aligned);
+
+  var x = wythoff.aligned.b[0];
+  var y = wythoff.aligned.a[1];
+  var z = wythoff.aligned.b[2];
+
+  geom.uvs = geom.uvs.map((uv, i) => {
+    var p = geom.positions[i];
+    var intersect = vec3.scale([], p, y / p[1]);
+    return [
+      intersect[0] / x,
+      1 - intersect[2] / z
+    ];
+  });
+
+  applyMatrix(geom, invAligned);
+  applyMatrix(geom, model);
+
+  var details = [.8, .7, .6, .4];
+  // var details = [.6];
   var LODs = details.map(detail => {
+
+    // applyMatrix(geom, invModel);
+    // return geom;
 
     return simplify(geom, detail).then(geom => {
 

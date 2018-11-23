@@ -11,11 +11,16 @@ class DrawCore {
 
     var wythoff = wythoffModels(poly, abc);
 
-    var special = wythoff[0].matrix;
+    var special = wythoff.aligned.matrix;
 
-    wythoff = wythoff.slice(7, 8);
+    var models = wythoff.models;
 
-    this.wythoff = wythoff;
+    // models = models.slice(7, 8);
+    // models = models.slice(0, 1);
+    // models = [wythoff.aligned];
+
+
+    this.wythoff = wythoff.models;
     this.special = special;
 
     var iModelRow0 = [];
@@ -23,14 +28,14 @@ class DrawCore {
     var iModelRow2 = [];
     var iModelRow3 = [];
 
-    wythoff.forEach(w => {
+    models.forEach(w => {
       iModelRow0.push(w.matrix.slice(0, 4));
       iModelRow1.push(w.matrix.slice(4, 8));
       iModelRow2.push(w.matrix.slice(8, 12));
       iModelRow3.push(w.matrix.slice(12, 16));
     });
 
-    var N = wythoff.length;
+    var N = models.length;
     var instances = Array(N).fill().map((_, i) => {
       return i;
     });
@@ -75,7 +80,9 @@ class DrawCore {
             gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
+            // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
             gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
+            // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, mod(vuv, .05) / .05), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, sign(flipNormal)), 1);
         }`,
@@ -96,7 +103,7 @@ class DrawCore {
           var view = props.camera.view();
           var model = props.pollenet.model;
           var modelView = mat4.multiply([], view, model);
-          return wythoff.map(w => {
+          return models.map(w => {
             var iModel = w.matrix;
             var iModelView = mat4.multiply([], model, iModel);
             var normal = mat3.fromMat4([], iModelView);

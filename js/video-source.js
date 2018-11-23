@@ -38,7 +38,7 @@ class VideoSource extends Source {
     });
     console.log(this.LODs);
 
-    var wythoff = wythoffModels(poly, abc);
+    var wythoff = wythoffModels(poly, abc).models;
     this.iModel = wythoff[0].matrix;
     this.iModelInv = mat4.invert([], this.iModel);
 

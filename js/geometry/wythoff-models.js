@@ -11,6 +11,9 @@ var wythoffModels = function(poly, sourceABC) {
 
   var models = [];
 
+  // construct model which has same sized triangle,
+  // but aligned with axis, y is up
+
   cells.forEach((cell, i) => {
 
     var a = positions[cell[0]];
@@ -47,7 +50,33 @@ var wythoffModels = function(poly, sourceABC) {
     });
   });
 
-  return models;
+  var m = models[0].a;
+  var a = models[0].c;
+  var b = models[0].b;
+
+  var ab = vec3.lerp([], a, b, .5);
+
+  var y = vec3.length(m);
+  var x = vec3.dist(a, b) / 2;
+  var z = vec3.dist(m, ab);
+
+  var m2 = [0,-y,0];
+  var a2 = [x,-y,z];
+  var b2 = [-x,-y,z];
+
+  var aligned = {
+    matrix: wythoffTriangle(sourceABC, [m2, a2, b2]),
+    a: m2,
+    b: a2,
+    c: b2
+  };
+
+  // mat4.fromTranslation(aligned.matrix, [0,1,0]);
+
+  return {
+    models: models,
+    aligned: aligned
+  };
 };
 
 // https://stackoverflow.com/a/4679651

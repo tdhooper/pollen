@@ -67,7 +67,10 @@ class DrawVideo extends DrawCore {
           flipNormal = pos.xy;
 
           pos4 = vec4(normalize((iModel * pos4).xyz) * height, 1);
-          
+
+          // pos4 = iModel * pos4;
+          // pos4 = vec4(normalize(pos4.xyz), 1);
+
           gl_Position = proj * view * model * pos4;
         }`,
       uniforms: {
