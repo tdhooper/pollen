@@ -5,13 +5,6 @@ class Source {
 
   constructor() {
 
-    this.heightTexture = regl.texture({
-      width: 256,
-      height: 256,
-      mag: 'linear',
-      min: 'linear'
-    });
-
     this.normalTexture = regl.texture({
       width: 256,
       height: 256,
@@ -25,10 +18,6 @@ class Source {
       mag: 'linear',
       min: 'linear'
     });
-  }
-
-  get height() {
-    return this.heightTexture;
   }
 
   get normal() {
@@ -53,10 +42,7 @@ class Source {
       return geom2;
     });
 
-    if (obj.height.pixels) {
-      this.heightTexture.subimage({
-        data: obj.height.pixels
-      });
+    if (obj.normal.pixels) {
       this.normalTexture.subimage({
         data: obj.normal.pixels
       });
@@ -64,9 +50,6 @@ class Source {
         data: obj.image.pixels
       });
     } else {
-      this.heightTexture.subimage({
-        data: obj.height
-      });
       this.normalTexture.subimage({
         data: obj.normal
       });

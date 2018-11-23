@@ -1,5 +1,5 @@
 
-const heightMapPass = regl({
+const normalMapPass = regl({
   frag: `
     precision mediump float;
     uniform sampler2D source;
@@ -60,4 +60,4 @@ const heightMapPass = regl({
   framebuffer: regl.prop('destination')
 });
 
-module.exports = heightMapPass;
+module.exports = normalMapPass;

@@ -6,7 +6,6 @@ const WebcamTexture = require('./webcam-texture');
 const setupPass = require('./draw/setup-pass');
 const resamplePass = require('./draw/resample-pass');
 const blurPass = require('./draw/blur-pass');
-const heightMapPass = require('./draw/height-map-pass');
 const normalMapPass = require('./draw/normal-map-pass');
 const Source = require('./source');
 const bufferToObj = require('./send-buffer').bufferToObj;
@@ -44,6 +43,13 @@ class VideoSource extends Source {
     this.iModelInv = mat4.invert([], this.iModel);
 
     this.webcam = new WebcamTexture(regl);
+
+    this.heightTexture = regl.texture({
+      width: 256,
+      height: 256,
+      mag: 'linear',
+      min: 'linear'
+    });
 
     this.heightBuffer = regl.framebuffer({
       depth: false,
@@ -103,7 +109,6 @@ class VideoSource extends Source {
       var image = result[2];
       return this.applyHeightMap(height).then(LODs => {
         return {
-          height: height,
           normal: normal,
           image: image,
           LODs: LODs
@@ -144,12 +149,6 @@ class VideoSource extends Source {
           direction: [0,1]
         });
       }
-
-      // Create a monochrome height map
-      heightMapPass({
-        source: this.blurBuffers[0],
-        destination: this.blurBuffers[1]
-      });
 
       // Create the normal map
       normalMapPass({

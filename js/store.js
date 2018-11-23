@@ -4,17 +4,16 @@ var uuidv1 = require('uuid/v1');
 
 function save(sourceObj) {
   name = uuidv1();
-  console.log(name);
   Promise.all([
-    objToBlob(sourceObj.height).then(
-      blob => upload(blob, name + '_height.png')
+    objToBlob(sourceObj.normal).then(
+      blob => upload(blob, name + '_normal.png')
     ),
     objToBlob(sourceObj.image).then(
       blob => upload(blob, name + '_image.png')
     )
   ]).then(filenames => {
     var data = {
-      height: filenames[0],
+      normal: filenames[0],
       image: filenames[1],
       LODs: sourceObj.LODs
     };
@@ -29,10 +28,10 @@ function restore(name) {
     return JSON.parse(text);
   }).then(obj => {
     return Promise.all([
-      urlToImg('/saved/' + obj.height),
+      urlToImg('/saved/' + obj.normal),
       urlToImg('/saved/' + obj.image),
     ]).then(images => {
-      obj.height = images[0];
+      obj.normal = images[0];
       obj.image = images[1];
       return obj;
     });
