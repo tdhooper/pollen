@@ -31,7 +31,7 @@ function combineIntoPoly(geom, wythoff) {
   });
 
   var combined = combine(geoms);
-  combined = merge(combined.cells, combined.positions, combined.uvs);
+  combined = merge(combined.cells, combined.positions, combined.uvs, combined.normals);
 
   return combined;
 }
@@ -170,9 +170,9 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   geom = cloneDeep(geom);
   applyHeightMap(geom, heightMapObj, model, invModel);
+  geom.normals = computeNormals(geom.cells, geom.positions);
 
   geom = combineIntoPoly(geom, wythoff);
-  geom.normals = computeNormals(geom.cells, geom.positions);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
   // , .5, .75

@@ -1,5 +1,5 @@
 
-function mergeVertices(cells, positions, uvs) {
+function mergeVertices(cells, positions, uvs, normals) {
 
   function hashPosition(position) {
     return JSON.stringify(position, function(key, val) {
@@ -7,15 +7,16 @@ function mergeVertices(cells, positions, uvs) {
     });
   }
 
-  var positionUvLookup = {};
+  var positionUvNormalLookup = {};
   positions.forEach(function(position, i) {
-    positionUvLookup[hashPosition(position)] = [
+    positionUvNormalLookup[hashPosition(position)] = [
       position,
-      uvs[i]
+      uvs[i],
+      normals[i]
     ];
   });
 
-  var keys = Object.keys(positionUvLookup);
+  var keys = Object.keys(positionUvNormalLookup);
 
   var indexLookup = {};
   var index = 0;
@@ -32,17 +33,22 @@ function mergeVertices(cells, positions, uvs) {
   });
 
   positions = keys.map(function(key) {
-    return positionUvLookup[key][0];
+    return positionUvNormalLookup[key][0];
   });
 
   var uvs = keys.map(function(key) {
-    return positionUvLookup[key][1];
+    return positionUvNormalLookup[key][1];
+  });
+
+  var normals = keys.map(function(key) {
+    return positionUvNormalLookup[key][2];
   });
 
   return {
     cells: cells,
     positions: positions,
-    uvs: uvs
+    uvs: uvs,
+    normals: normals
   };
 }
 
