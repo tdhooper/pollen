@@ -71,8 +71,10 @@ class DrawVideo extends DrawCore {
         // return position
         vec3 getPosAt(vec4 pos4, vec2 uv, vec2 offset) {
           float dir = sign(pos4.x);
+          // offset.x *= dir;
           pos4 = special * (pos4 + vec4(offset.x, 0, offset.y, 0));
-          // offset.x *= -dir;
+          offset.x *= dir;
+          // offset *= 3.;
           float height = getHeight(uv + offset);
           pos4 = vec4(normalize(pos4.xyz) * height, 1);
           pos4 = invSpecial * pos4;
@@ -80,7 +82,7 @@ class DrawVideo extends DrawCore {
         }
 
         vec3 getNormal(vec4 pos4, vec2 uv) {
-          float eps = .1;
+          float eps = .01;
           vec3 p = getPosAt(pos4, uv, vec2(0));
           vec3 x = getPosAt(pos4, uv, vec2(eps,0));
           vec3 y = getPosAt(pos4, uv, vec2(0,eps));
@@ -89,7 +91,7 @@ class DrawVideo extends DrawCore {
           vec3 b = normalize(p - y);
 
           vec3 normal = normalize(cross(b, t));
-          // normal.x *= sign(-pos4.x);
+          // normal.x *= sign(pos4.x);
           return normal;
         }
 
