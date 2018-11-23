@@ -11,10 +11,10 @@ class DrawCore {
 
     var {models, iA, iB, iC} = wythoffModels(poly, abc);
 
-    // models = models.slice(0, 1);
-    // iA = iA.slice(0, 1);
-    // iB = iB.slice(0, 1);
-    // iC = iC.slice(0, 1);
+    models = models.slice(7, 8);
+    iA = iA.slice(7, 8);
+    iB = iB.slice(7, 8);
+    iC = iC.slice(7, 8);
 
     this.models = models;
     this.iA = iA;

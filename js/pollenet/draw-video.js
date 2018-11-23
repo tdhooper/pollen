@@ -46,16 +46,17 @@ class DrawVideo extends DrawCore {
           return height;
         }
 
-        vec3 getNormalMap(vec2 uv) {
+        vec3 getNormalMap(vec2 uv, float dir) {
           float scale = .1;
           float eps = .05;
-          float xp = getHeight(uv + vec2(eps / uvScale.z,0));
-          float xn = getHeight(uv + vec2(-eps / uvScale.z,0));
-          float yp = getHeight(uv + vec2(0,eps / uvScale.x));
-          float yn = getHeight(uv + vec2(0,-eps / uvScale.x));
-          vec3 va = normalize(vec3(scale, 0, xp - xn));
-          vec3 vb = normalize(vec3(0, scale, yp - yn));
-          vec3 bump = vec3(cross(vb.xzy, va.xzy));
+          float xp = getHeight(uv + vec2(eps * uvScale.z,0));
+          float xn = getHeight(uv + vec2(-eps * uvScale.z,0));
+          float yp = getHeight(uv + vec2(0,eps * uvScale.x));
+          float yn = getHeight(uv + vec2(0,-eps * uvScale.x));
+          vec3 va = normalize(vec3(scale, xp - xn, 0));
+          vec3 vb = normalize(vec3(0, yp - yn, scale));
+          vec3 bump = vec3(cross(vb, va));
+          bump.x *= dir;
           return normalize(bump);
         }
 
@@ -68,9 +69,11 @@ class DrawVideo extends DrawCore {
           }
 
           height = getHeight(vuv);
-          vec3 normalMap = getNormalMap(vuv);
+
+          vec3 normalMap = getNormalMap(vuv, sign(position.x));
 
           vec3 pos = position;
+          vec4 pos4 = vec4(pos, 1);
 
           mat4 iModel = mat4(
             iModelRow0,
@@ -85,16 +88,22 @@ class DrawVideo extends DrawCore {
             iModelNormalRow2
           );
 
-          vec4 pos4 = vec4(pos, 1);
+          vec3 normal = normalize((iModel * pos4).xyz);
+          vec3 tangent = normalize((iModel * (pos4 - vec4(0,0,.001,0))).xyz);
+          vec3 bitangent = normalize((iModel * (pos4 - vec4(.001,0,0,0))).xyz);
+
+          vec3 N = normalize(vec3(model * vec4(normal, 0)));
+          vec3 T = normalize(vec3(model * vec4(tangent, 0)));
+          vec3 B = normalize(vec3(model * vec4(bitangent, 0)));
+
+          mat3 TBN = mat3(T, B, N);
+
+          // normalMap = vec3(0,1,0);
+          vnormal = normalize(normalMap);
+
           pos4 = iModel * pos4;
-          pos = normalize(pos4.xyz);
-          // pos = pos4.xyz;
-
-          vnormal = normalize(iModelNormal * normalMap);
+          pos4 = vec4(normalize(pos4.xyz) * height, 1);
           
-          pos *= height;
-          pos4 = vec4(pos, 1);
-
           gl_Position = proj * view * model * pos4;
         }`,
       attributes: {

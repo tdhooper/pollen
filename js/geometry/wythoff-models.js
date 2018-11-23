@@ -1,4 +1,5 @@
 const mat4 = require('gl-matrix').mat4;
+const mat3 = require('gl-matrix').mat3;
 const vec3 = require('gl-matrix').vec3;
 
 

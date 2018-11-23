@@ -41,7 +41,7 @@ class DrawSaved extends DrawCore {
             iModelNormalRow2
           );
 
-          vnormal = normalize(iModelNormal * normal);
+          vnormal = normalize(normal);
 
           vec3 pos = position;
 

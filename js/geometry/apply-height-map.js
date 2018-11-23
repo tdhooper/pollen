@@ -131,6 +131,7 @@ function applyHeightMap(geom, heightMapObj, model, invModel) {
     var pixel = objUVLookup(heightMapObj, uv);
     var height = pixel[0] / 255;
     height = lerp(.5, 1, height);
+    // vec3.add(v, v, [0,height,0]);
     vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
     vec3.scale(v, v, height);
@@ -177,7 +178,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   // , .5, .75
   var details = [.8, .7, .6, .4];
-  // var details = [.0];
+  var details = [.0];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
