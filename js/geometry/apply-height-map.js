@@ -45,8 +45,8 @@ function getSlicePlanes(abc) {
   var tC = new Vector3().fromArray(c);
   var tO = new Vector3();
 
-  var planeB = new Plane().setFromCoplanarPoints(tO, tC, tB);
-  var planeC = new Plane().setFromCoplanarPoints(tO, tA, tC);
+  var planeB = new Plane().setFromCoplanarPoints(tO, tB, tC);
+  var planeC = new Plane().setFromCoplanarPoints(tO, tA, tB);
 
   return [planeB, planeC];
 }
@@ -147,44 +147,12 @@ function sliceWithPlanes(geom, planes) {
 }
 
 
-function apply(wythoff, geom, heightMapObj) {
-  var w = wythoff.models[0];
+function recalculateUvs(geom, aligned) {
+  applyMatrix(geom, aligned.matrix);
 
-  var model = w.matrix;
-  var invModel = mat4.invert([], model);
-
-  var aligned = wythoff.aligned.matrix;
-  var invAligned = mat4.invert([], aligned);
-
-  var wythoffABC = [w.a, w.b, w.c];
-
-  var mirroredWythoffABC = [
-    w.a,
-    vec3.lerp([], w.b, w.c, .5),
-    w.c
-  ];
-
-  var planes = getSlicePlanes(wythoffABC);
-  var boundingPlanes = getBoundingPlanes(mirroredWythoffABC);
-  var mirrorPlane = new Plane(new Vector3(1,0,0), 0);
-
-  geom = cloneDeep(geom);
-  applyHeightMap(geom, heightMapObj, model, invModel);
-
-  geom = combineIntoPoly(geom, wythoff.models);
-
-  applyMatrix(geom, invModel);
-  geom.normals = computeNormals(geom.cells, geom.positions);
-  applyMatrix(geom, model);
-
-  geom = sliceWithPlanes(geom, boundingPlanes);
-
-  applyMatrix(geom, invModel);
-  applyMatrix(geom, aligned);
-
-  var x = wythoff.aligned.b[0];
-  var y = wythoff.aligned.a[1];
-  var z = wythoff.aligned.b[2];
+  var x = aligned.b[0];
+  var y = aligned.a[1];
+  var z = aligned.b[2];
 
   geom.uvs = geom.uvs.map((uv, i) => {
     var p = geom.positions[i];
@@ -195,7 +163,41 @@ function apply(wythoff, geom, heightMapObj) {
     ];
   });
 
+  var invAligned = mat4.invert([], aligned.matrix);
   applyMatrix(geom, invAligned);
+}
+
+
+function apply(wythoff, geom, heightMapObj) {
+  var w = wythoff.models[0];
+
+  var model = w.matrix;
+  var invModel = mat4.invert([], model);
+
+  var wythoffABC = [w.a, w.b, w.c];
+
+  var mirroredWythoffABC = [
+    w.a,
+    vec3.lerp([], w.b, w.c, .5),
+    w.b
+  ];
+
+  var planes = getSlicePlanes(wythoffABC);
+  var boundingPlanes = getBoundingPlanes(mirroredWythoffABC);
+  var mirrorPlane = new Plane(new Vector3(1,0,0), 0);
+
+  geom = cloneDeep(geom);
+
+  applyHeightMap(geom, heightMapObj, model, invModel);
+
+  geom = combineIntoPoly(geom, wythoff.models);
+  geom = sliceWithPlanes(geom, boundingPlanes);
+
+  applyMatrix(geom, invModel);
+
+  geom.normals = computeNormals(geom.cells, geom.positions);
+  recalculateUvs(geom, wythoff.aligned);
+
   applyMatrix(geom, model);
 
   var details = [.8, .7, .6, .4];
