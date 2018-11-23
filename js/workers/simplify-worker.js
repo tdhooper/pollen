@@ -3,10 +3,10 @@ const simplify = require('../geometry/simplify');
 
 
 workerpool.worker({
-  simplify: function(abc, abcUv, geom, detail) {
+  simplify: function(geom, detail) {
     var transform = geom.cells.length + ' > ' + detail;
     console.log('simplify start ' + transform);
-    var simplified = simplify(abc, abcUv, geom, detail);
+    var simplified = simplify(geom, detail);
     console.log('simplify done ' + transform);
     return simplified;
   }

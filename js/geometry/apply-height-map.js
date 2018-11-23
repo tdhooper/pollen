@@ -147,8 +147,7 @@ function sliceWithPlanes(geom, planes) {
 }
 
 
-// todo abc is no longer useful to create uvs as geom has been warped
-function apply(wythoff, abc, abcUv, geom, heightMapObj) {
+function apply(wythoff, geom, heightMapObj) {
   var model = wythoff[0].matrix;
   var invModel = mat4.invert([], model);
 
@@ -183,7 +182,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   var LODs = details.map(detail => {
 
-    return simplify(abc, abcUv, geom, detail).then(geom => {
+    return simplify(geom, detail).then(geom => {
 
       geom = sliceWithPlanes(geom, planes);
 
@@ -198,9 +197,9 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   return Promise.all(LODs);
 }
 
-module.exports = function(poly, abc, abcUv, geom) {
+module.exports = function(poly, abc, geom) {
   var wythoff = wythoffModels(poly, abc);
-  return apply.bind(this, wythoff, abc, abcUv, geom);
+  return apply.bind(this, wythoff, geom);
 };
 
 /*

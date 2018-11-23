@@ -22,7 +22,6 @@ class VideoSource extends Source {
     this.applyHeightMap = applyHeightMap(
       poly,
       abc,
-      abcUv,
       LODs[5]
     );
     this.LODs = [LODs[5]];
