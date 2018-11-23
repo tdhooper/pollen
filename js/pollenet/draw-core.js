@@ -11,12 +11,9 @@ class DrawCore {
 
     var wythoff = wythoffModels(poly, abc);
 
-    // models = models.slice(7, 8);
-    // iA = iA.slice(7, 8);
-    // iB = iB.slice(7, 8);
-    // iC = iC.slice(7, 8);
-
     var special = wythoff[0].matrix;
+
+    // wythoff = wythoff.slice(7, 8);
 
     this.wythoff = wythoff;
     this.special = special;
@@ -46,22 +43,39 @@ class DrawCore {
       // primitive: 'lines',
       frag: glslify`
         #extension GL_OES_standard_derivatives : enable
+
         precision mediump float;
         #pragma glslify: grid = require(glsl-solid-wireframe/barycentric/scaled)
         varying vec2 b;
         varying vec2 vuv;
-        varying vec3 vnormal;
+        varying mat3 iModelNormal;
+        varying vec2 flipNormal;
         uniform sampler2D image;
+        uniform sampler2D normalMap;
+
+        vec3 reflectN(vec3 vin, vec3 planeNormal) {
+          float s = 2. * dot(planeNormal, vin);
+          vec3 vv = planeNormal * s;
+          return vin - vv;
+        }
+
         void main () {
             vec3 tex = texture2D(image, vuv).rgb;
+            vec3 normal = texture2D(normalMap, vuv).rgb * 2. - 1.;
+
+            if (flipNormal.x > 0.) {
+              normal = reflectN(normal, vec3(1,0,0));
+            }
+            normal = normalize(iModelNormal * normal);
+
             vec3 lPos = normalize(vec3(2,1,0));
-            float l = dot(lPos, vnormal) * .5 + .75;
+            float l = dot(lPos, normal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
             // gl_FragColor = vec4(tex, 1);
-            // gl_FragColor = vec4(vnormal * .5 + .5, 1);
-            gl_FragColor = vec4(vec3(l), 1);
+            gl_FragColor = vec4(normal * .5 + .5, 1);
+            // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * (vnormal * .5 + .5), 1);
+            // gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
         }`,
       context: {
@@ -173,6 +187,9 @@ class DrawCore {
         image: function(context, props) {
           return props.pollenet.image;
         },
+        normalMap: function(context, props) {
+          return props.pollenet.normal;
+        }
       },
       framebuffer: regl.prop('destination')
     });

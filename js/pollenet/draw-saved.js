@@ -26,7 +26,8 @@ class DrawSaved extends DrawCore {
         attribute vec3 iModelNormalRow1;
         attribute vec3 iModelNormalRow2;
         varying vec2 vuv;
-        varying vec3 vnormal;
+        varying mat3 iModelNormal;
+        varying vec2 flipNormal;
 
         attribute vec2 barycentric;
         varying vec2 b;
@@ -35,13 +36,11 @@ class DrawSaved extends DrawCore {
           b = barycentric;
           vuv = uv;
 
-          mat3 iModelNormal = mat3(
+          iModelNormal = mat3(
             iModelNormalRow0,
             iModelNormalRow1,
             iModelNormalRow2
           );
-
-          vnormal = normalize(iModelNormal * normal);
 
           vec3 pos = position;
 
@@ -51,6 +50,9 @@ class DrawSaved extends DrawCore {
             iModelRow2,
             iModelRow3
           );
+
+          // TODO: this doesn't work, we'll need to store it on the UV then abs it
+          flipNormal = pos.x < 0. ? vec2(1) : vec2(0);
 
           vec4 pos4 = vec4(pos, 1);
           pos4 = iModel * pos4;

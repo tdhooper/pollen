@@ -22,6 +22,10 @@ class Pollenet {
     return this.source.height;
   }
 
+  get normal() {
+    return this.source.normal;
+  }
+
   get image() {
     return this.source.image;
   }
