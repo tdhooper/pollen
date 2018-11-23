@@ -77,11 +77,11 @@ class DrawCore {
             float l = dot(lPos, normal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
             // gl_FragColor = vec4(tex, 1);
-            gl_FragColor = vec4(normal * .5 + .5, 1);
+            // gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
-            gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
+            // gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, mod(vuv, .05) / .05), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, sign(flipNormal)), 1);
@@ -129,6 +129,7 @@ class DrawCore {
           var scale = mat4.getScaling([], model)[0] * 2;
           var fraction = scale / vHeight;
 
+          fraction /= 2;
           fraction = Math.pow(fraction, .5);
 
           var lod = Math.round(fraction * (LODs.length - 1));

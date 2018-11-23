@@ -200,7 +200,7 @@ function apply(wythoff, geom, heightMapObj) {
 
   applyMatrix(geom, model);
 
-  var details = [.8, .7, .6, .4];
+  var details = [.775, .7, .6, .4];
   // var details = [.6];
   var LODs = details.map(detail => {
 
