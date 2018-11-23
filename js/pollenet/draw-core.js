@@ -59,11 +59,12 @@ class DrawCore {
             vec3 tex = texture2D(image, vuv).rgb;
             vec3 lPos = normalize(vec3(2,1,0));
             float l = dot(lPos, vnormal) * .5 + .75;
-            // gl_FragColor = vec4(tex * l, 1);
+            gl_FragColor = vec4(tex * l, 1);
             // gl_FragColor = vec4(tex, 1);
             // gl_FragColor = vec4(vnormal * .5 + .5, 1);
+            gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
-            gl_FragColor = vec4(vec3(grid(b, .1)) * (vnormal * .5 + .5), 1);
+            // gl_FragColor = vec4(vec3(grid(b, .1)) * (vnormal * .5 + .5), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
         }`,
       context: {
