@@ -8,8 +8,6 @@ class DrawVideo extends DrawCore {
 
     super(poly, abc);
 
-    var scale = mat4.getScaling([], this.models[0]);
-
     var invSpecial = mat4.invert([], this.special);
 
     var parentDraw = this.draw;
@@ -19,7 +17,6 @@ class DrawVideo extends DrawCore {
         uniform mat4 proj;
         uniform mat4 model;
         uniform mat4 view;
-        uniform vec3 uvScale;
         uniform sampler2D heightMap;
         uniform mat4 special;
         uniform mat4 invSpecial;
@@ -33,9 +30,6 @@ class DrawVideo extends DrawCore {
         attribute vec3 iModelNormalRow0;
         attribute vec3 iModelNormalRow1;
         attribute vec3 iModelNormalRow2;
-        attribute vec3 iA;
-        attribute vec3 iB;
-        attribute vec3 iC;
         varying vec2 vuv;
         varying float height;
         varying vec3 vnormal;
@@ -50,31 +44,10 @@ class DrawVideo extends DrawCore {
           return height;
         }
 
-        vec3 getNormalMap(vec2 uv, float dir) {
-          float scale = .1;
-          float eps = .05;
-          float xp = getHeight(uv + vec2(eps * uvScale.z,0));
-          float xn = getHeight(uv + vec2(-eps * uvScale.z,0));
-          float yp = getHeight(uv + vec2(0,eps * uvScale.x));
-          float yn = getHeight(uv + vec2(0,-eps * uvScale.x));
-          vec3 va = normalize(vec3(scale, xp - xn, 0));
-          vec3 vb = normalize(vec3(0, yp - yn, scale));
-          vec3 bump = vec3(cross(vb, va));
-          bump.x *= dir;
-          return normalize(bump);
-        }
-
-        // apply imodel
-        // normalize
-        // apply height
-        // apply inverse
-        // return position
         vec3 getPosAt(vec4 pos4, vec2 uv, vec2 offset) {
           float dir = sign(pos4.x);
-          // offset.x *= dir;
           pos4 = special * (pos4 + vec4(offset.x, 0, offset.y, 0));
           offset.x *= dir;
-          // offset *= 3.;
           float height = getHeight(uv + offset);
           pos4 = vec4(normalize(pos4.xyz) * height, 1);
           pos4 = invSpecial * pos4;
@@ -91,7 +64,6 @@ class DrawVideo extends DrawCore {
           vec3 b = normalize(p - y);
 
           vec3 normal = normalize(cross(b, t));
-          // normal.x *= sign(pos4.x);
           return normal;
         }
 
@@ -99,13 +71,7 @@ class DrawVideo extends DrawCore {
           b = barycentric;
           vuv = uv;
 
-          if (mod(instance, 2.) == 0.) {
-            // vuv.xy = vuv.yx;
-          }
-
           height = getHeight(vuv);
-
-          vec3 normalMap = getNormalMap(vuv, sign(position.x));
 
           vec3 pos = position;
           vec4 pos4 = vec4(pos, 1);
@@ -123,46 +89,17 @@ class DrawVideo extends DrawCore {
             iModelNormalRow2
           );
 
-          vec3 normal = normalize((iModel * pos4).xyz);
-          vec3 tangent = normalize((iModel * (pos4 - vec4(0,0,.001,0))).xyz);
-          vec3 bitangent = normalize((iModel * (pos4 - vec4(.001,0,0,0))).xyz);
-
-          vec3 N = normalize(vec3(model * vec4(normal, 0)));
-          vec3 T = normalize(vec3(model * vec4(tangent, 0)));
-          vec3 B = normalize(vec3(model * vec4(bitangent, 0)));
-
-          mat3 TBN = mat3(T, B, N);
-
-          // normalMap = vec3(0,1,0);
-          // vnormal = normalize(normalMap);
           vnormal = normalize(getNormal(pos4, vuv));
           vnormal = normalize(iModelNormal * vnormal);
 
-          // pos4 = iModel * pos4;
-          // pos4 = vec4(normalize(pos4.xyz) * height, 1);
           pos4 = vec4(normalize((iModel * pos4).xyz) * height, 1);
           
           gl_Position = proj * view * model * pos4;
         }`,
-      attributes: {
-        iA: {
-          buffer: this.iA,
-          divisor: 1
-        },
-        iB: {
-          buffer: this.iB,
-          divisor: 1
-        },
-        iC: {
-          buffer: this.iC,
-          divisor: 1
-        },
-      },
       uniforms: {
         heightMap: function(context, props) {
           return props.pollenet.height;
         },
-        uvScale: scale,
         special: this.special,
         invSpecial: invSpecial
       }

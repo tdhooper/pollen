@@ -24,9 +24,9 @@ function applyMatrix(geom, matrix) {
 
 function combineIntoPoly(geom, wythoff) {
 
-  var geoms = wythoff.models.map(matrix => {
+  var geoms = wythoff.map(w => {
     var geom2 = cloneDeep(geom);
-    applyMatrix(geom2, matrix);
+    applyMatrix(geom2, w.matrix);
     return geom2;
   });
 
@@ -131,7 +131,6 @@ function applyHeightMap(geom, heightMapObj, model, invModel) {
     var pixel = objUVLookup(heightMapObj, uv);
     var height = pixel[0] / 255;
     height = lerp(.5, 1, height);
-    // vec3.add(v, v, [0,height,0]);
     vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
     vec3.scale(v, v, height);
@@ -150,19 +149,19 @@ function sliceWithPlanes(geom, planes) {
 
 // todo abc is no longer useful to create uvs as geom has been warped
 function apply(wythoff, abc, abcUv, geom, heightMapObj) {
-  var model = wythoff.models[0];
+  var model = wythoff[0].matrix;
   var invModel = mat4.invert([], model);
 
   var wythoffABC = [
-    wythoff.iA[0],
-    wythoff.iB[0],
-    wythoff.iC[0]
+    wythoff[0].a,
+    wythoff[0].b,
+    wythoff[0].c
   ];
 
   var mirroredWythoffABC = [
-    wythoff.iA[0],
-    vec3.lerp([], wythoff.iB[0], wythoff.iC[0], .5),
-    wythoff.iC[0]
+    wythoff[0].a,
+    vec3.lerp([], wythoff[0].b, wythoff[0].c, .5),
+    wythoff[0].c
   ];
 
   var planes = getSlicePlanes(wythoffABC);
@@ -180,15 +179,9 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  // , .5, .75
   var details = [.8, .7, .6, .4];
-  // var details = [.0];
+
   var LODs = details.map(detail => {
-    // geom.normals = computeNormals(geom.cells, geom.positions);
-    // geom.uvs = geom.positions.map(_ => {
-    //   return [0,0];
-    // });
-    // return geom;
 
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
@@ -197,11 +190,6 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
       applyMatrix(geom, invModel);
 
       geom = mirror(geom, mirrorPlane);
-
-      // geom.normals = geom.positions.map(p => {
-      //   return [Math.random(), Math.random(), Math.random()];
-      // });
-      // geom.normals = computeNormals(geom.cells, geom.positions);
 
       return geom;
     });
@@ -214,3 +202,12 @@ module.exports = function(poly, abc, abcUv, geom) {
   var wythoff = wythoffModels(poly, abc);
   return apply.bind(this, wythoff, abc, abcUv, geom);
 };
+
+/*
+
+create a normal map the same way we create a height map
+will need to simulate a position for each uv
+
+tidy up first!
+
+*/

@@ -9,34 +9,31 @@ class DrawCore {
 
   constructor(poly, abc) {
 
-    var {models, special, iA, iB, iC} = wythoffModels(poly, abc);
+    var wythoff = wythoffModels(poly, abc);
 
     // models = models.slice(7, 8);
     // iA = iA.slice(7, 8);
     // iB = iB.slice(7, 8);
     // iC = iC.slice(7, 8);
 
-    special = models[0];
+    var special = wythoff[0].matrix;
 
-    this.models = models;
+    this.wythoff = wythoff;
     this.special = special;
-    this.iA = iA;
-    this.iB = iB;
-    this.iC = iC;
 
     var iModelRow0 = [];
     var iModelRow1 = [];
     var iModelRow2 = [];
     var iModelRow3 = [];
 
-    models.forEach(model => {
-      iModelRow0.push(model.slice(0, 4));
-      iModelRow1.push(model.slice(4, 8));
-      iModelRow2.push(model.slice(8, 12));
-      iModelRow3.push(model.slice(12, 16));
+    wythoff.forEach(w => {
+      iModelRow0.push(w.matrix.slice(0, 4));
+      iModelRow1.push(w.matrix.slice(4, 8));
+      iModelRow2.push(w.matrix.slice(8, 12));
+      iModelRow3.push(w.matrix.slice(12, 16));
     });
 
-    var N = models.length;
+    var N = wythoff.length;
     var instances = Array(N).fill().map((_, i) => {
       return i;
     });
@@ -84,12 +81,12 @@ class DrawCore {
           var view = props.camera.view();
           var model = props.pollenet.model;
           var modelView = mat4.multiply([], view, model);
-          return models.map(iModel => {
+          return wythoff.map(w => {
+            var iModel = w.matrix;
             var iModelView = mat4.multiply([], model, iModel);
             var normal = mat3.fromMat4([], iModelView);
             mat3.invert(normal, normal);
             mat3.transpose(normal, normal);
-            // mat3.identity(normal);
             return normal;
           });
         },

@@ -11,18 +11,7 @@ var wythoffModels = function(poly, sourceABC) {
 
   var models = [];
 
-  // Wythoff triangle ABC verties for each model
-  var iA = [];
-  var iB = [];
-  var iC = [];
-
-  var only = false;
-
   cells.forEach((cell, i) => {
-
-    if (true && i !== 0) {
-      // return;
-    }
 
     var a = positions[cell[0]];
     var b = positions[cell[1]];
@@ -36,89 +25,29 @@ var wythoffModels = function(poly, sourceABC) {
     var bc = vec3.lerp([], b, c, .5);
     var ca = vec3.lerp([], c, a, .5);
 
-    models.push(wythoffTriangle(sourceABC, [m, a, b]));
-    // models.push(wythoffTriangle(sourceABC, [ab, b, m], true));
+    models.push({
+      matrix: wythoffTriangle(sourceABC, [m, a, b]),
+      a: m,
+      b: b,
+      c: a
+    });
 
-    iA.push(m); iB.push(b); iC.push(a);
-    // iA.push(ab); iB.push(m); iC.push(b);
-    // return;
-    models.push(wythoffTriangle(sourceABC, [m, b, c]));
-    // models.push(wythoffTriangle(sourceABC, [bc, c, m], true));
+    models.push({
+      matrix: wythoffTriangle(sourceABC, [m, b, c]),
+      a: m,
+      b: c,
+      c: b
+    });
 
-    iA.push(m); iB.push(c); iC.push(b);
-    // iA.push(bc); iB.push(m); iC.push(c);
-
-    models.push(wythoffTriangle(sourceABC, [m, c, a]));
-    // models.push(wythoffTriangle(sourceABC, [ca, a, m], true));
-
-    iA.push(m); iB.push(a); iC.push(c);
-    // iA.push(ca); iB.push(m); iC.push(a);
-
+    models.push({
+      matrix: wythoffTriangle(sourceABC, [m, c, a]),
+      a: m,
+      b: a,
+      c: c
+    });
   });
 
-
-  // var translation = mat4.getTranslation([], models[0]);
-  // var offset = vec3.length(translation);
-  // var scale = mat4.getScaling([], models[0]);
-
-  // models.forEach(m => {
-  //   console.log(mat4.getTranslation([], m));
-  // });
-
-  // var special = mat4.fromRotationTranslationScale(
-  //   [],
-  //   quat.create(),
-  //   [0,0,0],
-  //   [1,1,1]
-  // );
-
-  // special = mat4.fromTranslation([], [0,-.5,0])
-
-  // specal = [
-  //   .01, 0, 0, 0,
-  //   0, 1, 0, 0,
-  //   0, 0, .01, 0,
-  //   0, -.5, 0, 1
-  // ];
-
-  return {
-    models: models,
-    special: models[0],
-    iA: iA,
-    iB: iB,
-    iC: iC
-  };
-};
-
-// Construct matrix to transform triangle patch into
-// the given abc triangle
-var _wythoffTriangle = function(va, vb, vc) {
-  var vba = vec3.sub([], vb, va);
-  var vca = vec3.sub([], vc, va);
-
-  // Construct rotation matrix from normal, tangent, bitangent
-  var n = vec3.normalize([], vba);
-  var t = vec3.cross([], vba, vca);
-  vec3.normalize(t, t);
-  var b = vec3.cross([], t, n);
-  var mR = [
-    n[0], t[0], b[0], 0,
-    n[1], t[1], b[1], 0,
-    n[2], t[2], b[2], 0,
-    0, 0, 0, 1
-  ];
-  mat4.invert(mR, mR);
-
-  // Translate to first corner
-  var translation = va;
-  var mT = mat4.fromTranslation([], translation);
-  var model = mat4.multiply([], mT, mR);
-
-  // Scale by each edge
-  var scale = [vec3.length(vba), 1, vec3.length(vca)];
-  mat4.scale(model, model, scale);
-
-  return model;
+  return models;
 };
 
 // https://stackoverflow.com/a/4679651
