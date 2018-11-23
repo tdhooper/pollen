@@ -348,10 +348,11 @@ function SimplifyModifier() {};
 
     };
 
-    function Vertex( v, uv, id ) {
+    function Vertex( v, uv, normal, id ) {
 
         this.position = v;
         this.uv = uv;
+        this.normal = normal;
 
         this.id = id; // old index id
 
@@ -400,16 +401,22 @@ function SimplifyModifier() {};
         var oldVertices = geometry.vertices; // Three Position
         var oldFaces = geometry.faces; // Three Face
 
-        // get vertex uvs
+        // get vertex uvs and normals
 
         var oldUvs = [];
+        var oldNormals = [];
 
         for ( i = 0; i < oldFaces.length; i ++ ) {
 
             var face = oldFaces[ i ];
+
             oldUvs[ face.a ] = geometry.faceVertexUvs[ 0 ][ i ][ 0 ];
             oldUvs[ face.b ] = geometry.faceVertexUvs[ 0 ][ i ][ 1 ];
             oldUvs[ face.c ] = geometry.faceVertexUvs[ 0 ][ i ][ 2 ];
+
+            oldNormals[ face.a ] = face.vertexNormals[0];
+            oldNormals[ face.b ] = face.vertexNormals[1];
+            oldNormals[ face.c ] = face.vertexNormals[2];
 
         }
 
@@ -427,7 +434,7 @@ function SimplifyModifier() {};
 
         for ( i = 0, il = oldVertices.length; i < il; i ++ ) {
 
-            var vertex = new Vertex( oldVertices[ i ], oldUvs[ i ], i );
+            var vertex = new Vertex( oldVertices[ i ], oldUvs[ i ], oldNormals[ i ], i );
             vertices.push( vertex );
 
         }
@@ -479,6 +486,7 @@ function SimplifyModifier() {};
         var simplifiedGeometry = new BufferGeometry();
         var position = [];
         var uv = [];
+        var normal = [];
         var index = [];
 
         //
@@ -490,6 +498,9 @@ function SimplifyModifier() {};
 
             var vertexUv = vertices[ i ].uv;
             uv.push( vertexUv.x, vertexUv.y );
+
+            var vertexNormal = vertices[ i ].normal;
+            normal.push( vertexNormal.x, vertexNormal.y, vertexNormal.z );
 
         }
 
@@ -511,6 +522,7 @@ function SimplifyModifier() {};
 
         simplifiedGeometry.addAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
         simplifiedGeometry.addAttribute( 'uv', new Float32BufferAttribute( uv, 2 ) );
+        simplifiedGeometry.addAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
         simplifiedGeometry.setIndex( index );
 
         return simplifiedGeometry;

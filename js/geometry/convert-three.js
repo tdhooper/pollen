@@ -34,7 +34,13 @@ var threeToGeom = function(tGeom) {
   var positions = tGeom.vertices.map(function(vert) {
       return [vert.x, vert.y, vert.z];
   });
+  var normals = [];
   var cells = tGeom.faces.map(function(face) {
+      if (face.vertexNormals.length) {
+        normals[face.a] = face.vertexNormals[0].toArray();
+        normals[face.b] = face.vertexNormals[0].toArray();
+        normals[face.c] = face.vertexNormals[0].toArray();
+      }
       return [face.a, face.b, face.c];
   });
   var geom = {
@@ -50,6 +56,9 @@ var threeToGeom = function(tGeom) {
     });
     geom.uvs = uvs;
   }
+  if (normals.length) {
+    geom.normals = normals;
+  }
   return geom;
 };
 
@@ -60,7 +69,15 @@ var geomToThree = function(geom) {
     return new Vector3().fromArray(position);
   });
   tGeom.faces = geom.cells.map(function(cell) {
-    return new Face3(cell[0], cell[1], cell[2]);
+    var face = new Face3(cell[0], cell[1], cell[2]);
+    if (geom.normals) {
+      face.vertexNormals = [
+        new Vector3().fromArray(geom.normals[cell[0]]),
+        new Vector3().fromArray(geom.normals[cell[1]]),
+        new Vector3().fromArray(geom.normals[cell[2]]),
+      ];
+    }
+    return face;
   });
   if (geom.uvs) {
     tGeom.faceVertexUvs = [geom.cells.map(function(cell) {

@@ -88,6 +88,12 @@ function getMirrorPlane(abc) {
   return plane;
 }
 
+function reflect(vout, vin, planeNormal, planeConstant) {
+  var s = 2 * (vec3.dot(planeNormal, vin) - planeConstant);
+  var vv = vec3.scale([], planeNormal, s);
+  vec3.sub(vout, vin, vv);
+}
+
 function mirror(geom, plane) {
 
   var tGeom = convert.geomToThree(geom);
@@ -99,11 +105,14 @@ function mirror(geom, plane) {
   var geomA = convert.threeToGeom(tGeom);
   var geomB = cloneDeep(geomA);
 
-  var n = plane.normal.toArray();
+  var planeNormal = plane.normal.toArray();
+
   geomB.positions.forEach(v => {
-    var s = 2 * (vec3.dot(n, v) - plane.constant);
-    var vv = vec3.scale([], n, s);
-    vec3.sub(v, v, vv);
+    reflect(v, v, planeNormal, plane.constant);
+  });
+
+  geomB.normals.forEach(v => {
+    reflect(v, v, planeNormal, plane.constant);
   });
 
   geomB.cells = geomB.cells.map(cell => {
@@ -163,6 +172,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
   applyHeightMap(geom, heightMapObj, model, invModel);
 
   geom = combineIntoPoly(geom, wythoff);
+  geom.normals = computeNormals(geom.cells, geom.positions);
   geom = sliceWithPlanes(geom, boundingPlanes);
 
   // , .5, .75
@@ -184,7 +194,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
       // geom.normals = geom.positions.map(p => {
       //   return [Math.random(), Math.random(), Math.random()];
       // });
-      geom.normals = computeNormals(geom.cells, geom.positions);
+      // geom.normals = computeNormals(geom.cells, geom.positions);
 
       return geom;
     });
