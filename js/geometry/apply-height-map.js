@@ -171,14 +171,18 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   geom = cloneDeep(geom);
   applyHeightMap(geom, heightMapObj, model, invModel);
-  geom.normals = computeNormals(geom.cells, geom.positions);
 
   geom = combineIntoPoly(geom, wythoff);
+
+  applyMatrix(geom, invModel);
+  geom.normals = computeNormals(geom.cells, geom.positions);
+  applyMatrix(geom, model);
+
   geom = sliceWithPlanes(geom, boundingPlanes);
 
   // , .5, .75
   var details = [.8, .7, .6, .4];
-  var details = [.0];
+  // var details = [.0];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
