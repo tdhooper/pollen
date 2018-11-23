@@ -1,4 +1,5 @@
 const mat4 = require('gl-matrix').mat4;
+const mat3 = require('gl-matrix').mat3;
 const vec3 = require('gl-matrix').vec3;
 const glslify = require('glslify');
 const wythoffModels = require('../geometry/wythoff-models');
@@ -56,7 +57,7 @@ class DrawCore {
             vec3 lPos = normalize(vec3(2,1,0));
             float l = dot(lPos, vnormal) * .5 + .75;
             // gl_FragColor = vec4(tex * l, 1);
-            gl_FragColor = vec4(tex, 1);
+            // gl_FragColor = vec4(tex, 1);
             // gl_FragColor = vec4(vnormal * .5 + .5, 1);
             // gl_FragColor = vec4(0, vuv, 1);
             gl_FragColor = vec4(vec3(grid(b, .1)) * (vnormal * .5 + .5), 1);
@@ -74,6 +75,19 @@ class DrawCore {
             context.viewportWidth,
             context.viewportHeight
           );
+        },
+        iModelViewNormal: function(context, props) {
+          var view = props.camera.view();
+          var model = props.pollenet.model;
+          var modelView = mat4.multiply([], view, model);
+          return models.map(iModel => {
+            var iModelView = mat4.multiply([], model, iModel);
+            var normal = mat3.fromMat4([], iModelView);
+            mat3.invert(normal, normal);
+            mat3.transpose(normal, normal);
+            // mat3.identity(normal);
+            return normal;
+          });
         },
         mesh: (context, props) => {
           var LODs = props.pollenet.source.wireframeLODs;
@@ -124,6 +138,30 @@ class DrawCore {
           buffer: iModelRow3,
           divisor: 1
         },
+        iModelNormalRow0: {
+          buffer: function(context) {
+            return context.iModelViewNormal.map(m => {
+              return m.slice(0, 3);
+            });
+          },
+          divisor: 1
+        },
+        iModelNormalRow1: {
+          buffer: function(context) {
+            return context.iModelViewNormal.map(m => {
+              return m.slice(3, 6);
+            });
+          },
+          divisor: 1
+        },
+        iModelNormalRow2: {
+          buffer: function(context) {
+            return context.iModelViewNormal.map(m => {
+              return m.slice(6, 9);
+            });
+          },
+          divisor: 1
+        }
       },
       elements: regl.context('mesh.cells'),
       instances: N,

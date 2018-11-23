@@ -26,6 +26,9 @@ class DrawVideo extends DrawCore {
         attribute vec4 iModelRow1;
         attribute vec4 iModelRow2;
         attribute vec4 iModelRow3;
+        attribute vec3 iModelNormalRow0;
+        attribute vec3 iModelNormalRow1;
+        attribute vec3 iModelNormalRow2;
         attribute vec3 iA;
         attribute vec3 iB;
         attribute vec3 iC;
@@ -52,7 +55,7 @@ class DrawVideo extends DrawCore {
           float yn = getHeight(uv + vec2(0,-eps / uvScale.x));
           vec3 va = normalize(vec3(scale, 0, xp - xn));
           vec3 vb = normalize(vec3(0, scale, yp - yn));
-          vec3 bump = vec3(cross(va, vb));
+          vec3 bump = vec3(cross(vb.xzy, va.xzy));
           return normalize(bump);
         }
 
@@ -76,48 +79,18 @@ class DrawVideo extends DrawCore {
             iModelRow3
           );
 
+          mat3 iModelNormal = mat3(
+            iModelNormalRow0,
+            iModelNormalRow1,
+            iModelNormalRow2
+          );
+
           vec4 pos4 = vec4(pos, 1);
           pos4 = iModel * pos4;
           pos = normalize(pos4.xyz);
           // pos = pos4.xyz;
 
-          vec3 center = normalize(mod(instance, 2.) == 0. ? iC : iB);
-          vec3 edge = normalize(mod(instance, 2.) == 0. ? iB : iC);
-          vec3 origin = normalize(iA);
-
-          vec3 normal = normalize(pos);
-          vec3 tangent = cross(pos, iA);
-          vec3 bitangent = cross(normal, tangent);
-
-          vec3 N = normalize(vec3(model * vec4(normal, 0)));
-          vec3 T = normalize(vec3(model * vec4(tangent, 0)));
-          vec3 B = normalize(vec3(model * vec4(bitangent, 0)));
-
-
-          T = normalize(cross(pos, cross(origin, edge)));
-          B = normalize(cross(pos, cross(origin, center)));
-
-          T = normalize(vec3(model * vec4(T, 0)));
-          B = normalize(vec3(model * vec4(B, 0)));
-
-          // T = normalize(cross(normal, cross(T, normal)));
-          // B = normalize(cross(normal, cross(B, normal)));
-
-          // tangent should be pos -> center
-
-          vTBN = mat3(T, B, N);
-
-          vnormal = vTBN * normalMap;
-          // vnormal = normalMap;
-
-          vec3 nm = normalize(vec3(0,0,1));
-          if (mod(instance, 2.) == 0.) {
-            // nm.x *= -1.;
-          }
-          // vnormal = nm;
-          // vnormal = vTBN * nm;
-
-          // vnormal = N;
+          vnormal = normalize(iModelNormal * normalMap);
           
           pos *= height;
           pos4 = vec4(pos, 1);

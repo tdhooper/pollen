@@ -22,6 +22,9 @@ class DrawSaved extends DrawCore {
         attribute vec4 iModelRow1;
         attribute vec4 iModelRow2;
         attribute vec4 iModelRow3;
+        attribute vec3 iModelNormalRow0;
+        attribute vec3 iModelNormalRow1;
+        attribute vec3 iModelNormalRow2;
         varying vec2 vuv;
         varying vec3 vnormal;
 
@@ -31,7 +34,14 @@ class DrawSaved extends DrawCore {
         void main () {
           b = barycentric;
           vuv = uv;
-          vnormal = normal;
+
+          mat3 iModelNormal = mat3(
+            iModelNormalRow0,
+            iModelNormalRow1,
+            iModelNormalRow2
+          );
+
+          vnormal = normalize(iModelNormal * normal);
 
           vec3 pos = position;
 

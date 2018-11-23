@@ -166,7 +166,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   var planes = getSlicePlanes(wythoffABC);
   var boundingPlanes = getBoundingPlanes(mirroredWythoffABC);
-  var mirrorPlane = getMirrorPlane(mirroredWythoffABC);
+  var mirrorPlane = new Plane(new Vector3(1,0,0), 0);
 
   geom = cloneDeep(geom);
   applyHeightMap(geom, heightMapObj, model, invModel);
@@ -177,6 +177,7 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
 
   // , .5, .75
   var details = [.8, .7, .6, .4];
+  // var details = [.0];
   var LODs = details.map(detail => {
     // geom.normals = computeNormals(geom.cells, geom.positions);
     // geom.uvs = geom.positions.map(_ => {
@@ -187,9 +188,10 @@ function apply(wythoff, abc, abcUv, geom, heightMapObj) {
     return simplify(abc, abcUv, geom, detail).then(geom => {
 
       geom = sliceWithPlanes(geom, planes);
-      geom = mirror(geom, mirrorPlane);
 
       applyMatrix(geom, invModel);
+
+      geom = mirror(geom, mirrorPlane);
 
       // geom.normals = geom.positions.map(p => {
       //   return [Math.random(), Math.random(), Math.random()];
