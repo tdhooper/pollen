@@ -348,9 +348,10 @@ function SimplifyModifier() {};
 
     };
 
-    function Vertex( v, id ) {
+    function Vertex( v, uv, id ) {
 
         this.position = v;
+        this.uv = uv;
 
         this.id = id; // old index id
 
@@ -399,6 +400,19 @@ function SimplifyModifier() {};
         var oldVertices = geometry.vertices; // Three Position
         var oldFaces = geometry.faces; // Three Face
 
+        // get vertex uvs
+
+        var oldUvs = [];
+
+        for ( i = 0; i < oldFaces.length; i ++ ) {
+
+            var face = oldFaces[ i ];
+            oldUvs[ face.a ] = geometry.faceVertexUvs[ 0 ][ i ][ 0 ];
+            oldUvs[ face.b ] = geometry.faceVertexUvs[ 0 ][ i ][ 1 ];
+            oldUvs[ face.c ] = geometry.faceVertexUvs[ 0 ][ i ][ 2 ];
+
+        }
+
         // conversion
         var vertices = [];
         var faces = [];
@@ -413,7 +427,7 @@ function SimplifyModifier() {};
 
         for ( i = 0, il = oldVertices.length; i < il; i ++ ) {
 
-            var vertex = new Vertex( oldVertices[ i ], i );
+            var vertex = new Vertex( oldVertices[ i ], oldUvs[ i ], i );
             vertices.push( vertex );
 
         }
@@ -464,6 +478,7 @@ function SimplifyModifier() {};
 
         var simplifiedGeometry = new BufferGeometry();
         var position = [];
+        var uv = [];
         var index = [];
 
         //
@@ -472,6 +487,9 @@ function SimplifyModifier() {};
 
             var vertex = vertices[ i ].position;
             position.push( vertex.x, vertex.y, vertex.z );
+
+            var vertexUv = vertices[ i ].uv;
+            uv.push( vertexUv.x, vertexUv.y );
 
         }
 
@@ -492,6 +510,7 @@ function SimplifyModifier() {};
         //
 
         simplifiedGeometry.addAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
+        simplifiedGeometry.addAttribute( 'uv', new Float32BufferAttribute( uv, 2 ) );
         simplifiedGeometry.setIndex( index );
 
         return simplifiedGeometry;

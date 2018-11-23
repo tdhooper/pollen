@@ -27,8 +27,6 @@ function simplifyWithUvs(abc, abcUv, geom, reduction) {
 
   var simplified = convert.threeToGeom(tSimplified);
 
-  simplified.uvs = simplified.positions.map(_ => [0,0]);
-
   return simplified;
 }
 
