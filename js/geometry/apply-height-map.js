@@ -178,8 +178,8 @@ function apply(wythoff, geom, heightMapObj) {
 
   geom = sliceWithPlanes(geom, boundingPlanes);
 
-  var details = [.8, .7, .6, .4];
-  // details = [0];
+  // var details = [.8, .7, .6, .4];
+  var details = [.6];
   var LODs = details.map(detail => {
 
     return simplify(geom, detail).then(geom => {
