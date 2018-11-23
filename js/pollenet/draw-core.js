@@ -13,7 +13,7 @@ class DrawCore {
 
     var special = wythoff[0].matrix;
 
-    // wythoff = wythoff.slice(7, 8);
+    wythoff = wythoff.slice(7, 8);
 
     this.wythoff = wythoff;
     this.special = special;
@@ -63,7 +63,7 @@ class DrawCore {
             vec3 tex = texture2D(image, vuv).rgb;
             vec3 normal = texture2D(normalMap, vuv).rgb * 2. - 1.;
 
-            if (flipNormal.x > 0.) {
+            if (sign(flipNormal.x) < 0.) {
               normal = reflectN(normal, vec3(1,0,0));
             }
             normal = normalize(iModelNormal * normal);
@@ -75,8 +75,9 @@ class DrawCore {
             gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
+            gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
             // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
+            // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, sign(flipNormal)), 1);
         }`,
       context: {
         model:function(context, props) {

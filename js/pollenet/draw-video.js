@@ -64,7 +64,7 @@ class DrawVideo extends DrawCore {
             iModelNormalRow2
           );
 
-          flipNormal = pos4.x < 0. ? vec2(1) : vec2(0);
+          flipNormal = pos.xy;
 
           pos4 = vec4(normalize((iModel * pos4).xyz) * height, 1);
           

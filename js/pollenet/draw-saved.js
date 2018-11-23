@@ -52,7 +52,7 @@ class DrawSaved extends DrawCore {
           );
 
           // TODO: this doesn't work, we'll need to store it on the UV then abs it
-          flipNormal = pos.x < 0. ? vec2(1) : vec2(0);
+          flipNormal = pos.xy;
 
           vec4 pos4 = vec4(pos, 1);
           pos4 = iModel * pos4;
