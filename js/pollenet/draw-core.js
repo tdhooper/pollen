@@ -9,14 +9,17 @@ class DrawCore {
 
   constructor(poly, abc) {
 
-    var {models, iA, iB, iC} = wythoffModels(poly, abc);
+    var {models, special, iA, iB, iC} = wythoffModels(poly, abc);
 
-    models = models.slice(7, 8);
-    iA = iA.slice(7, 8);
-    iB = iB.slice(7, 8);
-    iC = iC.slice(7, 8);
+    // models = models.slice(7, 8);
+    // iA = iA.slice(7, 8);
+    // iB = iB.slice(7, 8);
+    // iC = iC.slice(7, 8);
+
+    special = models[0];
 
     this.models = models;
+    this.special = special;
     this.iA = iA;
     this.iB = iB;
     this.iC = iC;

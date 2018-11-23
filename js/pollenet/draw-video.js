@@ -10,6 +10,8 @@ class DrawVideo extends DrawCore {
 
     var scale = mat4.getScaling([], this.models[0]);
 
+    var invSpecial = mat4.invert([], this.special);
+
     var parentDraw = this.draw;
     var draw = regl({
       vert: `
@@ -19,6 +21,8 @@ class DrawVideo extends DrawCore {
         uniform mat4 view;
         uniform vec3 uvScale;
         uniform sampler2D heightMap;
+        uniform mat4 special;
+        uniform mat4 invSpecial;
         attribute vec3 position;
         attribute vec2 uv;
         attribute float instance;
@@ -60,6 +64,35 @@ class DrawVideo extends DrawCore {
           return normalize(bump);
         }
 
+        // apply imodel
+        // normalize
+        // apply height
+        // apply inverse
+        // return position
+        vec3 getPosAt(vec4 pos4, vec2 uv, vec2 offset) {
+          float dir = sign(pos4.x);
+          pos4 = special * (pos4 + vec4(offset.x, 0, offset.y, 0));
+          // offset.x *= -dir;
+          float height = getHeight(uv + offset);
+          pos4 = vec4(normalize(pos4.xyz) * height, 1);
+          pos4 = invSpecial * pos4;
+          return pos4.xyz;
+        }
+
+        vec3 getNormal(vec4 pos4, vec2 uv) {
+          float eps = .1;
+          vec3 p = getPosAt(pos4, uv, vec2(0));
+          vec3 x = getPosAt(pos4, uv, vec2(eps,0));
+          vec3 y = getPosAt(pos4, uv, vec2(0,eps));
+
+          vec3 t = normalize(p - x);
+          vec3 b = normalize(p - y);
+
+          vec3 normal = normalize(cross(b, t));
+          // normal.x *= sign(-pos4.x);
+          return normal;
+        }
+
         void main () {
           b = barycentric;
           vuv = uv;
@@ -99,10 +132,13 @@ class DrawVideo extends DrawCore {
           mat3 TBN = mat3(T, B, N);
 
           // normalMap = vec3(0,1,0);
-          vnormal = normalize(normalMap);
+          // vnormal = normalize(normalMap);
+          vnormal = normalize(getNormal(pos4, vuv));
+          vnormal = normalize(iModelNormal * vnormal);
 
-          pos4 = iModel * pos4;
-          pos4 = vec4(normalize(pos4.xyz) * height, 1);
+          // pos4 = iModel * pos4;
+          // pos4 = vec4(normalize(pos4.xyz) * height, 1);
+          pos4 = vec4(normalize((iModel * pos4).xyz) * height, 1);
           
           gl_Position = proj * view * model * pos4;
         }`,
@@ -124,7 +160,9 @@ class DrawVideo extends DrawCore {
         heightMap: function(context, props) {
           return props.pollenet.height;
         },
-        uvScale: scale
+        uvScale: scale,
+        special: this.special,
+        invSpecial: invSpecial
       }
     });
 

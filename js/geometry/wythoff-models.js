@@ -1,5 +1,6 @@
 const mat4 = require('gl-matrix').mat4;
 const mat3 = require('gl-matrix').mat3;
+const quat = require('gl-matrix').quat;
 const vec3 = require('gl-matrix').vec3;
 
 
@@ -55,8 +56,34 @@ var wythoffModels = function(poly, sourceABC) {
 
   });
 
+
+  // var translation = mat4.getTranslation([], models[0]);
+  // var offset = vec3.length(translation);
+  // var scale = mat4.getScaling([], models[0]);
+
+  // models.forEach(m => {
+  //   console.log(mat4.getTranslation([], m));
+  // });
+
+  // var special = mat4.fromRotationTranslationScale(
+  //   [],
+  //   quat.create(),
+  //   [0,0,0],
+  //   [1,1,1]
+  // );
+
+  // special = mat4.fromTranslation([], [0,-.5,0])
+
+  // specal = [
+  //   .01, 0, 0, 0,
+  //   0, 1, 0, 0,
+  //   0, 0, .01, 0,
+  //   0, -.5, 0, 1
+  // ];
+
   return {
     models: models,
+    special: models[0],
     iA: iA,
     iB: iB,
     iC: iC
