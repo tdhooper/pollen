@@ -70,9 +70,7 @@ class DrawVideo extends DrawCore {
           gl_Position = proj * view * model * pos4;
         }`,
       uniforms: {
-        heightMap: function(context, props) {
-          return props.pollenet.height;
-        },
+        heightMap: regl.prop('pollenet.height'),
         special: this.special,
         invSpecial: invSpecial
       }

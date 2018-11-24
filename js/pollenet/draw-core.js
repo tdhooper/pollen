@@ -19,7 +19,7 @@ class DrawCore {
     // models = models.slice(0, 1);
     // models = [wythoff.aligned];
 
-
+    this.models = models;
     this.wythoff = wythoff.models;
     this.special = special;
 
@@ -40,7 +40,28 @@ class DrawCore {
       return i;
     });
 
-    this.draw = regl({
+    var pickLOD = this.pickLOD();
+    var calcModelViewNormals = this.calcModelViewNormals();
+    var extractModelViewNormalRows = this.extractModelViewNormalRows();
+
+    var buildContext = regl({
+      context: {
+        model:function(context, props) {
+          return props.pollenet.model;
+        },
+        view: function(context, props) {
+          return props.camera.view();
+        },
+        proj: function(context, props) {
+          return props.camera.projection(
+            context.viewportWidth,
+            context.viewportHeight
+          );
+        }
+      }
+    });
+
+    var draw = regl({
       cull: {
         enable: true,
         face: 'back'
@@ -83,55 +104,22 @@ class DrawCore {
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
         }`,
       context: {
-        model:function(context, props) {
-          return props.pollenet.model;
-        },
-        view: function(context, props) {
-          return props.camera.view();
-        },
-        proj: function(context, props) {
-          return props.camera.projection(
-            context.viewportWidth,
-            context.viewportHeight
+        modelViewNormalRows: function(context, props) {
+          var modelViewNormals = calcModelViewNormals(
+            context.model,
+            context.view
           );
-        },
-        iModelViewNormal: function(context, props) {
-          var view = props.camera.view();
-          var model = props.pollenet.model;
-          var modelView = mat4.multiply([], view, model);
-          return models.map(w => {
-            var iModel = w.matrix;
-            var iModelView = mat4.multiply([], model, iModel);
-            var normal = mat3.fromMat4([], iModelView);
-            mat3.invert(normal, normal);
-            mat3.transpose(normal, normal);
-            return normal;
-          });
+          return extractModelViewNormalRows(modelViewNormals);
         },
         mesh: (context, props) => {
           var LODs = props.pollenet.source.LODs;
-
-          var model = props.pollenet.model;
-          var view = props.camera.view();
-
-          var camPos = mat4.getTranslation([], mat4.invert([], view));
-          var modelPos = mat4.getTranslation([], model);
-          var dist = vec3.dist(camPos, modelPos);
-
-          var vFOV = Math.PI / 10;
-          var vHeight = 2 * Math.tan( vFOV / 2 ) * dist;
-          var aspect = context.viewportWidth / context.viewportHeight;
-
-          var scale = mat4.getScaling([], model)[0] * 2;
-          var fraction = scale / vHeight;
-
-          fraction /= 2;
-          fraction = Math.pow(fraction, .5);
-
-          var lod = Math.round(fraction * (LODs.length - 1));
-          lod = Math.min(lod, LODs.length - 1);
-
-          return LODs[lod];
+          return pickLOD(
+            props.pollenet.source.LODs,
+            context.model,
+            context.view,
+            context.viewportWidth,
+            context.viewportHeight
+          );
         }
       },
       attributes: {
@@ -158,27 +146,15 @@ class DrawCore {
           divisor: 1
         },
         iModelNormalRow0: {
-          buffer: function(context) {
-            return context.iModelViewNormal.map(m => {
-              return m.slice(0, 3);
-            });
-          },
+          buffer: regl.context('modelViewNormalRows.row0'),
           divisor: 1
         },
         iModelNormalRow1: {
-          buffer: function(context) {
-            return context.iModelViewNormal.map(m => {
-              return m.slice(3, 6);
-            });
-          },
+          buffer: regl.context('modelViewNormalRows.row1'),
           divisor: 1
         },
         iModelNormalRow2: {
-          buffer: function(context) {
-            return context.iModelViewNormal.map(m => {
-              return m.slice(6, 9);
-            });
-          },
+          buffer: regl.context('modelViewNormalRows.row2'),
           divisor: 1
         }
       },
@@ -188,15 +164,108 @@ class DrawCore {
         model: regl.context('model'),
         view: regl.context('view'),
         proj: regl.context('proj'),
-        image: function(context, props) {
-          return props.pollenet.image;
-        },
-        normalMap: function(context, props) {
-          return props.pollenet.normal;
-        }
+        image: regl.prop('pollenet.image'),
+        normalMap: regl.prop('pollenet.normal')
       },
       framebuffer: regl.prop('destination')
     });
+
+    this.draw = function(props, callback) {
+      buildContext(props, function() {
+        draw(props, callback);
+      });
+    };
+  }
+
+  pickLOD() {
+
+    var viewInv = mat4.create();
+    var camPos = vec3.create();
+    var modelPos = vec3.create();
+    var modelScale = mat4.create();
+
+    return function(LODs, model, view, viewportWidth, viewportHeight) {
+
+      mat4.invert(viewInv, view);
+      mat4.getTranslation(camPos, viewInv);
+
+      mat4.getTranslation(modelPos, model);
+      var dist = vec3.dist(camPos, modelPos);
+
+      var vFOV = Math.PI / 10;
+      var vHeight = 2 * Math.tan( vFOV / 2 ) * dist;
+      var aspect = viewportWidth / viewportHeight;
+
+      mat4.getScaling(modelScale, model);
+      var scale = modelScale[0] * 2;
+      var fraction = scale / vHeight;
+
+      fraction /= 2;
+      fraction = Math.pow(fraction, .5);
+
+      var lod = Math.round(fraction * (LODs.length - 1));
+      lod = Math.min(lod, LODs.length - 1);
+
+      return LODs[lod];
+    };
+  }
+
+  calcModelViewNormals() {
+
+    var modelView = mat4.create();
+    var iModelView = mat4.create();
+    var normals = this.models.map(_ => {
+      return mat3.create();
+    });
+
+    return (model, view) => {
+
+      mat4.multiply(modelView, view, model);
+
+      this.models.forEach((w, i) => {
+
+        var iModel = w.matrix;
+        mat4.multiply(iModelView, model, iModel);
+
+        var normal = normals[i];
+        mat3.fromMat4(normal, iModelView);
+        mat3.invert(normal, normal);
+        mat3.transpose(normal, normal);
+      });
+
+      return normals;
+    };
+  }
+
+  extractModelViewNormalRows(normals) {
+
+    var len = this.models.length * 3;
+    var row0 = new Float32Array(len);
+    var row1 = new Float32Array(len);
+    var row2 = new Float32Array(len);
+    var rows = {
+      row0: row0,
+      row1: row1,
+      row2: row2
+    };
+
+    return function(modelViewNormals) {
+      modelViewNormals.forEach((m, i) => {
+        row0[i * 3 + 0] = m[0];
+        row0[i * 3 + 1] = m[1];
+        row0[i * 3 + 2] = m[2];
+
+        row1[i * 3 + 0] = m[3];
+        row1[i * 3 + 1] = m[4];
+        row1[i * 3 + 2] = m[5];
+
+        row2[i * 3 + 0] = m[6];
+        row2[i * 3 + 1] = m[7];
+        row2[i * 3 + 2] = m[8];
+      });
+
+      return rows;
+    };
   }
 }
 
