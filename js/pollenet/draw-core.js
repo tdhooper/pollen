@@ -179,6 +179,7 @@ class DrawCore {
     var modelScale = mat4.create();
 
     return function(LODs, model, view, viewportWidth, viewportHeight) {
+      return LODs[0];
 
       mat4.invert(viewInv, view);
       mat4.getTranslation(camPos, viewInv);
