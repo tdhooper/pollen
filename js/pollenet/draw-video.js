@@ -40,8 +40,6 @@ class DrawVideo extends DrawCore {
         void main () {
           vuv = uv;
 
-          height = getHeight(vuv);
-
           vec3 pos = position;
           vec4 pos4 = vec4(pos, 1);
 
@@ -60,6 +58,7 @@ class DrawVideo extends DrawCore {
 
           flipNormal = pos.xy;
 
+          height = getHeight(vuv);
           pos4 = vec4(normalize((iModel * pos4).xyz) * height, 1);
 
           // pos4 = iModel * pos4;

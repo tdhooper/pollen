@@ -37,8 +37,7 @@ class VideoSource extends Source {
     this.heightTexture = regl.texture({
       width: 256,
       height: 256,
-      mag: 'linear',
-      min: 'linear'
+      mag: 'linear'
     });
 
     this.heightBuffer = regl.framebuffer({
@@ -56,11 +55,7 @@ class VideoSource extends Source {
       color: this.imageTexture
     });
 
-    this.blurBuffers = [
-
-      this.heightBuffer,
-
-      regl.framebuffer({
+    this.blurBuffers = [0,0].map(_ => regl.framebuffer({
         depth: false,
         color: regl.texture({
           width: this.heightBuffer.width,
@@ -68,7 +63,7 @@ class VideoSource extends Source {
           mag: 'linear'
         })
       })
-    ];
+    );
 
     var videoMat = mat3.create();
     var videoScale = 1;
@@ -140,6 +135,11 @@ class VideoSource extends Source {
         });
       }
 
+      resamplePass({
+        source: this.blurBuffers[0],
+        destination: this.heightBuffer
+      });
+
       // Create the normal map
       normalMapPass({
         source: this.heightBuffer,
@@ -147,6 +147,7 @@ class VideoSource extends Source {
         iModel: this.iModel,
         iModelInv: this.iModelInv,
       });
+
     });
   }
 }
