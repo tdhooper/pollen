@@ -16,6 +16,7 @@ class DrawVideo extends DrawCore {
         uniform mat4 model;
         uniform mat4 view;
         uniform sampler2D heightMap;
+        uniform mat3 normalMatrix;
         attribute vec3 position;
         attribute vec2 uv;
         attribute float instance;
@@ -55,6 +56,8 @@ class DrawVideo extends DrawCore {
             iModelNormalRow1,
             iModelNormalRow2
           );
+
+          iModelNormal = normalMatrix * iModelNormal;
 
           flipNormal = pos.xy;
 

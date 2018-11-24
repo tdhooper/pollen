@@ -14,6 +14,7 @@ class DrawSaved extends DrawCore {
         uniform mat4 proj;
         uniform mat4 model;
         uniform mat4 view;
+        uniform mat3 normalMatrix;
         attribute vec3 position;
         attribute vec2 uv;
         attribute vec3 normal;
@@ -37,6 +38,8 @@ class DrawSaved extends DrawCore {
             iModelNormalRow1,
             iModelNormalRow2
           );
+
+          iModelNormal = normalMatrix * iModelNormal;
 
           vec3 pos = position;
 

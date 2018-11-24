@@ -35,12 +35,12 @@ class DrawCore {
     });
 
     var pickLOD = this.pickLOD();
-    var calcModelViewNormals = this.calcModelViewNormals();
-    var extractModelViewNormalRows = this.extractModelViewNormalRows();
+    var normals = this.calcModelViewNormals(models);
+    var iNormalRows = this.extractModelViewNormalRows(normals);
 
     var buildContext = regl({
       context: {
-        model:function(context, props) {
+        model: function(context, props) {
           return props.pollenet.model;
         },
         view: function(context, props) {
@@ -98,13 +98,6 @@ class DrawCore {
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
         }`,
       context: {
-        modelViewNormalRows: function(context, props) {
-          var modelViewNormals = calcModelViewNormals(
-            context.model,
-            context.view
-          );
-          return extractModelViewNormalRows(modelViewNormals);
-        },
         mesh: (context, props) => {
           var LODs = props.pollenet.source.LODs;
           return pickLOD(
@@ -140,15 +133,15 @@ class DrawCore {
           divisor: 1
         },
         iModelNormalRow0: {
-          buffer: regl.context('modelViewNormalRows.row0'),
+          buffer: iNormalRows.row0,
           divisor: 1
         },
         iModelNormalRow1: {
-          buffer: regl.context('modelViewNormalRows.row1'),
+          buffer: iNormalRows.row1,
           divisor: 1
         },
         iModelNormalRow2: {
-          buffer: regl.context('modelViewNormalRows.row2'),
+          buffer: iNormalRows.row2,
           divisor: 1
         }
       },
@@ -158,8 +151,15 @@ class DrawCore {
         model: regl.context('model'),
         view: regl.context('view'),
         proj: regl.context('proj'),
+        normalMatrix: function(context, props) {
+          var normal = mat3.create();
+          mat3.fromMat4(normal, context.model);
+          mat3.invert(normal, normal);
+          mat3.transpose(normal, normal);
+          return normal;
+        },
         image: regl.prop('pollenet.image'),
-        normalMap: regl.prop('pollenet.normal')
+        normalMap: regl.prop('pollenet.normal'),
       },
       framebuffer: regl.prop('destination')
     });
@@ -179,7 +179,7 @@ class DrawCore {
     var modelScale = mat4.create();
 
     return function(LODs, model, view, viewportWidth, viewportHeight) {
-      return LODs[0];
+      // return LODs[0];
 
       mat4.invert(viewInv, view);
       mat4.getTranslation(camPos, viewInv);
@@ -205,31 +205,19 @@ class DrawCore {
     };
   }
 
-  calcModelViewNormals() {
+  calcModelViewNormals(models) {
 
     var modelView = mat4.create();
     var iModelView = mat4.create();
-    var normals = this.models.map(_ => {
-      return mat3.create();
+
+    return models.map((w, i) => {
+      var model = w.matrix;
+      var normal = mat3.create();
+      mat3.fromMat4(normal, model);
+      mat3.invert(normal, normal);
+      mat3.transpose(normal, normal);
+      return normal;
     });
-
-    return (model, view) => {
-
-      mat4.multiply(modelView, view, model);
-
-      this.models.forEach((w, i) => {
-
-        var iModel = w.matrix;
-        mat4.multiply(iModelView, model, iModel);
-
-        var normal = normals[i];
-        mat3.fromMat4(normal, iModelView);
-        mat3.invert(normal, normal);
-        mat3.transpose(normal, normal);
-      });
-
-      return normals;
-    };
   }
 
   extractModelViewNormalRows(normals) {
@@ -244,23 +232,21 @@ class DrawCore {
       row2: row2
     };
 
-    return function(modelViewNormals) {
-      modelViewNormals.forEach((m, i) => {
-        row0[i * 3 + 0] = m[0];
-        row0[i * 3 + 1] = m[1];
-        row0[i * 3 + 2] = m[2];
+    normals.forEach((m, i) => {
+      row0[i * 3 + 0] = m[0];
+      row0[i * 3 + 1] = m[1];
+      row0[i * 3 + 2] = m[2];
 
-        row1[i * 3 + 0] = m[3];
-        row1[i * 3 + 1] = m[4];
-        row1[i * 3 + 2] = m[5];
+      row1[i * 3 + 0] = m[3];
+      row1[i * 3 + 1] = m[4];
+      row1[i * 3 + 2] = m[5];
 
-        row2[i * 3 + 0] = m[6];
-        row2[i * 3 + 1] = m[7];
-        row2[i * 3 + 2] = m[8];
-      });
+      row2[i * 3 + 0] = m[6];
+      row2[i * 3 + 1] = m[7];
+      row2[i * 3 + 2] = m[8];
+    });
 
-      return rows;
-    };
+    return rows;
   }
 }
 
