@@ -15,8 +15,7 @@ module.exports = function() {
   const VideoPreview = require('./video-preview');
   const Compositor = require('./compositor');
   const DofPass = require('./draw/dof-pass');
-  const createPatch = require('./geometry/create-patch');
-
+  const wythoffModels = require('./geometry/wythoff-models');
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 10;
@@ -36,12 +35,17 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
+  var abc = [
+    [0, 0, 1],
+    [1, 0, 0],
+    [-1, 0, 0]
+  ];
   var poly = polyhedra.platonic.Tetrahedron;
-  var abc = createPatch(0, abcUv).abc;
+  var wythoff = wythoffModels(poly, abc);
 
-  const drawPollenet = new DrawPollenet(poly, abc);
-  const drawSaved = new DrawPollenetSaved(poly, abc);
-  const videoSource = new VideoSource(abcUv, poly);
+  const drawPollenet = new DrawPollenet(wythoff);
+  // const drawSaved = new DrawPollenetSaved(wythoff);
+  const videoSource = new VideoSource(wythoff, abc, abcUv);
   // const source = new Source();
   const pollenet = new Pollenet(videoSource, 0);
   // const pollenetSaved = new Pollenet(source, -1);

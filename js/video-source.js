@@ -10,26 +10,21 @@ const Source = require('./source');
 const bufferToObj = require('./send-buffer').bufferToObj;
 const createPatch = require('./geometry/create-patch');
 const applyHeightMap = require('./geometry/apply-height-map');
-const wythoffModels = require('./geometry/wythoff-models');
 const xz = require('./geometry/xz');
 
 
 class VideoSource extends Source {
 
-  constructor(abcUv, poly) {
-    super();
+  constructor(wythoff, abc, abcUv) {
+    super(wythoff);
 
-    var {LODs, abc} = createPatch(7, abcUv);
-    this.applyHeightMap = applyHeightMap(
-      poly,
-      abc,
-      LODs[5]
-    );
+    var LODs = createPatch(5, abc, abcUv);
+
+    this.applyHeightMap = applyHeightMap(wythoff, LODs[5]);
+
     this.LODs = [LODs[5]];
-    console.log(this.LODs);
 
-    var wythoff = wythoffModels(poly, abc).models;
-    this.iModel = wythoff[0].matrix;
+    this.iModel = wythoff.models[0].matrix;
     this.iModelInv = mat4.invert([], this.iModel);
 
     this.webcam = new WebcamTexture(regl);

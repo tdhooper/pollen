@@ -15,7 +15,7 @@ module.exports = function() {
   const Stats = require('stats.js');
   const DofPass = require('./draw/dof-pass');
   const Compositor = require('./compositor');
-  const createPatch = require('./geometry/create-patch');
+  const wythoffModels = require('./geometry/wythoff-models');
 
 
   const stats = new Stats();
@@ -38,11 +38,16 @@ module.exports = function() {
     [0, 1],
     [1, 0]
   ];
+  var abc = [
+    [0, 0, 1],
+    [1, 0, 0],
+    [-1, 0, 0]
+  ];
 
   var poly = polyhedra.platonic.Tetrahedron;
-  var abc = createPatch(0, abcUv).abc;
+  var wythoff = wythoffModels(poly, abc);
 
-  const drawPollenet = new DrawPollenet(poly, abc);
+  const drawPollenet = new DrawPollenet(wythoff);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
   compositor.addPost(dofPass);
@@ -54,7 +59,7 @@ module.exports = function() {
     saved = saved.slice(0, limit);
     Promise.all(saved.map(store.restore)).then(restored => {
       var sources = restored.map(obj => {
-        var source = new Source();
+        var source = new Source(wythoff);
         source.fromObj(obj);
         return source;
       });

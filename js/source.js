@@ -1,7 +1,9 @@
 
 class Source {
 
-  constructor() {
+  constructor(wythoff) {
+
+    this.wythoff = wythoff;
 
     this.normalTexture = regl.texture({
       width: 256,

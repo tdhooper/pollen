@@ -4,9 +4,9 @@ const DrawCore = require('./draw-core');
 
 class DrawVideo extends DrawCore {
 
-  constructor(poly, abc) {
+  constructor(wythoff) {
 
-    super(poly, abc);
+    super(wythoff);
 
     var parentDraw = this.draw;
     var draw = regl({

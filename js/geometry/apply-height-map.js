@@ -222,8 +222,7 @@ function apply(wythoff, geom, heightMapObj) {
   return Promise.all(LODs);
 }
 
-module.exports = function(poly, abc, geom) {
-  var wythoff = wythoffModels(poly, abc);
+module.exports = function(wythoff, geom) {
   return apply.bind(this, wythoff, geom);
 };
 

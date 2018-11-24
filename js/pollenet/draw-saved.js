@@ -3,9 +3,9 @@ const DrawCore = require('./draw-core');
 
 class DrawSaved extends DrawCore {
 
-  constructor(poly, abc) {
+  constructor(wythoff) {
 
-    super(poly, abc);
+    super(wythoff);
 
     var parentDraw = this.draw;
     var draw = regl({

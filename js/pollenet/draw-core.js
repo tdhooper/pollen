@@ -7,9 +7,8 @@ const wythoffModels = require('../geometry/wythoff-models');
 
 class DrawCore {
 
-  constructor(poly, abc) {
+  constructor(wythoff) {
 
-    var wythoff = wythoffModels(poly, abc);
     var models = wythoff.models;
 
     // models = models.slice(7, 8);
