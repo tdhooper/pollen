@@ -8,8 +8,6 @@ class DrawVideo extends DrawCore {
 
     super(poly, abc);
 
-    var invSpecial = mat4.invert([], this.special);
-
     var parentDraw = this.draw;
     var draw = regl({
       vert: `
@@ -70,9 +68,7 @@ class DrawVideo extends DrawCore {
           gl_Position = proj * view * model * pos4;
         }`,
       uniforms: {
-        heightMap: regl.prop('pollenet.height'),
-        special: this.special,
-        invSpecial: invSpecial
+        heightMap: regl.prop('pollenet.height')
       }
     });
 

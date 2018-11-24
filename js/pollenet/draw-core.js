@@ -10,9 +10,6 @@ class DrawCore {
   constructor(poly, abc) {
 
     var wythoff = wythoffModels(poly, abc);
-
-    var special = wythoff.aligned.matrix;
-
     var models = wythoff.models;
 
     // models = models.slice(7, 8);
@@ -20,8 +17,6 @@ class DrawCore {
     // models = [wythoff.aligned];
 
     this.models = models;
-    this.wythoff = wythoff.models;
-    this.special = special;
 
     var iModelRow0 = [];
     var iModelRow1 = [];
