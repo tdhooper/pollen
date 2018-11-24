@@ -9,7 +9,9 @@ global.regl = createRegl({
   extensions: [
     'webgl_depth_texture',
     'angle_instanced_arrays',
-    'oes_standard_derivatives'
+    'oes_standard_derivatives',
+    'oes_texture_float',
+    'oes_texture_float_linear'
   ]
 });
 

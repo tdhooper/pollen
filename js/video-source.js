@@ -32,7 +32,8 @@ class VideoSource extends Source {
     this.heightTexture = regl.texture({
       width: 256,
       height: 256,
-      mag: 'linear'
+      mag: 'linear',
+      type: 'float'
     });
 
     this.heightBuffer = regl.framebuffer({
@@ -53,9 +54,10 @@ class VideoSource extends Source {
     this.blurBuffers = [0,0].map(_ => regl.framebuffer({
         depth: false,
         color: regl.texture({
-          width: this.heightBuffer.width,
-          height: this.heightBuffer.height,
-          mag: 'linear'
+          width: 246,
+          height: 256,
+          mag: 'linear',
+          type: 'float'
         })
       })
     );

@@ -129,7 +129,7 @@ function applyHeightMap(geom, heightMapObj, model, invModel) {
   geom.positions.forEach((v, i) => {
     var uv = geom.uvs[i];
     var pixel = objUVLookup(heightMapObj, uv);
-    var height = pixel[0] / 255;
+    var height = pixel[0];
     height = lerp(.5, 1, height);
     vec3.transformMat4(v, v, model);
     vec3.normalize(v, v);
