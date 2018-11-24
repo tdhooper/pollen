@@ -42,9 +42,9 @@ module.exports = function() {
   const drawPollenet = new DrawPollenet(poly, abc);
   const drawSaved = new DrawPollenetSaved(poly, abc);
   const videoSource = new VideoSource(abcUv, poly);
-  const source = new Source();
-  const pollenet = new Pollenet(videoSource, 1);
-  const pollenetSaved = new Pollenet(source, -1);
+  // const source = new Source();
+  const pollenet = new Pollenet(videoSource, 0);
+  // const pollenetSaved = new Pollenet(source, -1);
   const videoPreview = new VideoPreview(abcUv);
   const dofPass = new DofPass(camera);
   const compositor = new Compositor();
@@ -58,8 +58,8 @@ module.exports = function() {
   var channel = new BroadcastChannel('pollen');
   function send() {
     videoSource.toObj().then(sourceObj => {
-      console.log(sourceObj.LODs[0]);
-      source.fromObj(sourceObj);
+      // console.log(sourceObj.LODs[0]);
+      // source.fromObj(sourceObj);
       channel.postMessage(sourceObj);
     });
   }
@@ -79,13 +79,13 @@ module.exports = function() {
       // destination: compositor.buffer
     });
 
-    if (source.LODs) {
-      drawSaved.draw({
-        pollenet: pollenetSaved,
-        camera: camera,
-        // destination: compositor.buffer
-      });
-    }
+    // if (source.LODs) {
+    //   drawSaved.draw({
+    //     pollenet: pollenetSaved,
+    //     camera: camera,
+    //     // destination: compositor.buffer
+    //   });
+    // }
 
     // compositor.draw(context);
     videoPreview.draw({
