@@ -33,9 +33,6 @@ class DrawVideo extends DrawCore {
         varying mat3 iModelNormal;
         varying vec2 flipNormal;
 
-        attribute vec2 barycentric;
-        varying vec2 b;
-
         float getHeight(vec2 uv) {
           float height = texture2D(heightMap, uv).r;
           height = mix(.5, 1., height);
@@ -43,7 +40,6 @@ class DrawVideo extends DrawCore {
         }
 
         void main () {
-          b = barycentric;
           vuv = uv;
 
           height = getHeight(vuv);

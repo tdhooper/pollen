@@ -1,6 +1,5 @@
 const mat3 = require('gl-matrix').mat3;
 const mat4 = require('gl-matrix').mat4;
-const wire = require('glsl-solid-wireframe');
 
 const WebcamTexture = require('./webcam-texture');
 const setupPass = require('./draw/setup-pass');
@@ -27,15 +26,6 @@ class VideoSource extends Source {
       LODs[5]
     );
     this.LODs = [LODs[5]];
-    this.wireframeLODs = this.LODs.map(geom => {
-      var geom2 = wire(geom, {
-        attributes: {
-          uvs: geom.uvs
-        }
-      });
-      geom2.uvs = geom2.attributes.uvs;
-      return geom2;
-    });
     console.log(this.LODs);
 
     var wythoff = wythoffModels(poly, abc).models;

@@ -29,11 +29,7 @@ class DrawSaved extends DrawCore {
         varying mat3 iModelNormal;
         varying vec2 flipNormal;
 
-        attribute vec2 barycentric;
-        varying vec2 b;
-
         void main () {
-          b = barycentric;
           vuv = uv;
 
           iModelNormal = mat3(

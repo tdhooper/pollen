@@ -50,8 +50,6 @@ class DrawCore {
         #extension GL_OES_standard_derivatives : enable
 
         precision mediump float;
-        #pragma glslify: grid = require(glsl-solid-wireframe/barycentric/scaled)
-        varying vec2 b;
         varying vec2 vuv;
         varying mat3 iModelNormal;
         varying vec2 flipNormal;
@@ -77,14 +75,10 @@ class DrawCore {
             float l = dot(lPos, normal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
             // gl_FragColor = vec4(tex, 1);
-            // gl_FragColor = vec4(normal * .5 + .5, 1);
+            gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * (normal * .5 + .5), 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, mod(vuv, .05) / .05), 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, vuv), 1);
-            // gl_FragColor = vec4(vec3(grid(b, .1)) * vec3(1, sign(flipNormal)), 1);
         }`,
       context: {
         model:function(context, props) {
@@ -113,7 +107,7 @@ class DrawCore {
           });
         },
         mesh: (context, props) => {
-          var LODs = props.pollenet.source.wireframeLODs;
+          var LODs = props.pollenet.source.LODs;
 
           var model = props.pollenet.model;
           var view = props.camera.view();
@@ -141,7 +135,6 @@ class DrawCore {
       attributes: {
         position: regl.context('mesh.positions'),
         uv: regl.context('mesh.uvs'),
-        barycentric: regl.context('mesh.barycentric'),
         instance: {
           buffer: instances,
           divisor: 1

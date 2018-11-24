@@ -1,5 +1,3 @@
-const wire = require('glsl-solid-wireframe');
-
 
 class Source {
 
@@ -30,17 +28,6 @@ class Source {
 
   fromObj(obj) {
     this.LODs = obj.LODs;
-    this.wireframeLODs = this.LODs.map(geom => {
-      var geom2 = wire(geom, {
-        attributes: {
-          uvs: geom.uvs,
-          normals: geom.normals
-        }
-      });
-      geom2.uvs = geom2.attributes.uvs;
-      geom2.normals = geom2.attributes.normals;
-      return geom2;
-    });
 
     if (obj.normal.pixels) {
       this.normalTexture.subimage({
