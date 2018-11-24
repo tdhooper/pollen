@@ -16,19 +16,19 @@ class SimulatedPollen {
 
   constructor() {
     this.pollen = [];
-    this.radius = 20;
+    this.radius = 10;
     this.collisions = new Collisions();
     this.result = this.collisions.createResult();
     this.noise = new Noise(Math.random());
     this.minSize = 0.1;
-    this.maxSize = .8;
+    this.maxSize = .7;
     this.focus = undefined;
     this._tick();
   }
 
   add(source) {
     var position = this.randomPoint(this.radius);
-    var size = Math.pow(Math.random(), 5);
+    var size = Math.pow(Math.random(), 10);
     var radius = this.minSize + size * (this.maxSize - this.minSize);
     var particle = this.collisions.createCircle(position[0], position[1], radius);
     this.pollen.push(new SimulatedPollenet(source, particle));
