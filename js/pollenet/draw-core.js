@@ -72,10 +72,12 @@ class DrawCore {
             normal = normalize(iModelNormal * normal);
 
             vec3 lPos = normalize(vec3(2,1,0));
-            float l = dot(lPos, normal) * .5 + .75;
-            gl_FragColor = vec4(tex * l, 1);
+            float l = dot(lPos, normal) * .5 + .5;
+            l = mix(l, 1., .1) * 1.1;
+            // gl_FragColor = vec4(tex * l, 1);
+            gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(tex, 1);
-            gl_FragColor = vec4(normal * .5 + .5, 1);
+            // gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
