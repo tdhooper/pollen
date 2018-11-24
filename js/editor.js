@@ -71,10 +71,10 @@ module.exports = function() {
   regl.frame((context) => {
     compositor.clear();
 
-    camera.rotate([.003,0.002],[0,0]);
-    camera.tick();
+    // camera.rotate([.003,0.002],[0,0]);
+    // camera.tick();
 
-    // mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
+    mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
 
     videoSource.update();
     drawPollenet.draw({
