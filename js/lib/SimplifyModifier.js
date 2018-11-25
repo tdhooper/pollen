@@ -405,6 +405,7 @@ function SimplifyModifier() {};
 
         var oldUvs = [];
         var oldNormals = [];
+        var hasNormals = !! oldFaces[0].vertexNormals.length;
 
         for ( i = 0; i < oldFaces.length; i ++ ) {
 
@@ -414,10 +415,11 @@ function SimplifyModifier() {};
             oldUvs[ face.b ] = geometry.faceVertexUvs[ 0 ][ i ][ 1 ];
             oldUvs[ face.c ] = geometry.faceVertexUvs[ 0 ][ i ][ 2 ];
 
-            oldNormals[ face.a ] = face.vertexNormals[0];
-            oldNormals[ face.b ] = face.vertexNormals[1];
-            oldNormals[ face.c ] = face.vertexNormals[2];
-
+            if (hasNormals) {
+                oldNormals[ face.a ] = face.vertexNormals[0];
+                oldNormals[ face.b ] = face.vertexNormals[1];
+                oldNormals[ face.c ] = face.vertexNormals[2];
+            }
         }
 
         // conversion
@@ -434,7 +436,12 @@ function SimplifyModifier() {};
 
         for ( i = 0, il = oldVertices.length; i < il; i ++ ) {
 
-            var vertex = new Vertex( oldVertices[ i ], oldUvs[ i ], oldNormals[ i ], i );
+            var vertex = new Vertex(
+                oldVertices[ i ],
+                oldUvs[ i ],
+                hasNormals && oldNormals[ i ],
+                i
+            );
             vertices.push( vertex );
 
         }
@@ -499,8 +506,10 @@ function SimplifyModifier() {};
             var vertexUv = vertices[ i ].uv;
             uv.push( vertexUv.x, vertexUv.y );
 
-            var vertexNormal = vertices[ i ].normal;
-            normal.push( vertexNormal.x, vertexNormal.y, vertexNormal.z );
+            if (hasNormals) {
+                var vertexNormal = vertices[ i ].normal;
+                normal.push( vertexNormal.x, vertexNormal.y, vertexNormal.z );
+            }
 
         }
 
@@ -522,7 +531,11 @@ function SimplifyModifier() {};
 
         simplifiedGeometry.addAttribute( 'position', new Float32BufferAttribute( position, 3 ) );
         simplifiedGeometry.addAttribute( 'uv', new Float32BufferAttribute( uv, 2 ) );
-        simplifiedGeometry.addAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
+
+        if (hasNormals) {
+            simplifiedGeometry.addAttribute( 'normal', new Float32BufferAttribute( normal, 3 ) );
+        }
+
         simplifiedGeometry.setIndex( index );
 
         return simplifiedGeometry;

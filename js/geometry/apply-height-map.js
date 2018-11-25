@@ -9,7 +9,6 @@ const lerp = require('lerp');
 const sliceGeometry = require('threejs-slice-geometry')(THREE);
 const simplify = require('../workers/simplify');
 const objUVLookup = require('../send-buffer').objUVLookup;
-const computeNormals = require('angle-normals');
 const combine = require('../lib/mesh-combine');
 const merge = require('../lib/merge-vertices');
 const wythoffModels = require('../geometry/wythoff-models');
@@ -31,7 +30,7 @@ function combineIntoPoly(geom, wythoff) {
   });
 
   var combined = combine(geoms);
-  combined = merge(combined.cells, combined.positions, combined.uvs, combined.normals);
+  combined = merge(combined.cells, combined.positions, combined.uvs);
 
   return combined;
 }
@@ -108,10 +107,6 @@ function mirror(geom, plane) {
   var planeNormal = plane.normal.toArray();
 
   geomB.positions.forEach(v => {
-    reflect(v, v, planeNormal, plane.constant);
-  });
-
-  geomB.normals.forEach(v => {
     reflect(v, v, planeNormal, plane.constant);
   });
 
@@ -195,7 +190,6 @@ function apply(wythoff, geom, heightMapObj) {
 
   applyMatrix(geom, invModel);
 
-  geom.normals = computeNormals(geom.cells, geom.positions);
   recalculateUvs(geom, wythoff.aligned);
 
   applyMatrix(geom, model);
@@ -225,12 +219,3 @@ function apply(wythoff, geom, heightMapObj) {
 module.exports = function(wythoff, geom) {
   return apply.bind(this, wythoff, geom);
 };
-
-/*
-
-create a normal map the same way we create a height map
-will need to simulate a position for each uv
-
-tidy up first!
-
-*/
