@@ -29,6 +29,11 @@ const drawVideo = regl({
       return ! ((b1 == b2) && (b2 == b3));
     }
 
+    float smin(float a, float b, float r) {
+      vec2 u = max(vec2(r - a,r - b), vec2(0));
+      return max(r, min (a, b)) - length(u);
+    }
+
     void main() {
       vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x * (.5 + .5 * .666), resolution.y);
 
@@ -39,6 +44,8 @@ const drawVideo = regl({
 
       uv.x += .5;
       uv *= .7;
+
+      float mask = ceil(.2 - length(uv));
 
       float r = PI * -1./6.;
       uv *= mat2(cos(r), sin(r), -sin(r), cos(r));
@@ -51,22 +58,26 @@ const drawVideo = regl({
 
       uv += vec2(1./3.);
 
-
       vec3 g = vec3(uv, 1. - uv.x - uv.y);
 
       // cell id
       vec3 id = smoothstep(1., 1.01, g + 1.);
+      id = floor(g + 1.);
 
       g = fract(g); // diamond coords
       if (length(g) > 1.) g = 1. - g; // barycentric coords
+
+      vec3 border = 1. - abs(2. * fract(g) - 1.); // distance to border
 
       // gl_FragColor = vec4(g, 1);
 
       uv = g.r * aUv + g.r * bUv + g.b * cUv;
       vec3 color = texture2D(source, uv).rgb;
 
+      float roundBorder = smin(border.r, smin(border.g, border.b, .15), .15);
+      color *= vec3(smoothstep(0., .02, roundBorder));
       color *= id.r * id.g * id.b;
-
+      color *= mask;
 
       gl_FragColor = vec4(color, 1.);
 
