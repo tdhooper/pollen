@@ -162,28 +162,20 @@ function recalculateUvs(geom, aligned) {
   applyMatrix(geom, invAligned);
 }
 
-
-function apply(wythoff, geom, heightMapObj) {
+function simplifyForDetails(wythoff, geom, details) {
   var w = wythoff.models[0];
-
   var model = w.matrix;
   var invModel = mat4.invert([], model);
 
   var wythoffABC = [w.a, w.b, w.c];
-
   var mirroredWythoffABC = [
     w.a,
     vec3.lerp([], w.b, w.c, .5),
     w.b
   ];
-
   var planes = getSlicePlanes(wythoffABC);
   var boundingPlanes = getBoundingPlanes(mirroredWythoffABC);
   var mirrorPlane = new Plane(new Vector3(1,0,0), 0);
-
-  geom = cloneDeep(geom);
-
-  applyHeightMap(geom, heightMapObj, model, invModel);
 
   geom = combineIntoPoly(geom, wythoff.models);
   geom = sliceWithPlanes(geom, boundingPlanes);
@@ -194,28 +186,47 @@ function apply(wythoff, geom, heightMapObj) {
 
   applyMatrix(geom, model);
 
-  var details = [.775, .7, .6, .4];
-  // var details = [.6];
   var LODs = details.map(detail => {
-
-    // applyMatrix(geom, invModel);
-    // return geom;
-
     return simplify(geom, detail).then(geom => {
-
       geom = sliceWithPlanes(geom, planes);
-
       applyMatrix(geom, invModel);
-
       geom = mirror(geom, mirrorPlane);
-
       return geom;
     });
   });
 
+  return LODs;
+}
+
+function apply(wythoff, sourceLODs, heightMapObj) {
+  var w = wythoff.models[0];
+
+  var model = w.matrix;
+  var invModel = mat4.invert([], model);
+
+  var geom1 = cloneDeep(sourceLODs[1]);
+  var geom2 = cloneDeep(sourceLODs[2]);
+  var geom3 = cloneDeep(sourceLODs[3]);
+  var geom4 = cloneDeep(sourceLODs[5]);
+
+  applyHeightMap(geom1, heightMapObj, model, invModel);
+  applyHeightMap(geom2, heightMapObj, model, invModel);
+  applyHeightMap(geom3, heightMapObj, model, invModel);
+  applyHeightMap(geom4, heightMapObj, model, invModel);
+
+  var LODs = [
+    Promise.resolve(geom1),
+    Promise.resolve(geom2),
+    Promise.resolve(geom3)
+  ];
+
+  var details = [.6, .4];
+  var simplified = simplifyForDetails(wythoff, geom4, details);
+  LODs = LODs.concat(simplified);
+
   return Promise.all(LODs);
 }
 
-module.exports = function(wythoff, geom) {
-  return apply.bind(this, wythoff, geom);
+module.exports = function(wythoff, sourceLODs) {
+  return apply.bind(this, wythoff, sourceLODs);
 };

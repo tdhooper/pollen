@@ -70,6 +70,15 @@ class DrawCore {
         varying vec2 flipNormal;
         uniform sampler2D image;
         uniform sampler2D normalMap;
+        uniform float lodLevel;
+
+        vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d ) {
+            return a + b*cos( 6.28318*(c*t+d) );
+        }
+
+        vec3 spectrum(float n) {
+            return pal( n, vec3(0.5,0.5,0.5),vec3(0.5,0.5,0.5),vec3(1.0,1.0,1.0),vec3(0.0,0.33,0.67) );
+        }
 
         vec3 reflectN(vec3 vin, vec3 planeNormal) {
           float s = 2. * dot(planeNormal, vin);
@@ -86,19 +95,22 @@ class DrawCore {
             }
             normal = normalize(iModelNormal * normal);
 
+            // vec3 lodColor = spectrum(lodLevel / 5.);
+
             vec3 lPos = normalize(vec3(2,1,0));
             float l = dot(lPos, normal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
+            // gl_FragColor = vec4(mix(tex * l, lodColor, .2), 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(tex, 1);
             // gl_FragColor = vec4(normal * .5 + .5, 1);
             // gl_FragColor = vec4(vec3(l), 1);
             // gl_FragColor = vec4(0, vuv, 1);
             // gl_FragColor = vec4(0, mod(vuv, .5) / .5, 1);
+            // gl_FragColor = vec4(lodColor, 1);
         }`,
       context: {
-        mesh: (context, props) => {
-          var LODs = props.pollenet.source.LODs;
+        lod: (context, props) => {
           return pickLOD(
             props.pollenet.source.LODs,
             context.model,
@@ -109,8 +121,8 @@ class DrawCore {
         }
       },
       attributes: {
-        position: regl.context('mesh.positions'),
-        uv: regl.context('mesh.uvs'),
+        position: regl.context('lod.mesh.positions'),
+        uv: regl.context('lod.mesh.uvs'),
         instance: {
           buffer: instances,
           divisor: 1
@@ -144,7 +156,7 @@ class DrawCore {
           divisor: 1
         }
       },
-      elements: regl.context('mesh.cells'),
+      elements: regl.context('lod.mesh.cells'),
       instances: N,
       uniforms: {
         model: regl.context('model'),
@@ -159,6 +171,7 @@ class DrawCore {
         },
         image: regl.prop('pollenet.image'),
         normalMap: regl.prop('pollenet.normal'),
+        lodLevel: regl.context('lod.level')
       },
       framebuffer: regl.prop('destination')
     });
@@ -178,8 +191,6 @@ class DrawCore {
     var modelScale = mat4.create();
 
     return function(LODs, model, view, viewportWidth, viewportHeight) {
-      // return LODs[0];
-
       mat4.invert(viewInv, view);
       mat4.getTranslation(camPos, viewInv);
 
@@ -194,13 +205,16 @@ class DrawCore {
       var scale = modelScale[0] * 2;
       var fraction = scale / vHeight;
 
-      fraction /= 2;
-      fraction = Math.pow(fraction, .5);
+      fraction = Math.pow(fraction * 2., .5) - .2;
+      fraction = Math.max(0, fraction);
 
       var lod = Math.round(fraction * (LODs.length - 1));
       lod = Math.min(lod, LODs.length - 1);
 
-      return LODs[lod];
+      return {
+        mesh: LODs[lod],
+        level: lod
+      };
     };
   }
 

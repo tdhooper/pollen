@@ -20,7 +20,7 @@ class VideoSource extends Source {
 
     var LODs = createPatch(5, abc, abcUv);
 
-    this.applyHeightMap = applyHeightMap(wythoff, LODs[5]);
+    this.applyHeightMap = applyHeightMap(wythoff, LODs);
 
     this.LODs = [LODs[5]];
 
