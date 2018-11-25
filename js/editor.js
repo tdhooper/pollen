@@ -85,6 +85,10 @@ module.exports = function() {
     var offsetX = context.viewportWidth / 2;
     var offsetY = (context.viewportHeight - size) / 2;
 
+    videoPreview.draw({
+      source: videoSource
+    });
+
     drawPollenet.draw({
       pollenet: pollenet,
       camera: camera,
@@ -106,8 +110,6 @@ module.exports = function() {
     // }
 
     // compositor.draw(context);
-    videoPreview.draw({
-      source: videoSource
-    });
+
   });
 };

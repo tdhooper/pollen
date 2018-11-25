@@ -27,16 +27,38 @@ const drawVideo = regl({
     }
 
     void main() {
-      vec2 uv = vec2(gl_FragCoord.xy / resolution.xy);
-      uv = (transform * vec3(uv, 1)).xy;
-      if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
-        discard;
-      }
-      if ( ! inTriangle(uv, aUv, bUv, cUv)) {
-        discard;
-      }
-      //vec2 areaUv = range(area.xy, area.zw, uv);
-      gl_FragColor = texture2D(source, vec2(1) - uv);
+      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / resolution.y;
+      
+      // conversion to hexagonal coordinates
+      uv *= mat2(
+        1, -1. / 1.73,
+        0, 2. / 1.73
+      ) * 5.;
+      vec3 g = vec3(uv, 1. - uv.x - uv.y);
+
+      // cell id
+      vec3 id = floor(g);
+
+      g = fract(g); // diamond coords
+      if (length(g) > 1.) g = 1. - g; // barycentric coords
+
+      // gl_FragColor = vec4(g, 1);
+
+      uv = g.r * aUv + g.r * bUv + g.b * cUv;
+      gl_FragColor = texture2D(source, uv);
+
+      // // skew
+      // // draw section
+
+      // uv = (transform * vec3(uv, 1)).xy;
+      // if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
+      //   discard;
+      // }
+      // if ( ! inTriangle(uv, aUv, bUv, cUv)) {
+      //   discard;
+      // }
+      // //vec2 areaUv = range(area.xy, area.zw, uv);
+      // gl_FragColor = texture2D(source, vec2(1) - uv);
     }`),
   uniforms: {
     source: regl.prop('source'),
