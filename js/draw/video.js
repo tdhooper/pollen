@@ -10,24 +10,8 @@ const drawVideo = regl({
     uniform vec2 aUv;
     uniform vec2 bUv;
     uniform vec2 cUv;
-    uniform float time;
-
-    #pragma glslify: range = require('glsl-range')
 
     const float PI = 3.141592653589793;
-
-    float side(vec2 p, vec2 a, vec2 b) {
-      vec2 ab = a - b;
-      vec2 pb = p - b;
-      return pb.x * ab.y - pb.y * ab.x;
-    }
-
-    bool inTriangle(vec2 p, vec2 a, vec2 b, vec2 c) {
-      bool b1 = side(p, a, b) < 0.;
-      bool b2 = side(p, b, c) < 0.;
-      bool b3 = side(p, c, a) < 0.;
-      return ! ((b1 == b2) && (b2 == b3));
-    }
 
     float smin(float a, float b, float r) {
       vec2 u = max(vec2(r - a,r - b), vec2(0));
@@ -36,11 +20,6 @@ const drawVideo = regl({
 
     void main() {
       vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x * (.5 + .5 * .666), resolution.y);
-
-      // uv = mod(uv, 1.);
-
-      // gl_FragColor = vec4(1, uv, 1);
-      // return;
 
       uv.x += .5;
       uv *= .7;
@@ -69,8 +48,6 @@ const drawVideo = regl({
 
       vec3 border = 1. - abs(2. * fract(g) - 1.); // distance to border
 
-      // gl_FragColor = vec4(g, 1);
-
       uv = g.r * aUv + g.r * bUv + g.b * cUv;
       vec3 color = texture2D(source, uv).rgb;
 
@@ -80,19 +57,6 @@ const drawVideo = regl({
       color *= mask;
 
       gl_FragColor = vec4(color, 1.);
-
-      // // skew
-      // // draw section
-
-      // uv = (transform * vec3(uv, 1)).xy;
-      // if (uv.x > 1. || uv.y > 1. || uv.x < 0. || uv.y < 0.) {
-      //   discard;
-      // }
-      // if ( ! inTriangle(uv, aUv, bUv, cUv)) {
-      //   discard;
-      // }
-      // //vec2 areaUv = range(area.xy, area.zw, uv);
-      // gl_FragColor = texture2D(source, vec2(1) - uv);
     }`),
   uniforms: {
     source: regl.prop('source'),
@@ -108,8 +72,7 @@ const drawVideo = regl({
     },
     cUv: function(context, props) {
       return props.abcUv[2];
-    },
-    time: regl.context('time')
+    }
   },
   depth: {
     enable: false
