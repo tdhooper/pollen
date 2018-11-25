@@ -97,7 +97,7 @@ class DrawCore {
 
             // vec3 lodColor = spectrum(lodLevel / 5.);
 
-            vec3 lPos = normalize(vec3(2,1,0));
+            vec3 lPos = normalize(vec3(-1,1,5));
             float l = dot(lPos, normal) * .5 + .75;
             gl_FragColor = vec4(tex * l, 1);
             // gl_FragColor = vec4(mix(tex * l, lodColor, .2), 1);

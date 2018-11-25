@@ -26,7 +26,7 @@ class Compositor {
 
   clear(context) {
     regl.clear({
-      // color: [0, 0, 0, 1],
+      // color: [.6, .6, .6, 1],
       depth: 1,
       framebuffer: this.buffer
     });
