@@ -55,7 +55,7 @@ module.exports = function() {
   const backBlur = new BackBlur();
   const compositor = new Compositor();
   compositor.addPre(backBlur);
-  compositor.addPost(dofBlur);
+  // compositor.addPost(dofBlur);
 
   var limit = 2500;
   var simulatedPollen = new SimulatedPollen(camera);
