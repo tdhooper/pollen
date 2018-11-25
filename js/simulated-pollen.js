@@ -85,15 +85,19 @@ class SimulatedPollen {
 
   tick(dt) {
 
-    var position = vec2.create();
+    this.vec2scratch0 = this.vec2scratch0 || vec2.create();
+
     var time = + new Date();
 
+    var diff = this.vec2scratch0;
     var offset = this.camera.center;
     if (this.focus) {
-      var diff = vec2.sub([], this.focus.position, offset);
+      vec2.sub(diff, this.focus.position, offset);
       vec2.scale(diff, diff, 0.1);
       vec2.add(offset, offset, diff);
     }
+
+    var position = this.vec2scratch0;
 
     this.pollen.forEach(pollenet => {
 
