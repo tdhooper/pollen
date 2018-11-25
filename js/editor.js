@@ -79,10 +79,10 @@ module.exports = function() {
     videoSource.update();
 
     var size = Math.min(
-      context.viewportWidth * (.5 + .5 * .333),
+      context.viewportWidth * (.5 + .5 * .666),
       context.viewportHeight
     );
-    var offsetX = context.viewportWidth * .5 - size * .25;
+    var offsetX = context.viewportWidth * .5 - size * .4;
     var offsetY = (context.viewportHeight - size) / 2;
 
     videoPreview.draw({

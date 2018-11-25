@@ -30,14 +30,14 @@ const drawVideo = regl({
     }
 
     void main() {
-      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x * (.5 + .5 * .333), resolution.y);
+      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x * (.5 + .5 * .666), resolution.y);
 
       // uv = mod(uv, 1.);
 
       // gl_FragColor = vec4(1, uv, 1);
       // return;
 
-      uv.x += .4;
+      uv.x += .5;
       uv *= .7;
 
       float r = PI * -1./6.;
