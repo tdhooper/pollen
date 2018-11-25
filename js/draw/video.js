@@ -10,8 +10,11 @@ const drawVideo = regl({
     uniform vec2 aUv;
     uniform vec2 bUv;
     uniform vec2 cUv;
+    uniform float time;
 
     #pragma glslify: range = require('glsl-range')
+
+    const float PI = 3.141592653589793;
 
     float side(vec2 p, vec2 a, vec2 b) {
       vec2 ab = a - b;
@@ -27,17 +30,32 @@ const drawVideo = regl({
     }
 
     void main() {
-      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / resolution.y;
+      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x / 2., resolution.y);
+
+      // uv = mod(uv, 1.);
+
+      // gl_FragColor = vec4(1, uv, 1);
+      // return;
+
+      uv.x += .25;
+      uv *= .5;
+
+      float r = PI * -1./6.;
+      uv *= mat2(cos(r), sin(r), -sin(r), cos(r));
       
       // conversion to hexagonal coordinates
       uv *= mat2(
         1, -1. / 1.73,
         0, 2. / 1.73
       ) * 5.;
+
+      uv += vec2(1./3.);
+
+
       vec3 g = vec3(uv, 1. - uv.x - uv.y);
 
       // cell id
-      vec3 id = floor(g);
+      vec3 id = smoothstep(1., 1.01, g + 1.);
 
       g = fract(g); // diamond coords
       if (length(g) > 1.) g = 1. - g; // barycentric coords
@@ -45,7 +63,12 @@ const drawVideo = regl({
       // gl_FragColor = vec4(g, 1);
 
       uv = g.r * aUv + g.r * bUv + g.b * cUv;
-      gl_FragColor = texture2D(source, uv);
+      vec3 color = texture2D(source, uv).rgb;
+
+      color *= vec3(id.r * id.g * id.b);
+
+
+      gl_FragColor = vec4(color, 1.);
 
       // // skew
       // // draw section
@@ -74,7 +97,8 @@ const drawVideo = regl({
     },
     cUv: function(context, props) {
       return props.abcUv[2];
-    }
+    },
+    time: regl.context('time')
   },
   depth: {
     enable: false
