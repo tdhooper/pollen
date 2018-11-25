@@ -12,4 +12,10 @@ body {
     position: fixed;
     top: 15px;
     left: 15px;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.save-button:hover {
+    opacity: 1;
 }
