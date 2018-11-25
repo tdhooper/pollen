@@ -16,6 +16,7 @@ module.exports = function() {
   const Compositor = require('./compositor');
   const DofPass = require('./draw/dof-pass');
   const wythoffModels = require('./geometry/wythoff-models');
+  const control = require('./control');
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 6.5;
@@ -59,6 +60,7 @@ module.exports = function() {
   btn.classList.add('save-button');
   document.body.appendChild(btn);
   btn.addEventListener('click', send);
+  control.on('click', send);
   var channel = new BroadcastChannel('pollen');
   function send() {
     videoSource.toObj().then(sourceObj => {
