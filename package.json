@@ -9,6 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@tweenjs/tween.js": "^17.2.0",
     "angle-normals": "^1.0.0",
     "barycentric": "^1.0.1",
     "body-parser": "^1.18.3",

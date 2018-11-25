@@ -7,6 +7,7 @@ module.exports = function() {
   const mat4 = require('gl-matrix').mat4;
   const vec3 = require('gl-matrix').vec3;
   const polyhedra = require('polyhedra');
+  const TWEEN = require('@tweenjs/tween.js');
   const SimulatedPollen = require('./simulated-pollen');
   const DrawPollenet = require('./pollenet/draw-saved');
   const Source = require('./source');
@@ -17,13 +18,14 @@ module.exports = function() {
   const Compositor = require('./compositor');
   const wythoffModels = require('./geometry/wythoff-models');
 
+  global.TWEEN = TWEEN;
 
   const stats = new Stats();
   stats.showPanel(0);
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 20;
+  camera.distance = 10;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -53,7 +55,7 @@ module.exports = function() {
   compositor.addPost(dofPass);
 
   var limit = 2500;
-  var simulatedPollen = new SimulatedPollen();
+  var simulatedPollen = new SimulatedPollen(camera);
 
   store.saved().then(saved => {
     saved = saved.slice(0, limit);
@@ -93,6 +95,7 @@ module.exports = function() {
 
   regl.frame((context) => {
     stats.begin();
+    TWEEN.update();
     compositor.clear();
 
     camera.tick();
@@ -101,15 +104,15 @@ module.exports = function() {
       context.viewportHeight
     );
 
-    simulatedPollen.visible(camera).forEach((pollenet, i) => {
+    simulatedPollen.visible().forEach((pollenet, i) => {
       drawPollenet.draw({
         pollenet: pollenet,
         camera: camera,
-        // destination: compositor.buffer
+        destination: compositor.buffer
       });
     });
 
-    // compositor.draw(context);
+    compositor.draw(context);
     stats.end();
   });
 };

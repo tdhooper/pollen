@@ -14,7 +14,8 @@ const SimulatedPollenet = require('./simulated-pollenet');
 
 class SimulatedPollen {
 
-  constructor() {
+  constructor(camera) {
+    this.camera = camera;
     this.pollen = [];
     this.radius = 10;
     this.collisions = new Collisions();
@@ -36,8 +37,23 @@ class SimulatedPollen {
 
   replaceOldest(source) {
     var oldest = this.pollen.shift();
-    oldest.source = source;
     this.pollen.push(oldest);
+
+    var radius = oldest.particle.radius;
+
+    var tweenOut = new TWEEN.Tween(oldest.particle)
+      .to({ radius: 0 }, 500);
+
+    var tweenIn = new TWEEN.Tween(oldest.particle)
+      .to({ radius: radius }, 5000)
+      .easing(TWEEN.Easing.Elastic.Out);
+
+    tweenOut.onComplete(_ => {
+      oldest.source = source;
+      tweenIn.start();
+    });
+    tweenOut.start();
+
     return oldest;
   }
 
@@ -45,9 +61,9 @@ class SimulatedPollen {
     this.focus = pollenet;
   }
 
-  visible(camera) {
+  visible() {
     var tFrustumMat = new Matrix4().fromArray(
-      mat4.multiply([], camera.proj, camera.view())
+      mat4.multiply([], this.camera.proj, this.camera.view())
     );
     var frustum = new Frustum();
     frustum.setFromMatrix(tFrustumMat);
@@ -71,11 +87,13 @@ class SimulatedPollen {
 
     var position = vec2.create();
     var time = + new Date();
-    var focusMove = vec2.create();
+
+    var offset = this.camera.center;
     if (this.focus) {
-      vec2.copy(focusMove, this.focus.position);
+      var diff = vec2.sub([], this.focus.position, offset);
+      vec2.scale(diff, diff, 0.1);
+      vec2.add(offset, offset, diff);
     }
-    vec2.scale(focusMove, focusMove, -0.1);
 
     this.pollen.forEach(pollenet => {
 
@@ -87,16 +105,20 @@ class SimulatedPollen {
       var r = 1 - pollenet.particle.radius / this.maxSize;
       r = r * .5 + .5;
       pollenet.move([
-        curl[0] * .01 * r + focusMove[0],
-        curl[1] * .01 * r + focusMove[1],
+        curl[0] * .01 * r,
+        curl[1] * .01 * r,
         0
       ]);
 
-      vec2.set(position, pollenet.particle.x, pollenet.particle.y);
+      vec2.set(
+        position,
+        pollenet.particle.x - offset[0],
+        pollenet.particle.y - offset[1]
+      );
       var len = vec2.length(position);
       if (len > this.radius) {
-        pollenet.particle.x = (pollenet.particle.x / len) * -this.radius;
-        pollenet.particle.y = (pollenet.particle.y / len) * -this.radius;
+        pollenet.particle.x = (position[0] / len) * -this.radius + offset[0];
+        pollenet.particle.y = (position[1] / len) * -this.radius + offset[1];
       }
     });
 
