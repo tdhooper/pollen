@@ -1,10 +1,12 @@
-const setupPass = require('./draw/setup-pass');
+const setupPass = require('../draw/setup-pass');
+const resamplePass = require('../draw/resample-pass');
 
 
 class Compositor {
 
   constructor() {
     this.postEffects = [];
+    this.preEffects = [];
     this.buffer = regl.framebuffer({
       color: regl.texture({
         width: 1024,
@@ -14,13 +16,17 @@ class Compositor {
     });
   }
 
+  addPre(effect) {
+    this.preEffects.push(effect);
+  }
+
   addPost(effect) {
     this.postEffects.push(effect);
   }
 
   clear(context) {
     regl.clear({
-      color: [0, 0, 0, 1],
+      // color: [0, 0, 0, 1],
       depth: 1,
       framebuffer: this.buffer
     });
@@ -35,17 +41,41 @@ class Compositor {
     if (this.buffer.width !== size[0] || this.buffer.height !== size[1]) {
       this.buffer.resize(size[0], size[1]);
     }
+    this.preEffects.forEach(effect => {
+      effect.resize && effect.resize(size[0], size[1]);
+    });
+    this.postEffects.forEach(effect => {
+      effect.resize && effect.resize(size[0], size[1]);
+    });
   }
 
-  draw(context) {
+  drawPre(context) {
     this.resize(context);
 
     setupPass(() => {
-      this.postEffects.forEach(effect => {
+      this.preEffects.forEach(effect => {
         effect.draw({
           source: this.buffer
         });
       });
+    });
+  }
+
+  drawPost(context) {
+    this.resize(context);
+
+    setupPass(() => {
+      if ( ! this.postEffects.length) {
+        resamplePass({
+          source: this.buffer
+        });
+      } else {
+        this.postEffects.forEach(effect => {
+          effect.draw({
+            source: this.buffer
+          });
+        });
+      }
     });
   }
 }

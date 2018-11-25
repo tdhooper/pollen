@@ -14,8 +14,9 @@ module.exports = function() {
   const store = require('./store');
   const setLength = require('./list').setLength;
   const Stats = require('stats.js');
-  const DofPass = require('./draw/dof-pass');
-  const Compositor = require('./compositor');
+  const DofBlur = require('./process/dof-blur');
+  const BackBlur = require('./process/back-blur');
+  const Compositor = require('./process/compositor');
   const wythoffModels = require('./geometry/wythoff-models');
 
   global.TWEEN = TWEEN;
@@ -50,9 +51,11 @@ module.exports = function() {
   var wythoff = wythoffModels(poly, abc);
 
   const drawPollenet = new DrawPollenet(wythoff);
-  const dofPass = new DofPass(camera);
+  const dofBlur = new DofBlur(camera);
+  const backBlur = new BackBlur();
   const compositor = new Compositor();
-  compositor.addPost(dofPass);
+  compositor.addPre(backBlur);
+  compositor.addPost(dofBlur);
 
   var limit = 2500;
   var simulatedPollen = new SimulatedPollen(camera);
@@ -96,6 +99,8 @@ module.exports = function() {
   regl.frame((context) => {
     stats.begin();
     TWEEN.update();
+
+    compositor.drawPre(context);
     compositor.clear();
 
     camera.tick();
@@ -118,7 +123,7 @@ module.exports = function() {
       });
     });
 
-    compositor.draw(context);
+    compositor.drawPost(context);
     stats.end();
   });
 };
