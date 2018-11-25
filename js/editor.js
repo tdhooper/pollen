@@ -18,7 +18,7 @@ module.exports = function() {
   const wythoffModels = require('./geometry/wythoff-models');
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 7;
+  camera.distance = 6.5;
   quat.rotateX(camera.rotation, camera.rotation, 1);
   quat.rotateY(camera.rotation, camera.rotation, .5);
   camera.projection = (width, height) => {
@@ -79,10 +79,10 @@ module.exports = function() {
     videoSource.update();
 
     var size = Math.min(
-      context.viewportWidth / 2,
+      context.viewportWidth * (.5 + .5 * .333),
       context.viewportHeight
     );
-    var offsetX = context.viewportWidth / 2;
+    var offsetX = context.viewportWidth * .5 - size * .25;
     var offsetY = (context.viewportHeight - size) / 2;
 
     videoPreview.draw({

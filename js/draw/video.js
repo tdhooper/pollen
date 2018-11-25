@@ -30,15 +30,15 @@ const drawVideo = regl({
     }
 
     void main() {
-      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x / 2., resolution.y);
+      vec2 uv = (gl_FragCoord.xy - resolution.xy / 2.) / min(resolution.x * (.5 + .5 * .333), resolution.y);
 
       // uv = mod(uv, 1.);
 
       // gl_FragColor = vec4(1, uv, 1);
       // return;
 
-      uv.x += .25;
-      uv *= .5;
+      uv.x += .4;
+      uv *= .7;
 
       float r = PI * -1./6.;
       uv *= mat2(cos(r), sin(r), -sin(r), cos(r));
@@ -65,7 +65,7 @@ const drawVideo = regl({
       uv = g.r * aUv + g.r * bUv + g.b * cUv;
       vec3 color = texture2D(source, uv).rgb;
 
-      color *= vec3(id.r * id.g * id.b);
+      color *= id.r * id.g * id.b;
 
 
       gl_FragColor = vec4(color, 1.);
