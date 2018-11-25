@@ -18,7 +18,7 @@ module.exports = function() {
   const wythoffModels = require('./geometry/wythoff-models');
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 10;
+  camera.distance = 7;
   quat.rotateX(camera.rotation, camera.rotation, 1);
   quat.rotateY(camera.rotation, camera.rotation, .5);
   camera.projection = (width, height) => {
@@ -72,15 +72,29 @@ module.exports = function() {
     compositor.clear();
 
     // camera.rotate([.003,0.002],[0,0]);
-    // camera.tick();
+    camera.tick();
 
     mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
 
     videoSource.update();
+
+    var size = Math.min(
+      context.viewportWidth / 2,
+      context.viewportHeight
+    );
+    var offsetX = context.viewportWidth / 2;
+    var offsetY = (context.viewportHeight - size) / 2;
+
     drawPollenet.draw({
       pollenet: pollenet,
       camera: camera,
       // destination: compositor.buffer
+      viewport: {
+        x: offsetX,
+        y: offsetY,
+        width: size,
+        height: size
+      }
     });
 
     // if (source.LODs) {

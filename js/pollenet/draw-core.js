@@ -48,8 +48,8 @@ class DrawCore {
         },
         proj: function(context, props) {
           return props.camera.projection(
-            context.viewportWidth,
-            context.viewportHeight
+            props.viewport.width,
+            props.viewport.height
           );
         }
       }

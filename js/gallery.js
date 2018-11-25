@@ -108,7 +108,13 @@ module.exports = function() {
       drawPollenet.draw({
         pollenet: pollenet,
         camera: camera,
-        destination: compositor.buffer
+        destination: compositor.buffer,
+        viewport: {
+          x: 0,
+          y: 0,
+          width: context.viewportWidth,
+          height: context.viewportHeight
+        }
       });
     });
 

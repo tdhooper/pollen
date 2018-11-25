@@ -10,6 +10,12 @@ class DrawVideo extends DrawCore {
 
     var parentDraw = this.draw;
     var draw = regl({
+      viewport: {
+        x: regl.prop('viewport.x'),
+        y: regl.prop('viewport.y'),
+        width: regl.prop('viewport.width'),
+        height: regl.prop('viewport.height'),
+      },
       vert: `
         precision mediump float;
         uniform mat4 proj;
