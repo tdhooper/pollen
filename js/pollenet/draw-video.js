@@ -41,7 +41,7 @@ class DrawVideo extends DrawCore {
         float getHeight(vec2 uv) {
           vec3 color = texture2D(heightMap, uv).rgb;
           float height = 0.2126 * color.r + 0.7152 * color.g + 0.0722 * color.b;
-          height = mix(.1, 1., height);
+          height = mix(1./3., 1., height);
           return height;
         }
 
