@@ -24,7 +24,7 @@ const drawVideo = regl({
       uv.x += .5;
       uv *= .7;
 
-      float mask = ceil(.2 - length(uv));
+      float mask = sign(.2 - length(uv)) * .5 + .5;
 
       float r = PI * -1./6.;
       uv *= mat2(cos(r), sin(r), -sin(r), cos(r));
