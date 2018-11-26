@@ -30,8 +30,10 @@ module.exports = function() {
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 5;
   quat.rotateX(camera.rotation, camera.rotation, .8);
-  camera.projection = (width, height) => {
-    return mat4.perspective([],
+  camera._projection = mat4.create();
+  camera._view = mat4.create();
+  camera.projection = (matrix, width, height) => {
+    return mat4.perspective(matrix,
       Math.PI / 10,
       width / height,
       0.01,
@@ -114,10 +116,12 @@ module.exports = function() {
 
     autoCam.tick();
     camera.tick();
-    camera.proj = camera.projection(
+    camera.projection(
+      camera._projection,
       context.viewportWidth,
       context.viewportHeight
     );
+    camera.view(camera._view);
 
     simulatedPollen.visible().forEach((pollenet, i) => {
       drawPollenet.draw({

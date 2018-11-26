@@ -24,6 +24,7 @@ class SimulatedPollen {
     this.minSize = 0.1;
     this.maxSize = .7;
     this.focus = undefined;
+    this.mat4Scratch = mat4.create();
     this._tick();
   }
 
@@ -63,7 +64,7 @@ class SimulatedPollen {
 
   visible() {
     var tFrustumMat = new Matrix4().fromArray(
-      mat4.multiply([], this.camera.proj, this.camera.view())
+      mat4.multiply(this.mat4Scratch, this.camera._projection, this.camera._view)
     );
     var frustum = new Frustum();
     frustum.setFromMatrix(tFrustumMat);

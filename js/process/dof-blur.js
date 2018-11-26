@@ -1,7 +1,7 @@
 const glslify = require('glslify');
 
 
-class DofPass {
+class DofBlur {
 
   constructor(camera) {
 
@@ -105,12 +105,7 @@ class DofPass {
         cameraDistance: function(context) {
           return camera.distance;
         },
-        proj: function(context, props) {
-          return camera.projection(
-            context.viewportWidth,
-            context.viewportHeight
-          );
-        },
+        proj: camera._projection,
         time: regl.context('time')
       },
       framebuffer: regl.prop('destination')
@@ -118,4 +113,4 @@ class DofPass {
   }
 }
 
-module.exports = DofPass;
+module.exports = DofBlur;

@@ -23,8 +23,10 @@ module.exports = function() {
   camera.distance = 6.5;
   quat.rotateX(camera.rotation, camera.rotation, 1);
   quat.rotateY(camera.rotation, camera.rotation, .5);
-  camera.projection = (width, height) => {
-    return mat4.perspective([],
+  camera._projection = mat4.create();
+  camera._view = mat4.create();
+  camera.projection = (matrix, width, height) => {
+    return mat4.perspective(matrix,
       Math.PI / 10,
       width / height,
       0.01,
@@ -78,11 +80,12 @@ module.exports = function() {
   }
 
   regl.frame((context) => {
-    compositor.drawPre(context);
-    compositor.clear(false);
-
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
+    camera.view(camera._view);
+
+    compositor.drawPre(context);
+    compositor.clear(false);
 
     mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
 

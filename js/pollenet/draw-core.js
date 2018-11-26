@@ -43,11 +43,10 @@ class DrawCore {
         model: function(context, props) {
           return props.pollenet.model;
         },
-        view: function(context, props) {
-          return props.camera.view();
-        },
+        view: regl.prop('camera._view'),
         proj: function(context, props) {
           return props.camera.projection(
+            props.camera._projection,
             props.viewport.width,
             props.viewport.height
           );
