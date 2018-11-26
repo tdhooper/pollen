@@ -26,7 +26,7 @@ module.exports = function() {
   document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
-  camera.distance = 10;
+  camera.distance = 5;
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
@@ -55,7 +55,7 @@ module.exports = function() {
   const backBlur = new BackBlur();
   const compositor = new Compositor();
   compositor.addPre(backBlur);
-  // compositor.addPost(dofBlur);
+  compositor.addPost(dofBlur);
 
   var limit = 2500;
   var simulatedPollen = new SimulatedPollen(camera);
