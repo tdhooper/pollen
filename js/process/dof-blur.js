@@ -23,8 +23,8 @@ class DofPass {
 
         const float GOLDEN_ANGLE = 2.39996323; 
         const float MAX_BLUR_SIZE = 12.;
-        const float RAD_SCALE = 2.; // Smaller = nicer blur, larger = faster
-        const float ITER = 50.;
+        const float RAD_SCALE = 1.; // Smaller = nicer blur, larger = faster
+        const float ITER = 10.;
 
         float getDepth(vec2 texCoord) {
           float depth = texture2D(uDepth, texCoord).r;
@@ -58,7 +58,9 @@ class DofPass {
               break;
             }
 
-            vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * uPixelSize * radius;
+            vec2 tc = texCoord + (vec2(cos(ang), sin(ang)) + move * 200.) * uPixelSize * radius;
+            // texCoord += fbm(vec3(texCoord * 150., time * 4.)) * uPixelSize * radius * 2.;
+            // vec2 tc = texCoord;
 
             vec3 sampleColor = texture2D(uTexture, tc).rgb;
             float sampleDepth = getDepth(tc);
@@ -79,7 +81,7 @@ class DofPass {
 
         void main() {
           vec2 xy = gl_FragCoord.xy;
-          vec2 move = fbm(vec3(xy * .4, time * 4.)) * 2.5 / resolution;
+          vec2 move = fbm(vec3(xy * .2, time * 4.)) * 2.5 / resolution;
           vec2 uv = gl_FragCoord.xy / resolution;
           gl_FragColor = vec4(depthOfField(uv, move, 0., 30.), 1);
         }`),
