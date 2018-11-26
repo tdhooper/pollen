@@ -62,7 +62,7 @@ module.exports = function() {
   const backBlur = new BackBlur({
     zoom: 0,
     fade: 1.01,
-    magnitude: 2.5
+    magnitude: 5
   });
   const compositor = new Compositor();
   compositor.addPre(backBlur);

@@ -50,7 +50,7 @@ class BackBlur {
   }
 
   resize(width, height) {
-    var size = [width, height];
+    var size = [width/2, height/2];
     this.buffers.forEach(buffer => {
       if (buffer.width !== size[0] || buffer.height !== size[1]) {
         buffer.resize(size[0], size[1]);
@@ -65,7 +65,7 @@ class BackBlur {
       destination: this.buffers[0]
     });
 
-    var blurSteps = 3;
+    var blurSteps = 2;
 
     for (var i = 0; i < blurSteps; i++) {
       blurPass({
