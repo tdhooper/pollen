@@ -45,7 +45,7 @@ float fbm ( in vec3 _st) {
                     0, 0, 1
                 );
     for (int i = 0; i < NUM_OCTAVES; ++i) {
-        v += a * noise(_st);
+        v += a * (noise(_st) * 2. - 1.);
         _st = rot * _st * 2.2 + shift;
         a *= 0.5;
     }
@@ -59,10 +59,10 @@ vec2 map(vec3 st) {
     a.x = fbm(st);
     a.y = fbm(st + vec3(1));
 
-    b.x = fbm(st + 4. * vec3(a,0));
-    b.y = fbm(st + 2. * vec3(a,0));
+    b.x = fbm(st + 4. * vec3(a, 0));
+    b.y = fbm(st + 2. * vec3(a, 0));
 
-    return normalize(b - .4);
+    return normalize(b);
 }
 
 #pragma glslify: export(map)

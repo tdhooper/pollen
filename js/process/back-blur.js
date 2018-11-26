@@ -5,7 +5,8 @@ const resamplePass = require('../draw/resample-pass');
 
 class BackBlur {
 
-  constructor() {
+  constructor(config) {
+
     this.buffers = [0,0].map(_ => regl.framebuffer({
       depth: false,
       color: regl.texture({
@@ -21,21 +22,28 @@ class BackBlur {
         uniform sampler2D source;
         uniform vec2 resolution;
         uniform float time;
+        uniform float zoom;
+        uniform float fade;
+        uniform float magnitude;
 
         #pragma glslify: fbm = require('../draw/fbm.glsl')
 
         void main() {
-          vec2 xy = gl_FragCoord.xy;
-          xy += fbm(vec3(xy * .1, time * 2.)) * 2.5;
-          vec2 uv = vec2(xy / resolution.xy);
-          gl_FragColor = texture2D(source, uv) * vec4(vec3(1.01), 1);
+          vec2 xy = gl_FragCoord.xy - resolution.xy / 2.;
+          xy += fbm(vec3(xy * .1, time * 1.)) * magnitude;
+          vec2 uv = vec2(xy / resolution.xy) + .5;
+          uv -= (uv * 2. - 1.) * zoom;
+          gl_FragColor = texture2D(source, uv) * vec4(vec3(fade), 1);
         }`),
       uniforms: {
         source: regl.prop('source'),
         resolution: function(context) {
           return [context.framebufferWidth, context.framebufferHeight];
         },
-        time: regl.context('time')
+        time: regl.context('time'),
+        zoom: config.zoom,
+        fade: config.fade,
+        magnitude: config.magnitude
       },
       framebuffer: regl.prop('destination')
     });

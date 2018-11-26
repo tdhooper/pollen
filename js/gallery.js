@@ -54,7 +54,11 @@ module.exports = function() {
 
   const drawPollenet = new DrawPollenet(wythoff);
   const dofBlur = new DofBlur(camera);
-  const backBlur = new BackBlur();
+  const backBlur = new BackBlur({
+    zoom: 0,
+    fade: 1.01,
+    magnitude: 2.5
+  });
   const compositor = new Compositor();
   compositor.addPre(backBlur);
   compositor.addPost(dofBlur);

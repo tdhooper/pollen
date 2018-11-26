@@ -48,12 +48,16 @@ const drawVideo = regl({
 
       vec3 border = 1. - abs(2. * fract(g) - 1.); // distance to border
 
+      float roundBorder = smin(border.r, smin(border.g, border.b, .15), .15);
+      mask *= smoothstep(0., .02, roundBorder);
+      mask *= id.r * id.g * id.b;
+
+      if (mask == 0.) {
+        discard;
+      }
+
       uv = g.r * aUv + g.r * bUv + g.b * cUv;
       vec3 color = texture2D(source, uv).rgb;
-
-      float roundBorder = smin(border.r, smin(border.g, border.b, .15), .15);
-      color *= vec3(smoothstep(0., .02, roundBorder));
-      color *= id.r * id.g * id.b;
       color *= mask;
 
       gl_FragColor = vec4(color, 1.);

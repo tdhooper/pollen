@@ -15,6 +15,7 @@ module.exports = function() {
   const VideoPreview = require('./video-preview');
   const Compositor = require('./process/compositor');
   const DofBlur = require('./process/dof-blur');
+  const BackBlur = require('./process/back-blur');
   const wythoffModels = require('./geometry/wythoff-models');
   const control = require('./control');
 
@@ -51,9 +52,15 @@ module.exports = function() {
   const pollenet = new Pollenet(videoSource, 0);
   // const pollenetSaved = new Pollenet(source, -1);
   const videoPreview = new VideoPreview(abcUv);
-  const dofBlur = new DofBlur(camera);
   const compositor = new Compositor();
-  compositor.addPost(dofBlur);
+  // const dofBlur = new DofBlur(camera);
+  // compositor.addPost(dofBlur);
+  const backBlur = new BackBlur({
+    zoom: .005,
+    fade: 1,
+    magnitude: 10
+  });
+  compositor.addPre(backBlur);
 
   var btn = document.createElement('button');
   btn.textContent = 'Save';
@@ -71,7 +78,8 @@ module.exports = function() {
   }
 
   regl.frame((context) => {
-    compositor.clear();
+    compositor.drawPre(context);
+    compositor.clear(false);
 
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
@@ -86,10 +94,6 @@ module.exports = function() {
     );
     var offsetX = context.viewportWidth * .5 - size * .4;
     var offsetY = (context.viewportHeight - size) / 2;
-
-    videoPreview.draw({
-      source: videoSource
-    });
 
     drawPollenet.draw({
       pollenet: pollenet,
@@ -113,5 +117,8 @@ module.exports = function() {
 
     compositor.drawPost(context);
 
+    videoPreview.draw({
+      source: videoSource
+    });
   });
 };
