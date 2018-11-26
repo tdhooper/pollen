@@ -6,6 +6,7 @@ module.exports = function() {
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
   const vec3 = require('gl-matrix').vec3;
+  const quat = require('gl-matrix').quat;
   const polyhedra = require('polyhedra');
   const TWEEN = require('@tweenjs/tween.js');
   const SimulatedPollen = require('./simulated-pollen');
@@ -27,6 +28,7 @@ module.exports = function() {
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 5;
+  quat.rotateX(camera.rotation, camera.rotation, .8);
   camera.projection = (width, height) => {
     return mat4.perspective([],
       Math.PI / 10,
