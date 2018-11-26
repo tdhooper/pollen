@@ -1,10 +1,12 @@
+const glslify = require('glslify');
+
 
 class DofPass {
 
   constructor(camera) {
 
     this.draw = regl({
-      frag: `
+      frag: glslify(`
         precision mediump float;
 
         // From http://tuxedolabs.blogspot.com/2018/05/bokeh-depth-of-field-in-single-pass.html
@@ -14,6 +16,10 @@ class DofPass {
         uniform vec2 uPixelSize; //The size of a pixel: vec2(1.0/width, 1.0/height) 
         uniform float cameraDistance;
         uniform mat4 proj;
+        uniform float time;
+        uniform vec2 resolution;
+
+        #pragma glslify: fbm = require('../draw/fbm.glsl')
 
         const float GOLDEN_ANGLE = 2.39996323; 
         const float MAX_BLUR_SIZE = 12.;
@@ -35,7 +41,7 @@ class DofPass {
           //  return abs(coc) * MAX_BLUR_SIZE;
         }
 
-        vec3 depthOfField(vec2 texCoord, float focusPoint, float focusScale) {
+        vec3 depthOfField(vec2 texCoord, vec2 move, float focusPoint, float focusScale) {
           float centerDepth = getDepth(texCoord);
           float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
           vec3 color = texture2D(uTexture, texCoord).rgb;
@@ -71,12 +77,12 @@ class DofPass {
           return color /= tot;
         }
 
-        uniform vec2 resolution;
-
         void main() {
+          vec2 xy = gl_FragCoord.xy;
+          vec2 move = fbm(vec3(xy * .4, time * 4.)) * 2.5 / resolution;
           vec2 uv = gl_FragCoord.xy / resolution;
-          gl_FragColor = vec4(depthOfField(uv, -.2, 8.), 1);
-        }`,
+          gl_FragColor = vec4(depthOfField(uv, move, 0., 30.), 1);
+        }`),
       uniforms: {
         uTexture: regl.prop('source'),
         uDepth: function(context, props) {
@@ -102,7 +108,8 @@ class DofPass {
             context.viewportWidth,
             context.viewportHeight
           );
-        }
+        },
+        time: regl.context('time')
       },
       framebuffer: regl.prop('destination')
     });
