@@ -19,17 +19,17 @@ class AutoCam {
       this.states = [
         t => ({
           center: [0,0,0],
-          distance: 2,
+          distance: 1.5,
           rotation: quat.fromEuler(
             quatScratch0,
-            55,
+            65,
             20,
             (Math.sin(t * .0002) * .5 + .5) * 180 + 90
           )
         }),
         t => ({
           center: [0,0,0],
-          distance: 10,
+          distance: 15,
           rotation: quat.fromEuler(quatScratch1, 0, 0, 180)
         })
       ];
