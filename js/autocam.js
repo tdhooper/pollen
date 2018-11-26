@@ -1,44 +1,48 @@
 const vec2 = require('gl-matrix').vec2;
 const quat = require('gl-matrix').quat;
-const quat2 = require('gl-matrix').quat2;
 const lerp = require('lerp');
+const smoothstep = require('smoothstep');
+
 
 var mod = function(t, n) {
-    return ((t%n)+n)%n;
+  return ((t%n)+n)%n;
 };
+
+
+const FOCUS_DWELL_TIME = 15000;
+const FOCUS_TRANSITION_TIME = 3000;
+
 
 class AutoCam {
 
     constructor(camera) {
       this.camera = camera;
-      this.vec2scratch0 = vec2.create();
 
-      var quatScratch0 = quat.create();
-      var quatScratch1 = quat.create();
+      this.targetPosition = vec2.create();
+      this.targetRotation = quat.create();
+      this.targetDistance = 0;
+
+      this.focusPosition = vec2.create();
+      this.focusRotation = quat.create();
+      this.focusDistance = 0;
+
+      this.zoomRotation = quat.create();
 
       this.states = [
-        t => ({
-          center: [0,0,0],
+        {
           distance: 1.5,
-          rotation: quat.fromEuler(
-            quatScratch0,
-            65,
-            20,
-            (Math.sin(t * .0002) * .5 + .5) * 180 + 90
-          )
-        }),
-        t => ({
-          center: [0,0,0],
+          rotation: this.zoomRotation
+        },
+        {
           distance: 15,
-          rotation: quat.fromEuler(quatScratch1, 0, 0, 180)
-        })
+          rotation: quat.fromEuler([], 0, 0, 180)
+        }
       ];
-    }
 
-    lerpStates(r, a, b, t) {
-      vec2.lerp(r.center, a.center, b.center, t);
-      r.distance = lerp(a.distance, b.distance, t);
-      quat.slerp(r.rotation, a.rotation, b.rotation, t);
+      this.lastTime = Date.now();
+      this.idleStateTime = 0;
+      this.wasFocussed = false;
+      this.focusTime = 0;
     }
 
     focusOn(pollenet) {
@@ -47,28 +51,73 @@ class AutoCam {
     }
 
     tick() {
-      var t = Date.now();
-      var stateA = this.states[0](t);
-      var stateB = this.states[1](t);
-      var blend = Math.sin(t * .0001) * .5 + .5;
-      // blend = 0.;
-      this.lerpStates(this.camera, stateA, stateB, blend);
 
-      // quat.fromEuler(this.camera.rotation, 90,0,0);
+      var time = Date.now();
+      var elapsed = time - this.lastTime;
+      this.lastTime = time;
 
-      /*
-      var diff = this.vec2scratch0;
-      var center = this.camera.center;
+
+      // Manage focus
+
+      var focusElapsed = time - this.focusTime;
+      var focusStart = smoothstep(
+        0,
+        FOCUS_TRANSITION_TIME,
+        focusElapsed
+      );
+      var focusEnd = smoothstep(
+        FOCUS_TRANSITION_TIME + FOCUS_DWELL_TIME,
+        FOCUS_TRANSITION_TIME * 2 + FOCUS_DWELL_TIME,
+        focusElapsed
+      );
+      var focusBlend = focusStart - focusEnd;
+
+      var isFocussed = focusStart && ! focusEnd;
+      if (this.wasFocussed && ! isFocussed) {
+        this.idleStateTime = 0; // Reset idle to zoomed in state
+      }
+      this.wasFocussed = isFocussed;
+
+
+      // Setup idle state
+
+      quat.fromEuler(
+        this.zoomRotation, 65, 20,
+        (Math.sin(time * .0002) * .5 + .5) * 180 + 90
+      );
+
+      this.idleStateTime += elapsed;
+
+      var stateA = this.states[0];
+      var stateB = this.states[1];
+      var blend = Math.sin(Math.PI / -2 + this.idleStateTime * .0001) * .5 + .5;
+      quat.slerp(this.targetRotation, stateA.rotation, stateB.rotation, blend);
+      this.targetDistance = lerp(stateA.distance, stateB.distance, blend);
+
+
+      // Setup focus state
 
       if (this.focus) {
+        this.focusDistance = this.focus.particle.radius * 10;
+        quat.copy(this.focusRotation, this.zoomRotation);
+        vec2.copy(this.focusPosition, this.focus.position);
+      }
 
-        vec2.sub(diff, this.focus.position, center);
-        vec2.scale(diff, diff, .1);
-        vec2.add(center, center, diff);
 
-        var dist = this.focus.particle.radius * 10.;
-        this.camera.distance += (dist - this.camera.distance) * .1;
-      }*/
+      // Apply focus state
+
+      if (focusBlend > 0) {
+        vec2.lerp(this.targetPosition, this.targetPosition, this.focusPosition, focusBlend);
+        quat.slerp(this.targetRotation, this.targetRotation, this.focusRotation, focusBlend);
+        this.targetDistance = lerp(this.targetDistance, this.focusDistance, focusBlend);
+      }
+
+
+      // Increment camera towards state
+
+      vec2.lerp(this.camera.center, this.camera.center, this.targetPosition, .1);
+      quat.slerp(this.camera.rotation, this.camera.rotation, this.targetRotation, .1);
+      this.camera.distance = lerp(this.camera.distance, this.targetDistance, .1);
     }
 }
 
