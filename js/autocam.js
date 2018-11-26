@@ -10,6 +10,7 @@ var mod = function(t, n) {
 
 
 const FOCUS_DWELL_TIME = 15000;
+const FOCUS_POSITION_DWELL_TIME = 30000;
 const FOCUS_TRANSITION_TIME = 3000;
 
 
@@ -71,6 +72,11 @@ class AutoCam {
         focusElapsed
       );
       var focusBlend = focusStart - focusEnd;
+      var focusPositionBlend = focusStart - smoothstep(
+        FOCUS_TRANSITION_TIME + FOCUS_POSITION_DWELL_TIME,
+        FOCUS_TRANSITION_TIME * 2 + FOCUS_POSITION_DWELL_TIME,
+        focusElapsed
+      );
 
       var isFocussed = focusStart && ! focusEnd;
       if (this.wasFocussed && ! isFocussed) {
@@ -107,11 +113,13 @@ class AutoCam {
       // Apply focus state
 
       if (focusBlend > 0) {
-        vec2.lerp(this.targetPosition, this.targetPosition, this.focusPosition, focusBlend);
         quat.slerp(this.targetRotation, this.targetRotation, this.focusRotation, focusBlend);
         this.targetDistance = lerp(this.targetDistance, this.focusDistance, focusBlend);
       }
 
+      if (focusPositionBlend > 0) {
+        vec2.lerp(this.targetPosition, this.targetPosition, this.focusPosition, focusPositionBlend);
+      }
 
       // Increment camera towards state
 
