@@ -9,6 +9,7 @@ module.exports = function() {
   const quat = require('gl-matrix').quat;
   const polyhedra = require('polyhedra');
   const TWEEN = require('@tweenjs/tween.js');
+  const AutoCam = require('./autocam');
   const SimulatedPollen = require('./simulated-pollen');
   const DrawPollenet = require('./pollenet/draw-saved');
   const Source = require('./source');
@@ -37,6 +38,8 @@ module.exports = function() {
       1000
     );
   };
+
+  var autoCam = new AutoCam(camera);
 
   var abcUv = [
     [0, 0],
@@ -98,7 +101,7 @@ module.exports = function() {
       simulatedPollen.add(source);
     } else {
       var pollenet = simulatedPollen.replaceOldest(source);
-      simulatedPollen.focusOn(pollenet);
+      autoCam.focusOn(pollenet);
     }
   }
 
@@ -109,6 +112,7 @@ module.exports = function() {
     compositor.drawPre(context);
     compositor.clear(false);
 
+    autoCam.tick();
     camera.tick();
     camera.proj = camera.projection(
       context.viewportWidth,
