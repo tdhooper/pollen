@@ -3,8 +3,8 @@ To run:
 
 1. Install and start:
 
-    $ npm install
-    $ npm start
+        $ npm install
+        $ npm start
 
 2. Open the link it prints in one browser window
 3. Open the link but with `?gallery` appended in another browser window
