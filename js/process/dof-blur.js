@@ -7,6 +7,8 @@ class DofPass {
       frag: `
         precision mediump float;
 
+        // From http://tuxedolabs.blogspot.com/2018/05/bokeh-depth-of-field-in-single-pass.html
+
         uniform sampler2D uTexture; //Image to be processed 
         uniform sampler2D uDepth; //Linear depth, where 1.0 == far plane 
         uniform vec2 uPixelSize; //The size of a pixel: vec2(1.0/width, 1.0/height) 
@@ -15,6 +17,7 @@ class DofPass {
 
         const float GOLDEN_ANGLE = 2.39996323; 
         const float MAX_BLUR_SIZE = 12.;
+        const float RAD_SCALE = 2.; // Smaller = nicer blur, larger = faster
         const float ITER = 50.;
 
         float getDepth(vec2 texCoord) {
@@ -25,38 +28,46 @@ class DofPass {
           return depth;
         }
 
-        float getBlurSize(float depth, float focusPoint, float focusScale)
-        {
+        float getBlurSize(float depth, float focusPoint, float focusScale) {
           float coc = clamp((depth - focusPoint) / focusScale, -1., 1.);
           //return abs(coc);
           return abs(coc) * MAX_BLUR_SIZE / cameraDistance * 40.;
+          //  return abs(coc) * MAX_BLUR_SIZE;
         }
 
-        vec3 depthOfField(vec2 texCoord, float focusPoint, float focusScale)
-        {
+        vec3 depthOfField(vec2 texCoord, float focusPoint, float focusScale) {
           float centerDepth = getDepth(texCoord);
           float centerSize = getBlurSize(centerDepth, focusPoint, focusScale);
-          //return vec3(centerSize);
           vec3 color = texture2D(uTexture, texCoord).rgb;
-          // return color;
-          float tot = 1.;
-          float radius;
-          float ang = 0.;
-          float SQ_ITER = sqrt(ITER);
 
+          float tot = 1.;
+
+          float radius = RAD_SCALE;
+          float ang = 0.;
+
+          //for (float ang = 0.; radius < MAX_BLUR_SIZE; ang += GOLDEN_ANGLE) {
           for (float i = 0.; i < ITER; i++) {
-            ang += GOLDEN_ANGLE;
-            radius = sqrt(i) / SQ_ITER * MAX_BLUR_SIZE;
+
+            if (radius >= MAX_BLUR_SIZE) {
+              break;
+            }
+
             vec2 tc = texCoord + vec2(cos(ang), sin(ang)) * uPixelSize * radius;
+
             vec3 sampleColor = texture2D(uTexture, tc).rgb;
             float sampleDepth = getDepth(tc);
             float sampleSize = getBlurSize(sampleDepth, focusPoint, focusScale);
+
             if (sampleDepth > centerDepth)
               sampleSize = clamp(sampleSize, 0.0, centerSize*2.0);
+
             float m = smoothstep(radius-0.5, radius+0.5, sampleSize);
             color += mix(color/tot, sampleColor, m);
             tot += 1.0;
+            radius += RAD_SCALE/radius;
+            ang += GOLDEN_ANGLE;
           }
+
           return color /= tot;
         }
 
