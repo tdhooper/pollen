@@ -13,8 +13,8 @@ module.exports = function() {
   const VideoSource = require('./video-source');
   const Source = require('./source');
   const VideoPreview = require('./video-preview');
-  const Compositor = require('./compositor');
-  const DofPass = require('./draw/dof-pass');
+  const Compositor = require('./process/compositor');
+  const DofBlur = require('./process/dof-blur');
   const wythoffModels = require('./geometry/wythoff-models');
   const control = require('./control');
 
@@ -51,9 +51,9 @@ module.exports = function() {
   const pollenet = new Pollenet(videoSource, 0);
   // const pollenetSaved = new Pollenet(source, -1);
   const videoPreview = new VideoPreview(abcUv);
-  const dofPass = new DofPass(camera);
+  const dofBlur = new DofBlur(camera);
   const compositor = new Compositor();
-  compositor.addPost(dofPass);
+  compositor.addPost(dofBlur);
 
   var btn = document.createElement('button');
   btn.textContent = 'Save';
@@ -94,7 +94,7 @@ module.exports = function() {
     drawPollenet.draw({
       pollenet: pollenet,
       camera: camera,
-      // destination: compositor.buffer
+      destination: compositor.buffer,
       viewport: {
         x: offsetX,
         y: offsetY,
@@ -111,7 +111,7 @@ module.exports = function() {
     //   });
     // }
 
-    // compositor.draw(context);
+    compositor.drawPost(context);
 
   });
 };

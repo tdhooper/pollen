@@ -101,7 +101,7 @@ module.exports = function() {
     TWEEN.update();
 
     compositor.drawPre(context);
-    compositor.clear();
+    compositor.clear(false);
 
     camera.tick();
     camera.proj = camera.projection(

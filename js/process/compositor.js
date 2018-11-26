@@ -24,12 +24,19 @@ class Compositor {
     this.postEffects.push(effect);
   }
 
-  clear(context) {
-    regl.clear({
-      // color: [.6, .6, .6, 1],
-      depth: 1,
-      framebuffer: this.buffer
-    });
+  clear(color = true) {
+    if (color) {
+      regl.clear({
+        color: [0, 0, 0, 1],
+        depth: 1,
+        framebuffer: this.buffer
+      });
+    } else {
+      regl.clear({
+        depth: 1,
+        framebuffer: this.buffer
+      });
+    }
     regl.clear({
       color: [0, 0, 0, 1],
       depth: 1,
