@@ -15,17 +15,12 @@ module.exports = function() {
   const Source = require('./source');
   const store = require('./store');
   const setLength = require('./list').setLength;
-  const Stats = require('stats.js');
   const DofBlur = require('./process/dof-blur');
   const BackBlur = require('./process/back-blur');
   const Compositor = require('./process/compositor');
   const wythoffModels = require('./geometry/wythoff-models');
 
   global.TWEEN = TWEEN;
-
-  const stats = new Stats();
-  stats.showPanel(0);
-  document.body.appendChild(stats.dom);
 
   const camera = createCamera(regl._gl.canvas);
   camera.distance = 5;
@@ -108,7 +103,6 @@ module.exports = function() {
   }
 
   regl.frame((context) => {
-    stats.begin();
     TWEEN.update();
 
     compositor.drawPre(context);
@@ -138,6 +132,5 @@ module.exports = function() {
     });
 
     compositor.drawPost(context);
-    stats.end();
   });
 };
