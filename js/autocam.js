@@ -97,6 +97,7 @@ class AutoCam {
       var stateA = this.states[0];
       var stateB = this.states[1];
       var blend = Math.sin(Math.PI / -2 + this.idleStateTime * .0001) * .5 + .5;
+      blend = 1;
       quat.slerp(this.targetRotation, stateA.rotation, stateB.rotation, blend);
       this.targetDistance = lerp(stateA.distance, stateB.distance, blend);
 
