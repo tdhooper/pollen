@@ -117,19 +117,40 @@ module.exports = function() {
     );
     camera.view(camera._view);
 
-    simulatedPollen.visible().forEach((pollenet, i) => {
-      drawPollenet.draw({
-        pollenet: pollenet,
-        camera: camera,
-        destination: compositor.buffer,
-        viewport: {
-          x: 0,
-          y: 0,
-          width: context.viewportWidth,
-          height: context.viewportHeight
-        }
+    var visible = simulatedPollen.visible();
+    if (visible.length) {
+      compositor.buffer.use(function() {
+        drawPollenet.setup({
+          camera: camera,
+          viewport: {
+            x: 0,
+            y: 0,
+            width: context.viewportWidth,
+            height: context.viewportHeight
+          }
+        }, function(context) {
+          var props = visible.map((pollenet, i) => {
+            var lod = drawPollenet.pickLOD(
+              pollenet.source.LODs,
+              pollenet.model,
+              camera._view,
+              context.viewportWidth,
+              context.viewportHeight
+            );
+            return {
+              positions: lod.mesh.positions,
+              uvs: lod.mesh.uvs,
+              cells: lod.mesh.cells,
+              lodLevel: lod.level,
+              model: pollenet.model,
+              image: pollenet.image,
+              normal: pollenet.normal
+            };
+          });
+          drawPollenet.draw(props);
+        });
       });
-    });
+    }
 
     compositor.drawPost(context);
   });

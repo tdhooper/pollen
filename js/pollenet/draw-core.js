@@ -34,32 +34,21 @@ class DrawCore {
       return i;
     });
 
-    var pickLOD = this.pickLOD();
+    this.pickLOD = this.pickLOD();
     var normals = this.calcModelViewNormals(models);
     var iNormalRows = this.extractModelViewNormalRows(normals);
 
-    var buildContext = regl({
-      context: {
-        model: function(context, props) {
-          return props.pollenet.model;
-        },
-        view: regl.prop('camera._view'),
-        proj: function(context, props) {
-          return props.camera.projection(
-            props.camera._projection,
-            props.viewport.width,
-            props.viewport.height
-          );
-        }
-      }
-    });
-
-    var draw = regl({
+    this.setup = regl({
       cull: {
         enable: true,
         face: 'back'
       },
-      // primitive: 'lines',
+      viewport: {
+        x: regl.prop('viewport.x'),
+        y: regl.prop('viewport.y'),
+        width: regl.prop('viewport.width'),
+        height: regl.prop('viewport.height'),
+      },
       frag: glslify`
         #extension GL_OES_standard_derivatives : enable
 
@@ -109,19 +98,16 @@ class DrawCore {
             // gl_FragColor = vec4(lodColor, 1);
         }`,
       context: {
-        lod: (context, props) => {
-          return pickLOD(
-            props.pollenet.source.LODs,
-            context.model,
-            context.view,
-            context.viewportWidth,
-            context.viewportHeight
+        view: regl.prop('camera._view'),
+        proj: function(context, props) {
+          return props.camera.projection(
+            props.camera._projection,
+            props.viewport.width,
+            props.viewport.height
           );
         }
       },
       attributes: {
-        position: regl.context('lod.mesh.positions'),
-        uv: regl.context('lod.mesh.uvs'),
         instance: {
           buffer: instances,
           divisor: 1
@@ -155,31 +141,33 @@ class DrawCore {
           divisor: 1
         }
       },
-      elements: regl.context('lod.mesh.cells'),
       instances: N,
       uniforms: {
-        model: regl.context('model'),
         view: regl.context('view'),
         proj: regl.context('proj'),
+      }
+    });
+
+    this.draw = regl({
+      attributes: {
+        position: regl.prop('positions'),
+        uv: regl.prop('uvs'),
+      },
+      elements: regl.prop('cells'),
+      uniforms: {
+        model: regl.prop('model'),
         normalMatrix: function(context, props) {
           var normal = mat3.create();
-          mat3.fromMat4(normal, context.model);
+          mat3.fromMat4(normal, props.model);
           mat3.invert(normal, normal);
           mat3.transpose(normal, normal);
           return normal;
         },
-        image: regl.prop('pollenet.image'),
-        normalMap: regl.prop('pollenet.normal'),
-        lodLevel: regl.context('lod.level')
-      },
-      framebuffer: regl.prop('destination')
+        image: regl.prop('image'),
+        normalMap: regl.prop('normal'),
+        lodLevel: regl.prop('lodLevel')
+      }
     });
-
-    this.draw = function(props, callback) {
-      buildContext(props, function() {
-        draw(props, callback);
-      });
-    };
   }
 
   pickLOD() {

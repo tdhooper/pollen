@@ -7,8 +7,7 @@ class DrawSaved extends DrawCore {
 
     super(wythoff);
 
-    var parentDraw = this.draw;
-    var draw = regl({
+    var setup = regl({
       vert: `
         precision mediump float;
         uniform mat4 proj;
@@ -17,7 +16,6 @@ class DrawSaved extends DrawCore {
         uniform mat3 normalMatrix;
         attribute vec3 position;
         attribute vec2 uv;
-        attribute vec3 normal;
         attribute float instance;
         attribute vec4 iModelRow0;
         attribute vec4 iModelRow1;
@@ -57,14 +55,12 @@ class DrawSaved extends DrawCore {
           pos4 = iModel * pos4;
 
           gl_Position = proj * view * model * pos4;
-        }`,
-      attributes: {
-        normal: regl.context('mesh.normals')
-      }
+        }`
     });
 
-    this.draw = function(props) {
-      parentDraw(props, draw);
+    var parentSetup = this.setup;
+    this.setup = function(props, callback) {
+      parentSetup(props, setup.bind(this, props, callback));
     };
   }
 }

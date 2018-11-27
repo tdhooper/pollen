@@ -8,14 +8,7 @@ class DrawVideo extends DrawCore {
 
     super(wythoff);
 
-    var parentDraw = this.draw;
-    var draw = regl({
-      viewport: {
-        x: regl.prop('viewport.x'),
-        y: regl.prop('viewport.y'),
-        width: regl.prop('viewport.width'),
-        height: regl.prop('viewport.height'),
-      },
+    var setup = regl({
       vert: `
         precision mediump float;
         uniform mat4 proj;
@@ -76,15 +69,22 @@ class DrawVideo extends DrawCore {
 
           gl_Position = proj * view * model * pos4;
         }`,
+    });
+
+    var parentSetup = this.setup;
+    this.setup = function(props, callback) {
+      parentSetup(props, setup.bind(this, props, callback));
+    };
+
+    var draw = regl({
       uniforms: {
-        heightMap: regl.prop('pollenet.height')
+        heightMap: regl.prop('height')
       }
     });
 
+    var parentDraw = this.draw;
     this.draw = function(props) {
-      parentDraw(props, context => {
-        draw(props);
-      });
+      parentDraw(props, draw.bind(this, props));
     };
   }
 }
