@@ -14,10 +14,10 @@ const SimulatedPollenet = require('./simulated-pollenet');
 
 class SimulatedPollen {
 
-  constructor(camera) {
+  constructor(camera, radius) {
     this.camera = camera;
     this.pollen = [];
-    this.radius = 10;
+    this.radius = radius;
     this.collisions = new Collisions();
     this.result = this.collisions.createResult();
     this.noise = new Noise(Math.random());

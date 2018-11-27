@@ -63,8 +63,9 @@ module.exports = function() {
   compositor.addPre(backBlur);
   compositor.addPost(dofBlur);
 
-  var limit = 2500;
-  var simulatedPollen = new SimulatedPollen(camera);
+  var limit = Math.round(2500 * .6);
+  var radius = 7;
+  var simulatedPollen = new SimulatedPollen(camera, radius);
 
   store.saved().then(saved => {
     saved = saved.slice(0, limit);
