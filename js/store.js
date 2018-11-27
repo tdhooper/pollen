@@ -31,6 +31,11 @@ function restore(name) {
       urlToImg('/saved/' + obj.normal),
       urlToImg('/saved/' + obj.image),
     ]).then(images => {
+      obj.LODs = obj.LODs.map(mesh => ({
+        positions: regl.buffer(mesh.positions),
+        uvs: regl.buffer(mesh.uvs),
+        cells: regl.elements(mesh.cells)
+      }));
       obj.normal = images[0];
       obj.image = images[1];
       return obj;

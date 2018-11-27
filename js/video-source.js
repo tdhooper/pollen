@@ -23,6 +23,11 @@ class VideoSource extends Source {
     this.applyHeightMap = applyHeightMap(wythoff, LODs);
 
     this.LODs = [LODs[5]];
+    this.LODs = this.LODs.map(mesh => ({
+      positions: regl.buffer(mesh.positions),
+      uvs: regl.buffer(mesh.uvs),
+      cells: regl.elements(mesh.cells)
+    }));
 
     this.iModel = wythoff.models[0].matrix;
     this.iModelInv = mat4.invert([], this.iModel);
