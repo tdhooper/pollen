@@ -25,6 +25,7 @@ class SimulatedPollen {
     this.maxSize = .7;
     this.focus = undefined;
     this.visible = this.visible();
+    this.tick = this.tick();
   }
 
   add(source) {
@@ -89,16 +90,10 @@ class SimulatedPollen {
   }
 
   tick() {
+    var position = vec2.create();
+    var offset;
 
-    this.vec2scratch0 = this.vec2scratch0 || vec2.create();
-
-    var time = + new Date();
-
-    var offset = this.camera.center;
-    var position = this.vec2scratch0;
-
-    this.pollen.forEach(pollenet => {
-
+    var applyNoise = function() {
       var curl = this.curlNoise(
         pollenet.particle.x * .2,
         pollenet.particle.y * .2,
@@ -122,24 +117,28 @@ class SimulatedPollen {
         pollenet.particle.x = (position[0] / len) * -this.radius + offset[0];
         pollenet.particle.y = (position[1] / len) * -this.radius + offset[1];
       }
-    });
+    }.bind(this);
 
-    this.collisions.update();
-
-    this.pollen.forEach(pollenet => {
+    var collide = function(pollenet) {
       const particle = pollenet.particle;
       const potentials = particle.potentials();
 
       for (const potential of potentials) {
         if (particle.collides(potential, this.result)) {
-          pollenet.move([
+          pollenet.move(
             -this.result.overlap * this.result.overlap_x * .1,
-            -this.result.overlap * this.result.overlap_y * .1,
-            0
-          ]);
+            -this.result.overlap * this.result.overlap_y * .1
+          );
         }
       }
-    });
+    };
+
+    return function() {
+      offset = this.camera.center;
+      this.pollen.forEach(applyNoise);
+      this.collisions.update();
+      this.pollen.forEach(collide);
+    };
   }
 
   randomPoint(radius) {
