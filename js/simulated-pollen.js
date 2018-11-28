@@ -25,7 +25,6 @@ class SimulatedPollen {
     this.maxSize = .7;
     this.focus = undefined;
     this.mat4Scratch = mat4.create();
-    this._tick();
   }
 
   add(source) {
@@ -84,7 +83,7 @@ class SimulatedPollen {
     return v;
   }
 
-  tick(dt) {
+  tick() {
 
     this.vec2scratch0 = this.vec2scratch0 || vec2.create();
 
@@ -136,13 +135,6 @@ class SimulatedPollen {
         }
       }
     });
-  }
-
-  _tick(last) {
-    last = last || performance.now();
-    var now = performance.now();
-    this.tick(now - last);
-    requestAnimationFrame(this._tick.bind(this, now));
   }
 
   randomPoint(radius) {

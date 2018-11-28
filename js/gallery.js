@@ -105,6 +105,7 @@ module.exports = function() {
 
   regl.frame((context) => {
     TWEEN.update();
+    simulatedPollen.tick();
 
     compositor.drawPre(context);
     compositor.clear(false);
