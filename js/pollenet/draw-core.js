@@ -38,6 +38,8 @@ class DrawCore {
     var normals = this.calcModelViewNormals(models);
     var iNormalRows = this.extractModelViewNormalRows(normals);
 
+    var normalMatrix = mat3.create();
+
     this.setup = regl({
       cull: {
         enable: true,
@@ -157,11 +159,10 @@ class DrawCore {
       uniforms: {
         model: regl.prop('model'),
         normalMatrix: function(context, props) {
-          var normal = mat3.create();
-          mat3.fromMat4(normal, props.model);
-          mat3.invert(normal, normal);
-          mat3.transpose(normal, normal);
-          return normal;
+          mat3.fromMat4(normalMatrix, props.model);
+          mat3.invert(normalMatrix, normalMatrix);
+          mat3.transpose(normalMatrix, normalMatrix);
+          return normalMatrix;
         },
         image: regl.prop('image'),
         normalMap: regl.prop('normal'),
@@ -209,10 +210,13 @@ class DrawCore {
 
     var modelView = mat4.create();
     var iModelView = mat4.create();
+    var normals = models.map(_ => {
+      return mat3.create();
+    });
 
     return models.map((w, i) => {
       var model = w.matrix;
-      var normal = mat3.create();
+      var normal = normals[i];
       mat3.fromMat4(normal, model);
       mat3.invert(normal, normal);
       mat3.transpose(normal, normal);
