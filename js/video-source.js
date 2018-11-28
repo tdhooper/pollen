@@ -75,6 +75,21 @@ class VideoSource extends Source {
     mat3.invert(videoMat, videoMat);
 
     this.videoMat = videoMat;
+
+    var blurSteps = 20;
+    this.blurProps = [];
+    for (var i = 0; i < blurSteps; i++) {
+      this.blurProps.push({
+        source: this.blurBuffers[0],
+        destination: this.blurBuffers[1],
+        direction: [1,0]
+      });
+      this.blurProps.push({
+        source: this.blurBuffers[1],
+        destination: this.blurBuffers[0],
+        direction: [0,1]
+      });
+    }
   }
 
   get height() {
@@ -108,8 +123,6 @@ class VideoSource extends Source {
 
     this.webcam.update();
 
-    var blurSteps = 20;
-
     setupPass(() => {
 
       // Crop the section of video we want to use
@@ -124,18 +137,8 @@ class VideoSource extends Source {
         source: this.imageBuffer,
         destination: this.blurBuffers[0]
       });
-      for (var i = 0; i < blurSteps; i++) {
-        blurPass({
-          source: this.blurBuffers[0],
-          destination: this.blurBuffers[1],
-          direction: [1,0]
-        });
-        blurPass({
-          source: this.blurBuffers[1],
-          destination: this.blurBuffers[0],
-          direction: [0,1]
-        });
-      }
+
+      blurPass(this.blurProps);
 
       resamplePass({
         source: this.blurBuffers[0],
