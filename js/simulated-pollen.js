@@ -24,7 +24,7 @@ class SimulatedPollen {
     this.minSize = 0.1;
     this.maxSize = .7;
     this.focus = undefined;
-    this.mat4Scratch = mat4.create();
+    this.visible = this.visible();
   }
 
   add(source) {
@@ -62,25 +62,30 @@ class SimulatedPollen {
   }
 
   visible() {
-    var tFrustumMat = new Matrix4().fromArray(
-      mat4.multiply(this.mat4Scratch, this.camera._projection, this.camera._view)
-    );
     var frustum = new Frustum();
-    frustum.setFromMatrix(tFrustumMat);
+    var sphere = new Sphere();
+    var tFrustumMat = new Matrix4();
+    var mat4Scratch = mat4.create();
     var point = new Vector3();
-    var v = this.pollen.filter(pollenet => {
-      var a = 0;
-      frustum.planes.forEach(plane => {
+
+    var filterVisible = function(pollenet) {
+      return ! frustum.planes.some(plane => {
         point.fromArray(pollenet.position);
-        var sphere = new Sphere(point, -pollenet.particle.radius);
-        var dist = plane.distanceToSphere(sphere);
-        if (dist < 0) {
-          a = 1;
-        }
+        sphere.center = point;
+        sphere.radius = -pollenet.particle.radius;
+        return plane.distanceToSphere(sphere) < 0;
       });
-      return a == 0;
-    });
-    return v;
+    };
+
+    return function() {
+
+      tFrustumMat.fromArray(
+        mat4.multiply(mat4Scratch, this.camera._projection, this.camera._view)
+      );
+      frustum.setFromMatrix(tFrustumMat);
+
+      return this.pollen.filter(filterVisible);
+    };
   }
 
   tick() {
