@@ -5,6 +5,7 @@ module.exports = function() {
 
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;
+  const vec3 = require('gl-matrix').vec3;
   const quat = require('gl-matrix').quat;
   const polyhedra = require('polyhedra');
   const Pollenet = require('./pollenet');
@@ -79,6 +80,8 @@ module.exports = function() {
     });
   }
 
+  var axis = vec3.fromValues(3, 0, 2);
+
   regl.frame((context) => {
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
@@ -87,7 +90,7 @@ module.exports = function() {
     compositor.drawPre(context);
     compositor.clear(false);
 
-    mat4.rotate(pollenet._model, pollenet._model, .005, [3,0,2]);
+    mat4.fromRotation(pollenet._model, context.time / 2, axis);
 
     videoSource.update();
 
