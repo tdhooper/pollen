@@ -19,7 +19,6 @@ class SimulatedPollen {
     this.pollen = [];
     this.radius = radius;
     this.collisions = new Collisions();
-    this.result = this.collisions.createResult();
     this.noise = new Noise(Math.random());
     this.minSize = 0.1;
     this.maxSize = .7;
@@ -92,8 +91,10 @@ class SimulatedPollen {
   tick() {
     var position = vec2.create();
     var offset;
+    var result = this.collisions.createResult();
 
-    var applyNoise = function() {
+    var applyNoise = function(pollenet) {
+      var time = Date.now();
       var curl = this.curlNoise(
         pollenet.particle.x * .2,
         pollenet.particle.y * .2,
@@ -101,11 +102,10 @@ class SimulatedPollen {
       );
       var r = 1 - pollenet.particle.radius / this.maxSize;
       r = r * .5 + .5;
-      pollenet.move([
+      pollenet.move(
         curl[0] * .01 * r,
-        curl[1] * .01 * r,
-        0
-      ]);
+        curl[1] * .01 * r
+      );
 
       vec2.set(
         position,
@@ -124,10 +124,10 @@ class SimulatedPollen {
       const potentials = particle.potentials();
 
       for (const potential of potentials) {
-        if (particle.collides(potential, this.result)) {
+        if (particle.collides(potential, result)) {
           pollenet.move(
-            -this.result.overlap * this.result.overlap_x * .1,
-            -this.result.overlap * this.result.overlap_y * .1
+            -result.overlap * result.overlap_x * .1,
+            -result.overlap * result.overlap_y * .1
           );
         }
       }

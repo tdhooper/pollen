@@ -18,22 +18,24 @@ class SimulatedPollenet extends Pollenet {
     return [this.particle.x, this.particle.y, 0];
   }
 
-  move(x, y) {
+  move() {
 
     var axis = vec3.create();
-    var y = vec3.fromValues(0, 0, 1);
+    var dir = vec3.create();
+    var vecy = vec3.fromValues(0, 0, 1);
     var rot = quat.create();
 
     return function(x, y) {
+      vec3.set(dir, x, y, 0);
       this.particle.x += x;
       this.particle.y += y;
-      vec3.cross(axis, dir, y);
+      vec3.cross(axis, dir, vecy);
       vec3.normalize(axis, axis);
       var angle = vec3.length(dir) * -2;
       quat.setAxisAngle(rot, axis, angle);
       quat.multiply(this.rotation, this.rotation, rot); // local
       // quat.multiply(this.rotation, rot, this.rotation); // world
-    }
+    };
   }
 
   get model() {
