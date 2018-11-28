@@ -103,6 +103,41 @@ module.exports = function() {
     }
   }
 
+  var drawPollen2 = function(context) {
+    var props = context.visible.map((pollenet, i) => {
+      var lod = drawPollenet.pickLOD(
+        pollenet.source.LODs,
+        pollenet.model,
+        camera._view,
+        context.viewportWidth,
+        context.viewportHeight
+      );
+      return {
+        positions: lod.mesh.positions,
+        uvs: lod.mesh.uvs,
+        cells: lod.mesh.cells,
+        lodLevel: lod.level,
+        model: pollenet.model,
+        image: pollenet.image,
+        normal: pollenet.normal
+      };
+    });
+    drawPollenet.draw(props);
+  };
+
+  var drawPollen = function(context) {
+    drawPollenet.setup({
+      camera: camera,
+      viewport: {
+        x: 0,
+        y: 0,
+        width: context.viewportWidth,
+        height: context.viewportHeight
+      }
+    }, drawPollen2);
+  };
+
+
   regl.frame((context) => {
     TWEEN.update();
     simulatedPollen.tick();
@@ -120,38 +155,9 @@ module.exports = function() {
     camera.view(camera._view);
 
     var visible = simulatedPollen.visible();
+    context.visible = visible;
     if (visible.length) {
-      compositor.buffer.use(function() {
-        drawPollenet.setup({
-          camera: camera,
-          viewport: {
-            x: 0,
-            y: 0,
-            width: context.viewportWidth,
-            height: context.viewportHeight
-          }
-        }, function(context) {
-          var props = visible.map((pollenet, i) => {
-            var lod = drawPollenet.pickLOD(
-              pollenet.source.LODs,
-              pollenet.model,
-              camera._view,
-              context.viewportWidth,
-              context.viewportHeight
-            );
-            return {
-              positions: lod.mesh.positions,
-              uvs: lod.mesh.uvs,
-              cells: lod.mesh.cells,
-              lodLevel: lod.level,
-              model: pollenet.model,
-              image: pollenet.image,
-              normal: pollenet.normal
-            };
-          });
-          drawPollenet.draw(props);
-        });
-      });
+      compositor.buffer.use(drawPollen);
     }
 
     compositor.drawPost(context);
