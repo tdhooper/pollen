@@ -59,6 +59,8 @@ vec2 map(vec3 st) {
     a.x = fbm(st);
     a.y = fbm(st + vec3(1));
 
+    return normalize(a);
+
     b.x = fbm(st + 4. * vec3(a, 0));
     b.y = fbm(st + 2. * vec3(a, 0));
 
