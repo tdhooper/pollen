@@ -82,7 +82,15 @@ module.exports = function() {
 
   var axis = vec3.fromValues(3, 0, 2);
 
-  function drawPollenet1(size, offsetX, offsetY, context) {
+  function drawPollenet1(context) {
+
+    var size = Math.min(
+      context.viewportWidth * (.5 + .5 * .666),
+      context.viewportHeight
+    );
+    var offsetX = context.viewportWidth * .5 - size * .4;
+    var offsetY = (context.viewportHeight - size) / 2;
+
     drawPollenet.setup({
       camera: camera,
       viewport: {
@@ -114,19 +122,7 @@ module.exports = function() {
 
     videoSource.update();
 
-    var size = Math.min(
-      context.viewportWidth * (.5 + .5 * .666),
-      context.viewportHeight
-    );
-    var offsetX = context.viewportWidth * .5 - size * .4;
-    var offsetY = (context.viewportHeight - size) / 2;
-
-    compositor.buffer.use(drawPollenet1.bind(
-      this,
-      size,
-      offsetX,
-      offsetY
-    ));
+    compositor.buffer.use(drawPollenet1);
 
     // if (source.LODs) {
     //   drawSaved.draw({
