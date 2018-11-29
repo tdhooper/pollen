@@ -5,7 +5,7 @@ const vec3 = require('gl-matrix').vec3;
 class Pollenet {
 
   constructor(source, offset) {
-    this.source = source;
+    this._source = source;
     this._model = mat4.fromTranslation([], [offset,0,0]);
     this._position = vec3.create();
     this.pickLOD = this.pickLOD();
@@ -24,6 +24,17 @@ class Pollenet {
     this._drawProps.lodLevel = lod.level;
     this._drawProps.model = this.model;
     return this._drawProps;
+  }
+
+  get source() {
+    return this._source;
+  }
+
+  setSource(source) {
+    this._source = source;
+    this._drawProps.height = this.height;
+    this._drawProps.normal = this.normal;
+    this._drawProps.image = this.image;
   }
 
   get position() {

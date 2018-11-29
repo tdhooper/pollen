@@ -28,6 +28,12 @@ class SimulatedPollenet extends Pollenet {
     );
   }
 
+  setSource(source) {
+    this._source = source;
+    this._drawProps.normal = this.normal;
+    this._drawProps.image = this.image;
+  }
+
   move() {
 
     var axis = vec3.create();

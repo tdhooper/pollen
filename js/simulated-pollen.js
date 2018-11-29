@@ -49,7 +49,7 @@ class SimulatedPollen {
       .easing(TWEEN.Easing.Elastic.Out);
 
     tweenOut.onComplete(_ => {
-      oldest.source = source;
+      oldest.setSource(source);
       tweenIn.start();
     });
     tweenOut.start();
