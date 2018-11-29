@@ -23,7 +23,7 @@ class SimulatedPollen {
     this.minSize = 0.1;
     this.maxSize = .7;
     this.focus = undefined;
-    this.visible = this.visible();
+    this.visibleProps = this.visibleProps();
     this.tick = this.tick();
   }
 
@@ -61,14 +61,14 @@ class SimulatedPollen {
     this.focus = pollenet;
   }
 
-  visible() {
+  visibleProps() {
     var frustum = new Frustum();
     var sphere = new Sphere();
     var tFrustumMat = new Matrix4();
     var mat4Scratch = mat4.create();
     var point = new Vector3();
 
-    var filterVisible = function(pollenet) {
+    var isVisible = function(pollenet) {
       return ! frustum.planes.some(plane => {
         point.fromArray(pollenet.position);
         sphere.center = point;
@@ -77,14 +77,29 @@ class SimulatedPollen {
       });
     };
 
-    return function() {
+    var reduceVisibleProps = function(
+      view,
+      viewportWidth,
+      viewportHeight,
+      acc,
+      pollenet
+    ) {
+      if (isVisible(pollenet)) {
+        var props = pollenet.drawProps(view, viewportWidth, viewportHeight);
+        return acc.concat(props);
+      }
+      return acc;
+    };
 
+    return function(view, viewportWidth, viewportHeight) {
       tFrustumMat.fromArray(
         mat4.multiply(mat4Scratch, this.camera._projection, this.camera._view)
       );
       frustum.setFromMatrix(tFrustumMat);
-
-      return this.pollen.filter(filterVisible);
+      return this.pollen.reduce(
+        reduceVisibleProps.bind(this, view, viewportWidth, viewportHeight),
+        []
+      );
     };
   }
 

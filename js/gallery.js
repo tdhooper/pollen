@@ -103,20 +103,15 @@ module.exports = function() {
     }
   }
 
-  var getDrawProps = function(view, width, height, pollenet) {
-    return pollenet.drawProps(view, width, height);
-  };
-
-  var drawPollen2 = function(context) {
-    var props = context.visible.map(
-      getDrawProps.bind(
-        this,
-        camera._view,
-        context.viewportWidth,
-        context.viewportHeight
-      )
+  var drawVisible = function(context) {
+    var props = simulatedPollen.visibleProps(
+      camera._view,
+      context.viewportWidth,
+      context.viewportHeight
     );
-    drawPollenet.draw(props);
+    if (props.length) {
+      drawPollenet.draw(props);
+    }
   };
 
   var drawPollen = function(context) {
@@ -128,7 +123,7 @@ module.exports = function() {
         width: context.viewportWidth,
         height: context.viewportHeight
       }
-    }, drawPollen2);
+    }, drawVisible);
   };
 
 
@@ -148,11 +143,7 @@ module.exports = function() {
     );
     camera.view(camera._view);
 
-    var visible = simulatedPollen.visible();
-    context.visible = visible;
-    if (visible.length) {
-      compositor.buffer.use(drawPollen);
-    }
+    compositor.buffer.use(drawPollen);
 
     compositor.drawPost(context);
   });
