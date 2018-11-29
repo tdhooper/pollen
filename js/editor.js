@@ -82,6 +82,26 @@ module.exports = function() {
 
   var axis = vec3.fromValues(3, 0, 2);
 
+  function drawPollenet1(size, offsetX, offsetY, context) {
+    drawPollenet.setup({
+      camera: camera,
+      viewport: {
+        x: offsetX,
+        y: offsetY,
+        width: size,
+        height: size
+      }
+    }, drawPollenet2);
+  }
+
+  function drawPollenet2(context) {
+    drawPollenet.draw(pollenet.drawProps(
+      camera._view,
+      context.viewportWidth,
+      context.viewportHeight
+    ));
+  }
+
   regl.frame((context) => {
     // camera.rotate([.003,0.002],[0,0]);
     camera.tick();
@@ -101,35 +121,12 @@ module.exports = function() {
     var offsetX = context.viewportWidth * .5 - size * .4;
     var offsetY = (context.viewportHeight - size) / 2;
 
-    compositor.buffer.use(function() {
-      drawPollenet.setup({
-        camera: camera,
-        viewport: {
-          x: offsetX,
-          y: offsetY,
-          width: size,
-          height: size
-        }
-      }, function(context) {
-        var lod = drawPollenet.pickLOD(
-          pollenet.source.LODs,
-          pollenet.model,
-          camera._view,
-          context.viewportWidth,
-          context.viewportHeight
-        );
-        drawPollenet.draw({
-          positions: lod.mesh.positions,
-          uvs: lod.mesh.uvs,
-          cells: lod.mesh.cells,
-          lodLevel: lod.level,
-          model: pollenet.model,
-          image: pollenet.image,
-          normal: pollenet.normal,
-          height: pollenet.height
-        });
-      });
-    });
+    compositor.buffer.use(drawPollenet1.bind(
+      this,
+      size,
+      offsetX,
+      offsetY
+    ));
 
     // if (source.LODs) {
     //   drawSaved.draw({

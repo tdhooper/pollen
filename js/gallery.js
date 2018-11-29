@@ -103,25 +103,19 @@ module.exports = function() {
     }
   }
 
+  var getDrawProps = function(view, width, height, pollenet) {
+    return pollenet.drawProps(view, width, height);
+  };
+
   var drawPollen2 = function(context) {
-    var props = context.visible.map((pollenet, i) => {
-      var lod = drawPollenet.pickLOD(
-        pollenet.source.LODs,
-        pollenet.model,
+    var props = context.visible.map(
+      getDrawProps.bind(
+        this,
         camera._view,
         context.viewportWidth,
         context.viewportHeight
-      );
-      return {
-        positions: lod.mesh.positions,
-        uvs: lod.mesh.uvs,
-        cells: lod.mesh.cells,
-        lodLevel: lod.level,
-        model: pollenet.model,
-        image: pollenet.image,
-        normal: pollenet.normal
-      };
-    });
+      )
+    );
     drawPollenet.draw(props);
   };
 

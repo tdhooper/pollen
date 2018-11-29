@@ -34,7 +34,6 @@ class DrawCore {
       return i;
     });
 
-    this.pickLOD = this.pickLOD();
     var normals = this.calcModelViewNormals(models);
     var iNormalRows = this.extractModelViewNormalRows(normals);
 
@@ -169,41 +168,6 @@ class DrawCore {
         lodLevel: regl.prop('lodLevel')
       }
     });
-  }
-
-  pickLOD() {
-
-    var viewInv = mat4.create();
-    var camPos = vec3.create();
-    var modelPos = vec3.create();
-    var modelScale = mat4.create();
-
-    return function(LODs, model, view, viewportWidth, viewportHeight) {
-      mat4.invert(viewInv, view);
-      mat4.getTranslation(camPos, viewInv);
-
-      mat4.getTranslation(modelPos, model);
-      var dist = vec3.dist(camPos, modelPos);
-
-      var vFOV = Math.PI / 10;
-      var vHeight = 2 * Math.tan( vFOV / 2 ) * dist;
-      var aspect = viewportWidth / viewportHeight;
-
-      mat4.getScaling(modelScale, model);
-      var scale = modelScale[0] * 2;
-      var fraction = scale / vHeight;
-
-      fraction = Math.pow(fraction * 2., .5) - .2;
-      fraction = Math.max(0, fraction);
-
-      var lod = Math.round(fraction * (LODs.length - 1));
-      lod = Math.min(lod, LODs.length - 1);
-
-      return {
-        mesh: LODs[lod],
-        level: lod
-      };
-    };
   }
 
   calcModelViewNormals(models) {

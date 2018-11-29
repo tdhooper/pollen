@@ -12,10 +12,20 @@ class SimulatedPollenet extends Pollenet {
     this._model = mat4.identity([]);
     this.rotation = quat.create();
     this.move = this.move();
+    this._scale = vec3.create();
+    this._drawProps = {
+      normal: this.normal,
+      image: this.image
+    };
   }
 
   get position() {
-    return [this.particle.x, this.particle.y, 0];
+    return vec3.set(
+      this._position,
+      this.particle.x,
+      this.particle.y,
+      0
+    );
   }
 
   move() {
@@ -39,13 +49,21 @@ class SimulatedPollenet extends Pollenet {
   }
 
   get model() {
-    mat4.fromRotationTranslationScale(
+    return mat4.fromRotationTranslationScale(
       this._model,
       this.rotation,
       this.position,
-      [this.particle.radius, this.particle.radius, this.particle.radius]
+      this.scale
     );
-    return this._model;
+  }
+
+  get scale() {
+    return vec3.set(
+      this._scale,
+      this.particle.radius,
+      this.particle.radius,
+      this.particle.radius
+    );
   }
 
 }
