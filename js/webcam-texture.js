@@ -22,9 +22,10 @@ var WebcamTexture = function(regl) {
 WebcamTexture.prototype.startStream = function() {
     console.log('Starting stream...');
     var constraints = {
-        video: {
-            deviceId: {exact: '60f187ac2825165f0d813c0a7743e8691ad84a5775427c7146ad2239a3a900b2'},
-        }
+        video: true,
+        // video: {
+        //     deviceId: {exact: '60f187ac2825165f0d813c0a7743e8691ad84a5775427c7146ad2239a3a900b2'},
+        // }
     };
     navigator.mediaDevices.getUserMedia(constraints)
         .then(this.getVideoFromStream.bind(this))
