@@ -40,6 +40,7 @@ function urlToImg(url) {
       resolve(img);
     };
     img.onerror = reject;
+    img.crossOrigin = '';
     img.src = url;
   });
 }

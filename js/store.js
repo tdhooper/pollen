@@ -23,41 +23,39 @@ function save(sourceObj) {
     var data = {
       normal: filenames[0],
       image: filenames[1],
-      LODs: filenames[2]
+      LODs: filenames[2],
+      created: firebase.firestore.FieldValue.serverTimestamp(),
     };
     console.log('submit', name);
     savedRef.doc(name).set(data);
   });
 }
 
-function restore(name) {
-  return fetch('/saved/' + name + '.json').then(response => {
-    return response.text();
-  }).then(text => {
-    return JSON.parse(text);
-  }).then(obj => {
-    return Promise.all([
-      urlToImg('/saved/' + obj.normal),
-      urlToImg('/saved/' + obj.image),
-    ]).then(images => {
-      obj.LODs = obj.LODs.map(mesh => ({
-        positions: regl.buffer(mesh.positions),
-        uvs: regl.buffer(mesh.uvs),
-        cells: regl.elements(mesh.cells)
-      }));
-      obj.normal = images[0];
-      obj.image = images[1];
-      return obj;
-    });
+function restore(obj) {
+  return Promise.all([
+    downloadUrl(obj.normal).then(urlToImg),
+    downloadUrl(obj.image).then(urlToImg),
+    downloadUrl(obj.LODs).then(urlToJson),
+  ]).then(assets => {
+    obj.normal = assets[0];
+    obj.image = assets[1];
+    obj.LODs = assets[2].map(mesh => ({
+      positions: regl.buffer(mesh.positions),
+      uvs: regl.buffer(mesh.uvs),
+      cells: regl.elements(mesh.cells)
+    }));
+    return obj;
   });
 }
 
-function saved() {
-  return fetch('/saved').then(response => {
-    return response.text();
-  }).then(text => {
-    return JSON.parse(text);
-  });
+function saved(limit) {
+  return savedRef
+    .orderBy('created', 'desc')
+    .limit(limit)
+    .get()
+    .then(snapshot => {
+      return snapshot.docs.map(doc => doc.data());
+    });
 }
 
 function uploadImage(blob, name) {
@@ -84,6 +82,24 @@ function uploadJson(json, name) {
         resolve(name);
       });
   });
+}
+
+function urlToJson(url) {
+  return new Promise((resolve, reject) => {
+    var xhr = new XMLHttpRequest();
+    xhr.responseType = 'json';
+    xhr.onload = function(event) {
+      resolve(xhr.response);
+    };
+    xhr.open('GET', url);
+    xhr.send();
+  });
+}
+
+function downloadUrl(name) {
+  return modelsRef
+    .child(name)
+    .getDownloadURL();
 }
 
 module.exports = {

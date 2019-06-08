@@ -68,7 +68,7 @@ module.exports = function() {
   var radius = 7;
   var simulatedPollen = new SimulatedPollen(camera, radius);
 
-  store.saved().then(saved => {
+  store.saved(limit).then(saved => {
     saved = saved.slice(0, limit);
     Promise.all(saved.map(store.restore)).then(restored => {
       var sources = restored.map(obj => {
