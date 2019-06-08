@@ -2,6 +2,7 @@
 module.exports = function() {
 
   require('./setup-regl');
+  require('./setup-firebase');
 
   const createCamera = require('canvas-orbit-camera');
   const mat4 = require('gl-matrix').mat4;

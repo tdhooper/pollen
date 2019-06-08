@@ -2,22 +2,31 @@ var objToBlob = require('./send-buffer').objToBlob;
 var urlToImg = require('./send-buffer').urlToImg;
 var uuidv1 = require('uuid/v1');
 
+var storage = firebase.storage();
+var modelsRef = storage.ref().child('models');
+
+var db = firebase.firestore();
+var savedRef = db.collection('saved');
+
+
 function save(sourceObj) {
-  name = uuidv1();
+  var name = uuidv1();
   Promise.all([
     objToBlob(sourceObj.normal).then(
-      blob => upload(blob, name + '_normal.png')
+      blob => uploadImage(blob, name + '_normal.png')
     ),
     objToBlob(sourceObj.image).then(
-      blob => upload(blob, name + '_image.png')
-    )
+      blob => uploadImage(blob, name + '_image.png')
+    ),
+    uploadJson(sourceObj.LODs, name + '_mesh.json')
   ]).then(filenames => {
     var data = {
       normal: filenames[0],
       image: filenames[1],
-      LODs: sourceObj.LODs
+      LODs: filenames[2]
     };
-    return submit(data, name);
+    console.log('submit', name);
+    savedRef.doc(name).set(data);
   });
 }
 
@@ -51,30 +60,29 @@ function saved() {
   });
 }
 
-function upload(blob, name) {
-  var form = new FormData();
-  form.append('image', blob, name);
-  var f = fetch('/upload', {
-    method: 'POST',
-    body: form
-  });
-  return f.then(response => {
-    return response.text();
+function uploadImage(blob, name) {
+  return new Promise((resolve, reject) => {
+    modelsRef
+      .child(name)
+      .put(blob, {
+        contentType: 'image/png',
+      })
+      .then(snapshot => {
+        resolve(name);
+      });
   });
 }
 
-function submit(data, name) {
-  console.log('submit', name);
-  var form = new FormData();
-  var f = fetch('/save/' + name, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(data)
-  });
-  return f.then(response => {
-    return response.text();
+function uploadJson(json, name) {
+  return new Promise((resolve, reject) => {
+    modelsRef
+      .child(name)
+      .putString(JSON.stringify(json), 'raw', {
+        contentType: 'application/json',
+      })
+      .then(snapshot => {
+        resolve(name);
+      });
   });
 }
 

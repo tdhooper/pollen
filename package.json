@@ -18,6 +18,7 @@
     "clone-deep": "^4.0.0",
     "collisions": "^2.0.13",
     "esmify": "^2.0.0",
+    "firebase": "^6.1.1",
     "gl-mat4": "^1.2.0",
     "gl-matrix": "^2.6.1",
     "gl-wireframe": "^1.0.1",
